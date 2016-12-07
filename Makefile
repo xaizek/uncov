@@ -91,18 +91,17 @@ debug release: $(bin)
 sanitize-basic: $(bin)
 
 coverage: check $(bin)
-	lcov --directory $(out_dir)/ --base-directory src/ --capture \
-	     --output-file $(out_dir)/lcov.info --config-file tests/meta/lcovrc \
-	     --test-name unit_tests --quiet
-	genhtml --output-directory $(out_dir)/data/ $(out_dir)/lcov.info \
-	     --config-file tests/meta/lcovrc --demangle-cpp --show-details
+	find $(out_dir)/ -name '*.o' -exec gcov -p {} \;
+	uncover-gcov --root . --build-root . --no-gcov --exclude tests | \
+	    uncover . new
+	find . -name '*.gcov' -delete
 
 show-coverage: coverage
 	$$BROWSER coverage/data/index.html
 
 reset-coverage:
 ifeq ($(with_cov),1)
-	lcov --directory $(out_dir)/ --zerocounters
+	find $(out_dir)/ -name '*.gcda' -delete
 endif
 
 $(bin): | $(out_dirs)
