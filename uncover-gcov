@@ -1,0 +1,529 @@
+#!/usr/bin/env python2
+
+# Copyright (C) 2016 xaizek <xaizek@openmailbox.org>
+#
+# This file is part of uncover.
+#
+# uncover is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# uncover is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with uncover.  If not, see <http://www.gnu.org/licenses/>
+
+# Copyright (C) 2015 Lei Xu <eddyxu@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import print_function
+
+import argparse
+import hashlib
+import io
+import os
+import re
+import subprocess
+import sys
+
+import os.path as path
+
+_CPP_EXTENSIONS = ['.h', '.hh', '.hpp', '.hxx', '.c', '.cc', '.cpp', '.cxx',
+                   '.m', '.mm']
+_SKIP_DIRS = set(['.git', '.hg', '.svn', 'deps'])
+
+
+def create_args(params):
+    parser = argparse.ArgumentParser('coveralls')
+    parser.add_argument('--verbose', action='store_true',
+                        help='print verbose messages')
+    parser.add_argument('--dryrun', action='store_true',
+                        help='run coveralls without uploading report')
+    parser.add_argument('--gcov', metavar='FILE', default='gcov',
+                        help='set the location of gcov')
+    parser.add_argument('--gcov-options', metavar='GCOV_OPTS', default='',
+                        help='set the options given to gcov')
+    parser.add_argument('-r', '--root', metavar='DIR', default='.',
+                        help='set the root directory')
+    parser.add_argument('-b', '--build-root', metavar='DIR',
+                        help='set the directory from which gcov will '
+                             'be called; by default gcov is run in the '
+                             'directory of the .o files; however the paths '
+                             'of the sources are often relative to the '
+                             'directory from which the compiler was run and '
+                             'these relative paths are saved in the .o '
+                             'file; when this happens, gcov needs to run in '
+                             'the same directory as the compiler in order '
+                             'to find the source files')
+    parser.add_argument('-e', '--exclude', metavar='DIR|FILE', action='append',
+                        help='set exclude file or directory', default=[])
+    parser.add_argument('-i', '--include', metavar='DIR|FILE', action='append',
+                        help='set include file or directory', default=[])
+    parser.add_argument('-E', '--exclude-pattern', dest='regexp',
+                        action='append', metavar='REGEXP', default=[],
+                        help='set exclude file/directory pattern')
+    parser.add_argument('-x', '--extension', metavar='EXT', action='append',
+                        help='set extension of files to process')
+    parser.add_argument('-n', '--no-gcov', action='store_true', default=False,
+                        help='do not run gcov')
+    parser.add_argument('--encodings',
+                        default=['utf-8', 'latin-1'], nargs='+',
+                        help='source encodings to try in order of preference '
+                             '(default: %(default)s)')
+    parser.add_argument('--dump', nargs='?', type=argparse.FileType('w'),
+                        help='dump JSON payload to a file',
+                        default=None, metavar='FILE')
+    parser.add_argument('--follow-symlinks', action='store_true',
+                        help='Follow symlinks (default off)')
+
+    return parser.parse_args(params)
+
+
+def is_source_file(args, filepath):
+    """Returns true if it is a C++ source file."""
+    if args.extension:
+        return path.splitext(filepath)[1] in args.extension
+    else:
+        return path.splitext(filepath)[1] in _CPP_EXTENSIONS
+
+
+def exclude_paths(args):
+    """Returns the absolute paths for excluded path."""
+    results = []
+    if args.exclude:
+        for excl_path in args.exclude:
+            results.append(path.abspath(path.join(args.root, excl_path)))
+    return results
+
+
+_cached_exclude_rules = None
+
+
+def create_exclude_rules(args):
+    """Creates the exlude rules."""
+    global _cached_exclude_rules
+    if _cached_exclude_rules is not None:
+        return _cached_exclude_rules
+    rules = []
+    for excl_path in args.exclude:
+        abspath = path.abspath(path.join(args.root, excl_path))
+        rules.append((abspath, True))
+    for incl_path in args.include:
+        abspath = path.abspath(path.join(args.root, incl_path))
+        rules.append((abspath, False))
+    _cached_exclude_rules = sorted(rules, key=lambda p: p[0])
+    return _cached_exclude_rules
+
+
+def is_child_dir(parent, child):
+    relaive = path.relpath(child, parent)
+    return not relaive.startswith(os.pardir)
+
+
+def is_excluded_path(args, filepath):
+    """Returns true if the filepath is under the one of the exclude path."""
+    # Try regular expressions first.
+    for regexp_exclude_path in args.regexp:
+        if re.match(regexp_exclude_path, filepath):
+            return True
+    abspath = path.abspath(filepath)
+    if args.include:
+        # If the file is outside of any include directories.
+        out_of_include_dirs = True
+        for incl_path in args.include:
+            absolute_include_path = path.abspath(path.join(args.root,
+                                                           incl_path))
+            if is_child_dir(absolute_include_path, abspath):
+                out_of_include_dirs = False
+                break
+        if out_of_include_dirs:
+            return True
+
+    excl_rules = create_exclude_rules(args)
+    for i, rule in enumerate(excl_rules):
+        if rule[0] == abspath:
+            return rule[1]
+        if is_child_dir(rule[0], abspath):
+            # continue to try to longest match.
+            last_result = rule[1]
+            for j in range(i + 1, len(excl_rules)):
+                rule_deep = excl_rules[j]
+                if not is_child_dir(rule_deep[0], abspath):
+                    break
+                last_result = rule_deep[1]
+            return last_result
+    return False
+
+
+def posix_path(some_path):
+    return some_path.replace(path.sep, '/')
+
+
+def is_libtool_dir(dir_path):
+    return path.basename(dir_path) == ".libs"
+
+
+def libtool_dir_to_source_dir(dir_path):
+    return path.dirname(dir_path)
+
+
+def libtool_source_file_path(dir_path, source_file_path):
+    source_dir_path = libtool_dir_to_source_dir(dir_path)
+    return path.join(source_dir_path, source_file_path)
+
+
+def filter_dirs(root, dirs, excl_paths):
+    """Filter directory paths based on the exclusion rules defined in
+    'excl_paths'.
+    """
+    filtered_dirs = []
+    for dirpath in dirs:
+        abspath = path.abspath(path.join(root, dirpath))
+        if path.basename(abspath) in _SKIP_DIRS:
+            continue
+        if abspath not in excl_paths:
+            filtered_dirs.append(dirpath)
+    return filtered_dirs
+
+
+def run_gcov(args):
+    excl_paths = exclude_paths(args)
+    for root, dirs, files in os.walk(args.root,
+                                     followlinks=args.follow_symlinks):
+        dirs[:] = filter_dirs(root, dirs, excl_paths)
+
+        root_is_libtool_dir = is_libtool_dir(root)
+        for filepath in files:
+            basename, ext = path.splitext(filepath)
+            if ext == '.gcno':
+                gcov_root = root
+                local_gcov_options = ''
+                # If the build root is set, run gcov in it, else run gcov in
+                # the directories of the .o files.
+                gcov_files = []
+                custom_gcov_root = args.build_root
+                if not custom_gcov_root and root_is_libtool_dir:
+                    custom_gcov_root = libtool_dir_to_source_dir(root)
+                if custom_gcov_root:
+                    gcov_root = custom_gcov_root
+                    local_gcov_options = local_gcov_options + \
+                        ' --object-directory "%s"' % (path.abspath(root))
+                    # List current gcov files in build root. We want to move
+                    # only the one we will generate now.
+                    for files in os.listdir(custom_gcov_root):
+                        if files.endswith('.gcov'):
+                            gcov_files.append(files)
+                if re.search(r".*\.c.*", basename):
+                    abs_path = path.abspath(path.join(root, basename + '.o'))
+                    subprocess.call(
+                        'cd "%s" && %s %s%s "%s"' % (
+                            gcov_root, args.gcov, args.gcov_options,
+                            local_gcov_options, abs_path),
+                        shell=True)
+                else:
+                    abs_path = path.abspath(path.join(root, basename))
+                    subprocess.call(
+                        'cd "%s" && %s %s%s "%s"' % (
+                            gcov_root, args.gcov, args.gcov_options,
+                            local_gcov_options, filepath),
+                        shell=True)
+                # If gcov was run in the build root move the resulting gcov
+                # file to the same directory as the .o file.
+                if custom_gcov_root:
+                    for files in os.listdir(custom_gcov_root):
+                        if files.endswith('.gcov') and files not in gcov_files:
+                            os.rename(path.join(custom_gcov_root, files),
+                                      path.join(root, files))
+
+
+def parse_gcov_file(fobj, filename):
+    """Parses the content of .gcov file"""
+    coverage = []
+    ignoring = False
+    for line in fobj:
+        report_fields = line.decode('utf-8', 'replace').split(':', 2)
+        if len(report_fields) == 1:
+            continue
+
+        cov_num = report_fields[0].strip()
+        line_num = int(report_fields[1].strip())
+        text = report_fields[2]
+        if line_num == 0:
+            continue
+        if re.search(r'\bLCOV_EXCL_START\b', text):
+            if ignoring:
+                sys.stderr.write("Warning: %s:%d: nested LCOV_EXCL_START, "
+                                 "please fix\n" % (filename, line_num))
+            ignoring = True
+        elif re.search(r'\bLCOV_EXCL_(STOP|END)\b', text):
+            if not ignoring:
+                sys.stderr.write("Warning: %s:%d: LCOV_EXCL_STOP outside of "
+                                 "exclusion zone, please fix\n" % (filename,
+                                                                   line_num))
+            if 'LCOV_EXCL_END' in text:
+                sys.stderr.write("Warning: %s:%d: LCOV_EXCL_STOP is the "
+                                 "correct keyword\n" % (filename, line_num))
+            ignoring = False
+        if cov_num == '-':
+            coverage.append(None)
+        elif cov_num == '#####':
+            # Avoid false positives.
+            if (
+                ignoring or
+                text.lstrip().startswith(('inline', 'static')) or
+                text.strip() == '}' or # XXX: provide an option to disable this?
+                re.search(r'\bLCOV_EXCL_LINE\b', text)
+            ):
+                coverage.append(None)
+            else:
+                coverage.append(0)
+        elif cov_num == '=====':
+            # This is indicitive of a gcov output parse error.
+            # XXX: this is not the case, see `man gcov`.
+            coverage.append(0)
+        else:
+            coverage.append(int(cov_num))
+    return coverage
+
+
+def combine_reports(original, new):
+    """
+    Combines two gcov reports for a file into one by adding the number of hits
+    on each line.
+    """
+    if original is None:
+        return new
+    report = {}
+    report['name'] = original['name']
+    report['source_digest'] = original['source_digest']
+    coverage = []
+    for original_num, new_num in zip(original['coverage'], new['coverage']):
+        if original_num is None:
+            coverage.append(new_num)
+        elif new_num is None:
+            coverage.append(original_num)
+        else:
+            coverage.append(original_num + new_num)
+
+    covered = 0
+    for c in coverage:
+        if c is not None:
+            covered = covered + c
+
+    report['coverage'] = coverage
+    return report
+
+
+def collect_non_report_files(args, discovered_files):
+    """Collects the source files that have no coverage reports."""
+    excl_paths = exclude_paths(args)
+    abs_root = path.abspath(args.root)
+    non_report_files = []
+    for root, dirs, files in os.walk(args.root,
+                                     followlinks=args.follow_symlinks):
+        dirs[:] = filter_dirs(root, dirs, excl_paths)
+
+        for filename in files:
+            if not is_source_file(args, filename):
+                continue
+            abs_filepath = path.join(path.abspath(root), filename)
+            if is_excluded_path(args, abs_filepath):
+                continue
+            filepath = path.relpath(abs_filepath, abs_root)
+            if filepath not in discovered_files:
+                src_report = {}
+                src_report['name'] = posix_path(filepath)
+                coverage = []
+                with io.open(abs_filepath, mode='rb') as fobj:
+                    for _ in fobj:
+                        coverage.append(None)
+                    fobj.seek(0)
+                    src_report['source_digest'] = \
+                        hashlib.md5(fobj.read()).hexdigest()
+                src_report['coverage'] = coverage
+                non_report_files.append(src_report)
+    return non_report_files
+
+
+def collect(args):
+    """Collect coverage reports."""
+    excl_paths = exclude_paths(args)
+
+    report = {}
+
+    report['service_name'] = args.service_name
+
+    discovered_files = set()
+    src_files = {}
+    abs_root = path.abspath(args.root)
+    for root, dirs, files in os.walk(args.root,
+                                     followlinks=args.follow_symlinks):
+        dirs[:] = filter_dirs(root, dirs, excl_paths)
+
+        root_is_libtool_dir = is_libtool_dir(root)
+        for filepath in files:
+            if path.splitext(filepath)[1] == '.gcov':
+                gcov_path = path.join(path.join(root, filepath))
+                with open(gcov_path, mode='rb') as fobj:
+                    source_file_line = fobj.readline().decode('utf-8',
+                                                              'replace')
+                    source_file_path = source_file_line.split(':')[-1].strip()
+                    if not path.isabs(source_file_path):
+                        if args.build_root:
+                            source_file_path = path.join(args.build_root,
+                                                         source_file_path)
+                        elif root_is_libtool_dir:
+                            source_file_path = path.abspath(
+                                libtool_source_file_path(
+                                    root, source_file_path))
+                        else:
+                            if not source_file_path.startswith(path.pardir +
+                                                               path.sep) and \
+                               path.dirname(source_file_path):
+                                the_root = abs_root
+                            else:
+                                the_root = root
+                            source_file_path = path.abspath(
+                                path.join(the_root, source_file_path))
+                    src_path = path.relpath(source_file_path, abs_root)
+                    if src_path.startswith(path.pardir + path.sep):
+                        continue
+                    if is_excluded_path(args, source_file_path):
+                        continue
+
+                    src_report = {}
+                    src_report['name'] = posix_path(src_path)
+                    discovered_files.add(src_path)
+                    with io.open(source_file_path, mode='rb') as src_file:
+                        src_report['source_digest'] = \
+                                hashlib.md5(src_file.read()).hexdigest()
+
+                    src_report['coverage'] = parse_gcov_file(fobj, gcov_path)
+                    if src_path in src_files:
+                        src_files[src_path] = \
+                                combine_reports(src_files[src_path], src_report)
+                    else:
+                        src_files[src_path] = src_report
+
+    report['source_files'] = list(src_files.values())
+    # Also collects the source files that have no coverage reports.
+    report['source_files'].extend(
+        collect_non_report_files(args, discovered_files))
+
+    # Use the root directory to get information on the Git repository
+    report['git'] = gitrepo(abs_root)
+    return report
+
+def gitrepo(cwd):
+    """Return hash of Git data that can be used to display more information to
+    users.
+
+    Example:
+        "git": {
+            "head": {
+                "id": "5e837ce92220be64821128a70f6093f836dd2c05",
+                "author_name": "Wil Gieseler",
+                "author_email": "wil@example.com",
+                "committer_name": "Wil Gieseler",
+                "committer_email": "wil@example.com",
+                "message": "depend on simplecov >= 0.7"
+            },
+            "branch": "master",
+            "remotes": [{
+                "name": "origin",
+                "url": "https://github.com/lemurheavy/coveralls-ruby.git"
+            }]
+        }
+
+    From https://github.com/coagulant/coveralls-python (with MIT license).
+
+    """
+    import os
+    repo = Repository(cwd)
+
+    return {
+        'ref': repo.gitlog('%H'),
+        'ref-name': repo.git('rev-parse', '--abbrev-ref', 'HEAD').strip(),
+    }
+
+class Repository(object):
+
+    def __init__(self, cwd):
+        self.cwd = cwd
+
+    def gitlog(self, fmt):
+        return self.git('--no-pager', 'log', '-1', '--pretty=format:%s' % fmt)
+
+    def git(self, *arguments):
+        """Return output from git."""
+        import subprocess
+        process = subprocess.Popen(['git'] + list(arguments),
+                                   stdout=subprocess.PIPE,
+                                   cwd=self.cwd)
+        return process.communicate()[0].decode('UTF-8')
+
+def run():
+    """Run cpp coverage."""
+    import json
+    import os
+    import sys
+
+    args = create_args(sys.argv[1:])
+
+    if args.verbose:
+        print('encodings: {}'.format(args.encodings))
+
+    args.service_name = 'local-build'
+
+    if not args.gcov_options:
+        args.gcov_options = ''
+    if not args.root:
+        args.root = '.'
+    if not args.build_root:
+        args.build_root = ''
+
+    if not args.no_gcov:
+        run_gcov(args)
+    cov_report = collect(args)
+    if args.verbose:
+        print(cov_report)
+    if args.dryrun:
+        return 0
+    if args.dump:
+        args.dump.write(json.dumps(cov_report))
+        return 0
+
+    repo = cov_report['git']
+    print(repo['ref'])
+    print(repo['ref-name'])
+
+    src_files = cov_report['source_files']
+    for rec in src_files:
+        print(rec['name'])
+        print(len(rec['coverage']))
+        for c in rec['coverage']:
+            if c is None:
+                print(-1, end=" ")
+            else:
+                print(c, end=" ")
+        print()
+
+# TODO: consider checking that working directory is clean in a try to make sure
+#       that data collected reflects state of the commit without any additional
+#       changes.
+run()

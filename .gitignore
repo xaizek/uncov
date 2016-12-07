@@ -1,0 +1,7 @@
+# build artefacts
+/coverage/
+/debug/
+/release/
+*.d
+*.o
+/uncover
