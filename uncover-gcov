@@ -279,14 +279,14 @@ def parse_gcov_file(fobj, filename):
                 sys.stderr.write("Warning: %s:%d: LCOV_EXCL_STOP is the "
                                  "correct keyword\n" % (filename, line_num))
             ignoring = False
-        if cov_num == '-':
+        # XXX: provide an option to disable the second check?
+        if cov_num == '-' or text.strip() == '}':
             coverage.append(None)
         elif cov_num == '#####':
             # Avoid false positives.
             if (
                 ignoring or
                 text.lstrip().startswith(('inline', 'static')) or
-                text.strip() == '}' or # XXX: provide an option to disable this?
                 re.search(r'\bLCOV_EXCL_LINE\b', text)
             ):
                 coverage.append(None)
