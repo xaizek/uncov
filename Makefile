@@ -75,9 +75,8 @@ bin_depends := $(bin_objects:.o=.d)
 
 tests_sources := $(call rwildcard, tests/, *.cpp)
 
-tbin_sources  := $(filter-out %main.cpp, $(tests_sources))
-tbin_sources  := $(subst tests/,$(out_dir)/src/,$(tbin_sources))
-tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o) $(tbin_sources:.cpp=.o)
+tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o)
+tests_objects += $(filter-out %/main.o,$(bin_objects))
 tests_depends := $(tests_sources:%.cpp=$(out_dir)/%.d)
 
 out_dirs := $(sort $(dir $(bin_objects) $(tests_objects)))
