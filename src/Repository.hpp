@@ -29,7 +29,7 @@ class LibGitUser
 public:
     LibGitUser();
     LibGitUser(const LibGitUser &rhs) = delete;
-    LibGitUser &operator=(const LibGitUser &rhs) = delete;
+    LibGitUser & operator=(const LibGitUser &rhs) = delete;
     ~LibGitUser();
 };
 
@@ -41,7 +41,7 @@ class Repository
 public:
     explicit Repository(const std::string &path);
     Repository(const Repository &rhs) = delete;
-    Repository &operator=(const Repository &rhs) = delete;
+    Repository & operator=(const Repository &rhs) = delete;
     ~Repository();
 
 public:
