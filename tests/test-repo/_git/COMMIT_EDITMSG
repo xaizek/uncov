@@ -1,0 +1,13 @@
+Add subdirectory
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#	new file:   file.cpp
+#
+# ------------------------ >8 ------------------------
+# Do not touch the line above.
+# Everything below will be removed.
+diff --git a/subdir/file.cpp b/subdir/file.cpp
+new file mode 100644
+index 0000000..e69de29

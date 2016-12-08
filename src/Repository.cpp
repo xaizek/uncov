@@ -19,6 +19,8 @@
 
 #include <git2.h>
 
+#include <boost/scope_exit.hpp>
+
 #include <iterator>
 #include <stdexcept>
 #include <string>
@@ -87,7 +89,13 @@ LibGitUser::~LibGitUser()
 
 Repository::Repository(const std::string &path)
 {
-    if (git_repository_open(&repo, path.c_str()) != 0) {
+    git_buf repoPath = GIT_BUF_INIT_CONST(NULL, 0);
+    if (git_repository_discover(&repoPath, path.c_str(), false, nullptr) != 0) {
+        throw std::invalid_argument("Could not discover repository");
+    }
+    BOOST_SCOPE_EXIT_ALL(&repoPath) { git_buf_free(&repoPath); };
+
+    if (git_repository_open(&repo, repoPath.ptr) != 0) {
         throw std::invalid_argument("Could not open repository");
     }
 }

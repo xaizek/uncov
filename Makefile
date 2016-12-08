@@ -74,6 +74,7 @@ bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
 bin_depends := $(bin_objects:.o=.d)
 
 tests_sources := $(call rwildcard, tests/, *.cpp)
+tests_sources := $(filter-out tests/test-repo/%, $(tests_sources))
 
 tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o)
 tests_objects += $(filter-out %/main.o,$(bin_objects))
