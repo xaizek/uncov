@@ -359,9 +359,13 @@ printFile(const Repository *repo, const Build &build, const File &file,
     CovInfo covInfo(file);
     const std::string &path = file.getPath();
     const std::string &ref = build.getRef();
+    std::cout << std::setfill('-') << std::setw(80) << "\n"
+              << std::setfill(' ');
     // TODO: colorize percents?
     std::cout << (decor::bold << "File: ") << path << ", "
               << covInfo.formatCoverageRate() << "% "
-              << '(' << covInfo.formatLines("/") << ")\n\n";
+              << '(' << covInfo.formatLines("/") << ")\n";
+    std::cout << std::setfill('-') << std::setw(80) << "\n"
+              << std::setfill(' ');
     printer.print(path, repo->readFile(ref, path), file.getCoverage());
 }
