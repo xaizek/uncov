@@ -62,8 +62,16 @@ public:
         return name;
     }
 
-    void exec(BuildHistory &bh, Repository &repo,
-              const std::vector<std::string> &args);
+    int exec(BuildHistory &bh, Repository &repo,
+             const std::vector<std::string> &args);
+
+protected:
+    void error();
+
+    bool isFailed() const
+    {
+        return hasErrors;
+    }
 
 protected:
     BuildHistory *const &bh = bhValue;
@@ -77,6 +85,7 @@ private:
     const std::size_t minArgs;
     const std::size_t maxArgs;
 
+    int hasErrors = false;
     BuildHistory *bhValue;
     Repository *repoValue;
 };

@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <cstdlib>
+
 #include <iostream>
 #include <unordered_map>
 
@@ -46,7 +48,5 @@ main(int argc, char *argv[])
     DB db(repo.getGitPath() + "/uncover.sqlite");
     BuildHistory bh(db);
 
-    cmd->second->exec(bh, repo, { &argv[3], &argv[argc] });
-
-    return EXIT_SUCCESS;
+    return cmd->second->exec(bh, repo, { &argv[3], &argv[argc] });
 }

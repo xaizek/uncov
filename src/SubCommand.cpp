@@ -17,6 +17,8 @@
 
 #include "SubCommand.hpp"
 
+#include <cstdlib>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -39,24 +41,36 @@ SubCommand::getAllCmds()
     return allCmds;
 }
 
-void
+int
 SubCommand::exec(BuildHistory &bh, Repository &repo,
                  const std::vector<std::string> &args)
 {
+    hasErrors = false;
+
     if (args.size() < minArgs) {
         std::cout << "Too few arguments: " << args.size() << ".  "
                   << "Expected at least " << minArgs << '\n';
-        return;
+        error();
     }
 
     if (args.size() > maxArgs) {
         std::cout << "Too many arguments: " << args.size() << ".  "
                   << "Expected at most " << maxArgs << '\n';
-        return;
+        error();
     }
 
-    bhValue = &bh;
-    repoValue = &repo;
+    if (!hasErrors) {
+        bhValue = &bh;
+        repoValue = &repo;
 
-    return execImpl(args);
+        execImpl(args);
+    }
+
+    return isFailed() ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
+void
+SubCommand::error()
+{
+    hasErrors = true;
 }
