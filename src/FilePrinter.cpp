@@ -92,4 +92,9 @@ FilePrinter::print(const std::string &path, const std::string &contents,
 
         std::cout << fileLine << std::endl;
     }
+
+    if (lineNo != coverage.size()) {
+        std::cout << (decor::red_bg + decor::bold
+                  << "ERROR:") << " not enough lines in the file." << std::endl;
+    }
 }
