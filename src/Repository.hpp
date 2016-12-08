@@ -19,7 +19,7 @@
 #define UNCOVER__REPOSITORY_HPP__
 
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 
 struct git_repository;
 struct git_tree;
@@ -47,7 +47,8 @@ public:
 public:
     std::string getGitPath() const;
     std::string resolveRef(const std::string &ref) const;
-    std::unordered_set<std::string> listFiles(const std::string &ref) const;
+    std::unordered_map<std::string, std::string>
+    listFiles(const std::string &ref) const;
     std::string readFile(const std::string &ref, const std::string &path) const;
 
 private:

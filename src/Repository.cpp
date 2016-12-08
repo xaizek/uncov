@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 template <typename T>
@@ -125,12 +126,12 @@ Repository::resolveRef(const std::string &ref) const
     return oidStr;
 }
 
-std::unordered_set<std::string>
+std::unordered_map<std::string, std::string>
 Repository::listFiles(const std::string &ref) const
 {
     GitObjPtr<git_tree> treeRoot = getRefRoot(ref);
 
-    std::vector<std::string> files;
+    std::vector<std::pair<std::string, std::string>> fileData;
 
     auto cb = [](const char root[], const git_tree_entry *entry,
                  void *payload) {
@@ -138,18 +139,24 @@ Repository::listFiles(const std::string &ref) const
             return 0;
         }
 
-        const auto files = static_cast<std::vector<std::string> *>(payload);
-        files->push_back(std::string(root) + git_tree_entry_name(entry));
+        const auto files = static_cast<decltype(fileData) *>(payload);
+
+        char oidStr[GIT_OID_HEXSZ + 1];
+        git_oid_tostr(oidStr, sizeof(oidStr), git_tree_entry_id(entry));
+
+        files->emplace_back(std::string(root) + git_tree_entry_name(entry),
+                            oidStr);
+
         return 0;
     };
 
-    if (git_tree_walk(treeRoot, GIT_TREEWALK_PRE, cb, &files) != 0) {
+    if (git_tree_walk(treeRoot, GIT_TREEWALK_PRE, cb, &fileData) != 0) {
         throw std::runtime_error("Failed to walk the tree");
     }
 
     return {
-        std::make_move_iterator(files.begin()),
-        std::make_move_iterator(files.end())
+        std::make_move_iterator(fileData.begin()),
+        std::make_move_iterator(fileData.end())
     };
 }
 

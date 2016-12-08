@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <termios.h>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -273,11 +274,12 @@ private:
         std::string ref, refName;
         std::cin >> ref >> refName;
 
-        std::unordered_set<std::string> files = repo->listFiles(ref);
+        const std::unordered_map<std::string, std::string> files =
+            repo->listFiles(ref);
 
         BuildData bd(std::move(ref), refName);
 
-        for (std::string path; std::cin >> path; ) {
+        for (std::string path, sha1Hash; std::cin >> path >> sha1Hash; ) {
             int nLines;
             std::cin >> nLines;
 
@@ -290,17 +292,24 @@ private:
                 coverage.push_back(i);
             }
 
-            if (files.find(path) != files.end()) {
-                bd.addFile(File(std::move(path), std::move(coverage)));
-            } else {
+            const auto file = files.find(path);
+            if (file == files.cend()) {
                 std::cerr << "Skipping file missing in " << refName << ": "
                           << path << '\n';
+            } else if (!boost::iequals(file->second, sha1Hash)) {
+                std::cerr << path << " file at " << refName
+                          << " doesn't match reported SHA-1\n";
+                error();
+            } else {
+                bd.addFile(File(std::move(path), std::move(coverage)));
             }
         }
 
-        Build build = bh->addBuild(bd);
-        printBuild(build);
-        // TODO: display change of coverage since previous build.
+        if (!isFailed()) {
+            Build build = bh->addBuild(bd);
+            printBuild(build);
+            // TODO: display change of coverage since previous build.
+        }
     }
 };
 
