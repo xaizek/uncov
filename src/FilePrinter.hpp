@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "decoration.hpp"
 
 class FilePrinter
 {
