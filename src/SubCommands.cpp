@@ -214,6 +214,82 @@ private:
     }
 };
 
+class DiffCmd : public AutoSubCommand<DiffCmd>
+{
+public:
+    DiffCmd() : parent("diff", 3U)
+    {
+    }
+
+private:
+    virtual void
+    execImpl(const std::vector<std::string> &args) override
+    {
+        // TODO: allow diffing whole builds.
+
+        const int oldBuildId = std::stoi(args[0]);
+        const int newBuildId = std::stoi(args[1]);
+
+        boost::optional<Build> oldBuild = bh->getBuild(oldBuildId);
+        boost::optional<Build> newBuild = bh->getBuild(newBuildId);
+        if (!oldBuild) {
+            std::cerr << "Can't find build #" << oldBuildId << '\n';
+            error();
+        }
+        if (!newBuild) {
+            std::cerr << "Can't find build #" << newBuildId << '\n';
+            error();
+        }
+        if (isFailed()) {
+            return;
+        }
+
+        boost::optional<File &> oldFile = oldBuild->getFile(args[2]);
+        boost::optional<File &> newFile = newBuild->getFile(args[2]);
+        if (!oldFile) {
+            std::cerr << "Can't find file " << args[2] << " in " << args[0]
+                      << '\n';
+            error();
+        }
+        if (!newFile) {
+            std::cerr << "Can't find file " << args[2] << " in " << args[1]
+                      << '\n';
+            error();
+        }
+        if (isFailed()) {
+            return;
+        }
+
+        Text oldVersion = repo->readFile(oldBuild->getRef(),
+                                         oldFile->getPath());
+        Text newVersion = repo->readFile(newBuild->getRef(),
+                                         newFile->getPath());
+        const std::vector<int> &oldCov = oldFile->getCoverage();
+        const std::vector<int> &newCov = newFile->getCoverage();
+
+        if (oldVersion.size() != oldCov.size() ||
+            newVersion.size() != newCov.size()) {
+            std::cerr << "Coverage information is not accurate\n";
+            return error();
+        }
+
+        RedirectToPager redirectToPager;
+
+        printLineSeparator();
+        printBuildHeader(*oldBuild);
+        printFileHeader(*oldFile);
+        printLineSeparator();
+        printBuildHeader(*newBuild);
+        printFileHeader(*newFile);
+        printLineSeparator();
+
+        FilePrinter filePrinter;
+        filePrinter.printDiff(args[2], oldVersion, oldCov, newVersion, newCov);
+
+        // TODO: print some totals/stats here.
+    }
+};
+
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
