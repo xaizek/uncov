@@ -261,6 +261,42 @@ private:
     }
 };
 
+class FilesCmd : public AutoSubCommand<FilesCmd>
+{
+public:
+    FilesCmd() : parent("files", 1U)
+    {
+    }
+
+private:
+    virtual void
+    execImpl(const std::vector<std::string> &args) override
+    {
+        const int buildId = std::stoi(args[0]);
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
+            std::cerr << "Can't find build #" << buildId << '\n';
+            return error();
+        }
+
+        // TODO: colorize percents?
+        TablePrinter tablePrinter({ "-File", "Coverage", "#" },
+                                  getTerminalWidth());
+
+        std::string percent(" %"), sep(" / ");
+        for (const std::string &filePath : build->getPaths()) {
+            CovInfo covInfo(*build->getFile(filePath));
+            tablePrinter.append({
+                filePath,
+                covInfo.formatCoverageRate() + percent,
+                covInfo.formatLines(sep)
+            });
+        }
+
+        tablePrinter.print(std::cout);
+    }
+};
+
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
