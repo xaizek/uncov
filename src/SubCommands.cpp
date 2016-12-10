@@ -261,6 +261,37 @@ private:
     }
 };
 
+class GetCmd : public AutoSubCommand<GetCmd>
+{
+public:
+    GetCmd() : parent("get", 2U)
+    {
+    }
+
+private:
+    virtual void
+    execImpl(const std::vector<std::string> &args) override
+    {
+        const int buildId = std::stoi(args[0]);
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
+            std::cerr << "Can't find build #" << buildId << '\n';
+            return error();
+        }
+
+        boost::optional<File &> file = build->getFile(args[1]);
+        if (!file) {
+            std::cerr << "Can't find file: " << args[1] << '\n';
+            return error();
+        }
+
+        std::cout << build->getRef() << '\n';
+        for (int hits : file->getCoverage()) {
+            std::cout << hits << '\n';
+        }
+    }
+};
+
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
