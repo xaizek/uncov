@@ -228,7 +228,7 @@ private:
         const int buildId = std::stoi(args[0]);
         if (boost::optional<Build> build = bh->getBuild(buildId)) {
             std::map<std::string, CovInfo> dirs;
-            for (const std::string &filePath: build->getPaths()) {
+            for (const std::string &filePath : build->getPaths()) {
                 fs::path dirPath = filePath;
                 dirPath.remove_filename();
 
