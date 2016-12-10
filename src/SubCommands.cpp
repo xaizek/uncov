@@ -256,6 +256,7 @@ private:
             tablePrinter.print(std::cout);
         } else {
             std::cerr << "Can't find build #" << buildId << '\n';
+            error();
         }
     }
 };
@@ -343,9 +344,11 @@ private:
                 printFile(repo, *build, *file, printer);
             } else {
                 std::cerr << "Can't find file: " << args[1] << '\n';
+                error();
             }
         } else {
             std::cerr << "Can't find build #" << buildId << '\n';
+            error();
         }
     }
 };
