@@ -41,9 +41,11 @@
 #include "TablePrinter.hpp"
 #include "decoration.hpp"
 
-static void printBuild(const Build &build);
+static void printBuildHeader(const Build &build);
 static void printFile(const Repository *repo, const Build &build,
                       const File &file, FilePrinter &printer);
+static void printFileHeader(const File &file);
+static void printLineSeparator();
 
 class CovInfo
 {
@@ -375,7 +377,7 @@ private:
 
         if (!isFailed()) {
             Build build = bh->addBuild(bd);
-            printBuild(build);
+            printBuildHeader(build);
             // TODO: display change of coverage since previous build.
         }
     }
@@ -401,13 +403,13 @@ private:
 
             if (args.size() == 1U) {
                 RedirectToPager redirectToPager;
-                printBuild(*build);
+                printBuildHeader(*build);
                 for (const std::string &path : build->getPaths()) {
                     printFile(repo, *build, *build->getFile(path), printer);
                 }
             } else if (boost::optional<File &> file = build->getFile(args[1])) {
                 RedirectToPager redirectToPager;
-                printBuild(*build);
+                printBuildHeader(*build);
                 printFile(repo, *build, *file, printer);
             } else {
                 std::cerr << "Can't find file: " << args[1] << '\n';
@@ -421,7 +423,7 @@ private:
 };
 
 static void
-printBuild(const Build &build)
+printBuildHeader(const Build &build)
 {
     CovInfo covInfo(build);
     // TODO: colorize percents?
@@ -435,16 +437,28 @@ static void
 printFile(const Repository *repo, const Build &build, const File &file,
           FilePrinter &printer)
 {
-    CovInfo covInfo(file);
+    printLineSeparator();
+    printFileHeader(file);
+    printLineSeparator();
+
     const std::string &path = file.getPath();
     const std::string &ref = build.getRef();
-    std::cout << std::setfill('-') << std::setw(80) << "\n"
-              << std::setfill(' ');
+    printer.print(path, repo->readFile(ref, path), file.getCoverage());
+}
+
+static void
+printFileHeader(const File &file)
+{
+    CovInfo covInfo(file);
     // TODO: colorize percents?
-    std::cout << (decor::bold << "File: ") << path << ", "
+    std::cout << (decor::bold << "File: ") << file.getPath() << ", "
               << covInfo.formatCoverageRate() << "% "
               << '(' << covInfo.formatLines("/") << ")\n";
-    std::cout << std::setfill('-') << std::setw(80) << "\n"
+}
+
+static void
+printLineSeparator()
+{
+    std::cout << std::setfill('-') << std::setw(80) << '\n'
               << std::setfill(' ');
-    printer.print(path, repo->readFile(ref, path), file.getCoverage());
 }
