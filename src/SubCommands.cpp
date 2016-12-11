@@ -304,38 +304,39 @@ private:
         namespace fs = boost::filesystem;
 
         const int buildId = std::stoi(args[0]);
-        if (boost::optional<Build> build = bh->getBuild(buildId)) {
-            std::map<std::string, CovInfo> dirs;
-            for (const std::string &filePath : build->getPaths()) {
-                fs::path dirPath = filePath;
-                dirPath.remove_filename();
-
-                File &file = *build->getFile(filePath);
-                CovInfo &info = dirs[dirPath.string()];
-
-                info.addCovered(file.getCoveredCount());
-                info.addUncovered(file.getUncoveredCount());
-            }
-
-            // TODO: colorize percents?
-            TablePrinter tablePrinter({ "-Directory", "Coverage", "#" },
-                                      getTerminalWidth());
-
-            std::string slash("/"), percent(" %"), sep(" / ");
-            for (const auto &entry : dirs) {
-                const CovInfo &covInfo = entry.second;
-                tablePrinter.append({
-                    entry.first + slash,
-                    covInfo.formatCoverageRate() + percent,
-                    covInfo.formatLines(sep)
-                });
-            }
-
-            tablePrinter.print(std::cout);
-        } else {
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
             std::cerr << "Can't find build #" << buildId << '\n';
-            error();
+            return error();
         }
+
+        std::map<std::string, CovInfo> dirs;
+        for (const std::string &filePath : build->getPaths()) {
+            fs::path dirPath = filePath;
+            dirPath.remove_filename();
+
+            File &file = *build->getFile(filePath);
+            CovInfo &info = dirs[dirPath.string()];
+
+            info.addCovered(file.getCoveredCount());
+            info.addUncovered(file.getUncoveredCount());
+        }
+
+        // TODO: colorize percents?
+        TablePrinter tablePrinter({ "-Directory", "Coverage", "#" },
+                                  getTerminalWidth());
+
+        std::string slash("/"), percent(" %"), sep(" / ");
+        for (const auto &entry : dirs) {
+            const CovInfo &covInfo = entry.second;
+            tablePrinter.append({
+                entry.first + slash,
+                covInfo.formatCoverageRate() + percent,
+                covInfo.formatLines(sep)
+            });
+        }
+
+        tablePrinter.print(std::cout);
     }
 };
 
@@ -474,25 +475,26 @@ private:
         //       printing all files in that sub-tree (or only directly in it?).
 
         const int buildId = std::stoi(args[0]);
-        if (boost::optional<Build> build = bh->getBuild(buildId)) {
-            FilePrinter printer;
-
-            if (args.size() == 1U) {
-                RedirectToPager redirectToPager;
-                printBuildHeader(*build);
-                for (const std::string &path : build->getPaths()) {
-                    printFile(repo, *build, *build->getFile(path), printer);
-                }
-            } else if (boost::optional<File &> file = build->getFile(args[1])) {
-                RedirectToPager redirectToPager;
-                printBuildHeader(*build);
-                printFile(repo, *build, *file, printer);
-            } else {
-                std::cerr << "Can't find file: " << args[1] << '\n';
-                error();
-            }
-        } else {
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
             std::cerr << "Can't find build #" << buildId << '\n';
+            return error();
+        }
+
+        FilePrinter printer;
+
+        if (args.size() == 1U) {
+            RedirectToPager redirectToPager;
+            printBuildHeader(*build);
+            for (const std::string &path : build->getPaths()) {
+                printFile(repo, *build, *build->getFile(path), printer);
+            }
+        } else if (boost::optional<File &> file = build->getFile(args[1])) {
+            RedirectToPager redirectToPager;
+            printBuildHeader(*build);
+            printFile(repo, *build, *file, printer);
+        } else {
+            std::cerr << "Can't find file: " << args[1] << '\n';
             error();
         }
     }
