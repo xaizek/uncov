@@ -350,7 +350,7 @@ local::computeDiff(const std::vector<std::string> &o,
             --i;
             diff.emplace_front(LineType::Removed, o[i], i, -1);
         } else if (o[--i] == n[--j]) {
-            if (oCov[i] == nCov[j]) {
+            if (oCov[i] == -1 && nCov[j] == -1) {
                 diff.emplace_front(LineType::Identical, o[i], i, j);
                 ++identicalLines;
             } else {
