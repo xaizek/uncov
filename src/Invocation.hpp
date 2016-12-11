@@ -34,7 +34,7 @@ public:
      *
      * @throws std::invalid_argument on empty argument list.
      */
-    explicit Invocation(const std::vector<std::string> &args);
+    explicit Invocation(std::vector<std::string> args);
 
 public:
     /**

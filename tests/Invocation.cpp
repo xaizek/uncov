@@ -50,3 +50,33 @@ TEST_CASE("Well-formed command-line is parsed correctly", "[Invocation]")
     CHECK(invocation.getSubcommandName() == "show");
     CHECK(invocation.getSubcommandArgs() == vs({ "arg1", "arg2" }));
 }
+
+TEST_CASE("Repository argument is optional", "[Invocation]")
+{
+    SECTION("No repo argument")
+    {
+        Invocation invocation({ "uncover", "show", "arg1", "arg2" });
+        REQUIRE(invocation.getError() == std::string());
+        CHECK(invocation.getRepositoryPath() == ".");
+        CHECK(invocation.getSubcommandName() == "show");
+        CHECK(invocation.getSubcommandArgs() == vs({ "arg1", "arg2" }));
+    }
+
+    SECTION("Path with slash")
+    {
+        Invocation invocation({ "uncover", "a/path", "show", "arg1", "arg2" });
+        REQUIRE(invocation.getError() == std::string());
+        CHECK(invocation.getRepositoryPath() == "a/path");
+        CHECK(invocation.getSubcommandName() == "show");
+        CHECK(invocation.getSubcommandArgs() == vs({ "arg1", "arg2" }));
+    }
+
+    SECTION("Subcommand without arguments")
+    {
+        Invocation invocation({ "uncover", "builds" });
+        REQUIRE(invocation.getError() == std::string());
+        CHECK(invocation.getRepositoryPath() == ".");
+        CHECK(invocation.getSubcommandName() == "builds");
+        CHECK(invocation.getSubcommandArgs() == vs({}));
+    }
+}

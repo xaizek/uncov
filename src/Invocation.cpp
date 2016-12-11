@@ -19,22 +19,48 @@
 
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
-Invocation::Invocation(const std::vector<std::string> &args)
+Invocation::Invocation(std::vector<std::string> args)
 {
+    auto usageError = [this](const std::string &programName) {
+        error = "Usage: " + programName + " [repo] command [args...]";
+    };
+
     if (args.empty()) {
         throw std::invalid_argument("Broken argument list.");
     }
 
-    if (args.size() < 3U) {
-        error = "Usage: " + args[0] + " repo command [args...]";
+    // Extract program name.
+    const std::string programName = args[0];
+    args.erase(args.cbegin());
+
+    if (args.empty()) {
+        usageError(programName);
         return;
     }
 
-    repositoryPath = args[1];
-    subcommandName = args[2];
-    subcommandArgs.assign(args.cbegin() + 3, args.cend());
+    // Extract path to repository.
+    auto isPath = [](const std::string &s) {
+        return s.substr(0, 1) == "." || s.find('/') != std::string::npos;
+    };
+    if (isPath(args.front())) {
+        repositoryPath = args.front();
+        args.erase(args.cbegin());
+    } else {
+        repositoryPath = ".";
+    }
+
+    if (args.empty()) {
+        usageError(programName);
+        return;
+    }
+
+    // Extract subcommand and its arguments.
+    subcommandName = args.front();
+    args.erase(args.cbegin());
+    subcommandArgs = std::move(args);
 }
 
 const std::string &
