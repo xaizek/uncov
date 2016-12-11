@@ -19,6 +19,7 @@
 #define UNCOVER__TESTS__TESTUTILS_HPP__
 
 #include <string>
+#include <vector>
 
 class TempDirCopy
 {
@@ -33,5 +34,20 @@ public:
 private:
     const std::string to;
 };
+
+/**
+ * @brief Creates a @c std::vector<std::string> from initializer list.
+ *
+ * This is to be used in assertions, to shorten them and make more readable.
+ *
+ * @param v Temporary vector.
+ *
+ * @returns The vector.
+ */
+inline std::vector<std::string>
+vs(std::vector<std::string> v)
+{
+    return v;
+}
 
 #endif // UNCOVER__TESTS__TESTUTILS_HPP__

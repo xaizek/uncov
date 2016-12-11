@@ -23,6 +23,7 @@
 
 #include "BuildHistory.hpp"
 #include "DB.hpp"
+#include "Invocation.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
 
@@ -30,8 +31,10 @@ int
 main(int argc, char *argv[])
 {
     try {
-        if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " repo command [args...]\n";
+        Invocation invocation({ &argv[0], &argv[argc] });
+
+        if (!invocation.getError().empty()) {
+            std::cerr << "Usage error: " << invocation.getError() << '\n';
             return EXIT_FAILURE;
         }
 
@@ -40,17 +43,18 @@ main(int argc, char *argv[])
             cmds.emplace(cmd->getName(), cmd);
         }
 
-        auto cmd = cmds.find(argv[2]);
+        auto cmd = cmds.find(invocation.getSubcommandName());
         if (cmd == cmds.end()) {
-            std::cerr << "Unknown command: " << argv[2] << '\n';
+            std::cerr << "Unknown subcommand: "
+                      << invocation.getSubcommandName() << '\n';
             return EXIT_FAILURE;
         }
 
-        Repository repo(argv[1]);
+        Repository repo(invocation.getRepositoryPath());
         DB db(repo.getGitPath() + "/uncover.sqlite");
         BuildHistory bh(db);
 
-        return cmd->second->exec(bh, repo, { &argv[3], &argv[argc] });
+        return cmd->second->exec(bh, repo, invocation.getSubcommandArgs());
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;
