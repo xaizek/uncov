@@ -18,6 +18,7 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <stdexcept>
 #include <unordered_map>
 
 #include "BuildHistory.hpp"
@@ -28,25 +29,30 @@
 int
 main(int argc, char *argv[])
 {
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " repo command [args...]\n";
+    try {
+        if (argc < 3) {
+            std::cerr << "Usage: " << argv[0] << " repo command [args...]\n";
+            return EXIT_FAILURE;
+        }
+
+        std::unordered_map<std::string, SubCommand *> cmds;
+        for (SubCommand *cmd : SubCommand::getAll()) {
+            cmds.emplace(cmd->getName(), cmd);
+        }
+
+        auto cmd = cmds.find(argv[2]);
+        if (cmd == cmds.end()) {
+            std::cerr << "Unknown command: " << argv[2] << '\n';
+            return EXIT_FAILURE;
+        }
+
+        Repository repo(argv[1]);
+        DB db(repo.getGitPath() + "/uncover.sqlite");
+        BuildHistory bh(db);
+
+        return cmd->second->exec(bh, repo, { &argv[3], &argv[argc] });
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
-
-    std::unordered_map<std::string, SubCommand *> cmds;
-    for (SubCommand *cmd : SubCommand::getAll()) {
-        cmds.emplace(cmd->getName(), cmd);
-    }
-
-    auto cmd = cmds.find(argv[2]);
-    if (cmd == cmds.end()) {
-        std::cerr << "Unknown command: " << argv[2] << '\n';
-        return EXIT_FAILURE;
-    }
-
-    Repository repo(argv[1]);
-    DB db(repo.getGitPath() + "/uncover.sqlite");
-    BuildHistory bh(db);
-
-    return cmd->second->exec(bh, repo, { &argv[3], &argv[argc] });
 }
