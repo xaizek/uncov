@@ -78,6 +78,9 @@ protected:
     Repository *const &repo = repoValue;
 
 private:
+    std::string makeExpectedMsg() const;
+
+private:
     virtual void execImpl(const std::vector<std::string> &args) = 0;
 
 private:

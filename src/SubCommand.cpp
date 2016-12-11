@@ -48,14 +48,12 @@ SubCommand::exec(BuildHistory &bh, Repository &repo,
     hasErrors = false;
 
     if (args.size() < minArgs) {
-        std::cout << "Too few arguments: " << args.size() << ".  "
-                  << "Expected at least " << minArgs << '\n';
+        std::cout << "Too few subcommand arguments: " << args.size() << ".  "
+                  << makeExpectedMsg() << '\n';
         error();
-    }
-
-    if (args.size() > maxArgs) {
-        std::cout << "Too many arguments: " << args.size() << ".  "
-                  << "Expected at most " << maxArgs << '\n';
+    } else if (args.size() > maxArgs) {
+        std::cout << "Too many subcommand arguments: " << args.size() << ".  "
+                  << makeExpectedMsg() << '\n';
         error();
     }
 
@@ -73,4 +71,14 @@ void
 SubCommand::error()
 {
     hasErrors = true;
+}
+
+std::string
+SubCommand::makeExpectedMsg() const
+{
+    if (minArgs == maxArgs) {
+        return "Expected exactly " + std::to_string(minArgs) + '.';
+    }
+    return "Expected at least " + std::to_string(minArgs) + " and at most "
+         + std::to_string(maxArgs) + '.';
 }
