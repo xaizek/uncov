@@ -15,15 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Catch/catch.hpp"
+#ifndef UNCOVER__TESTS__TESTUTILS_HPP__
+#define UNCOVER__TESTS__TESTUTILS_HPP__
 
-#include "Repository.hpp"
+#include <string>
 
-#include "TestUtils.hpp"
-
-TEST_CASE("Repository is discovered by nested path", "[Repository]")
+class TempDirCopy
 {
-    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git");
+public:
+    TempDirCopy(const std::string &from, const std::string &to);
 
-    REQUIRE_NOTHROW(Repository repo("tests/test-repo/subdir"));
-}
+    TempDirCopy(const TempDirCopy &) = delete;
+    TempDirCopy & operator=(const TempDirCopy &) = delete;
+
+    ~TempDirCopy();
+
+private:
+    const std::string to;
+};
+
+#endif // UNCOVER__TESTS__TESTUTILS_HPP__
