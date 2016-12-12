@@ -144,6 +144,12 @@ public:
         out.open(file_descriptor_sink(pipePair[1],
                                       boost::iostreams::close_handle));
         rdbuf = std::cout.rdbuf(&out);
+
+        // XXX: here we could add a custom stream buffer, which would collect up
+        //      to <terminal height> lines and if buffer is closed with this
+        //      limit not reached, put lines on the screen as is; if we hit the
+        //      limit in the process, open a pipe and redirect everything we got
+        //      and all new output there.
     }
 
     ~RedirectToPager()
