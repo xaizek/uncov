@@ -502,7 +502,7 @@ printBuildHeader(const Build &build)
     std::cout << (decor::bold << "Build:") << " #" << build.getId() << ", "
               << covInfo.formatCoverageRate() << "% "
               << '(' << covInfo.formatLines("/") << "), "
-              << build.getRefName() << " (" << build.getRef() << ")\n";
+              << build.getRefName() << " at " << build.getRef() << '\n';
 }
 
 static void
