@@ -185,11 +185,117 @@ getTerminalWidth()
 namespace
 {
 
+// Input tags for tryParse().  Not defined.
+struct BuildId;
+struct FilePath;
+
+const int LatestBuildMarker = 0;
+
+namespace detail
+{
+
+// Map of input tags to output types.
+template <typename InType>
+struct ToOutType;
+template <>
+struct ToOutType<BuildId> { using type = int; };
+template <>
+struct ToOutType<FilePath> { using type = std::string; };
+
+template <typename T>
+std::pair<typename ToOutType<T>::type, bool>
+parseArg(const std::vector<std::string> &args, std::size_t idx) = delete;
+
+template <>
+std::pair<typename ToOutType<BuildId>::type, bool>
+parseArg<BuildId>(const std::vector<std::string> &args, std::size_t idx)
+{
+    if (idx < args.size()) {
+        const std::string &arg = args[idx];
+        if (arg == "@@") {
+            return { LatestBuildMarker, true };
+        }
+        if (arg.substr(0, 1) == "@") {
+            try {
+                std::size_t pos;
+                const int i = std::stoi(arg.substr(1), &pos);
+                if (pos == arg.length() - 1) {
+                    return { i, true };
+                }
+            } catch (const std::logic_error &) {
+                throw std::runtime_error {
+                    "Failed to parse subcommand argument #" +
+                    std::to_string(idx + 1) + ": " + arg
+                };
+            }
+        }
+    }
+    return { 0, false };
+}
+
+template <>
+std::pair<typename ToOutType<FilePath>::type, bool>
+parseArg<FilePath>(const std::vector<std::string> &args, std::size_t idx)
+{
+    if (idx < args.size()) {
+        return { args[idx], true };
+    }
+    return { {}, false };
+}
+
+template <typename T>
+boost::optional<std::tuple<typename ToOutType<T>::type>>
+tryParse(const std::vector<std::string> &args, std::size_t idx)
+{
+    auto parsed = parseArg<T>(args, idx);
+    if (!parsed.second && idx < args.size()) {
+        return {};
+    } else if (parsed.second && idx != args.size() - 1U) {
+        return {};
+    }
+    return std::make_tuple(parsed.first);
+}
+
+template <typename T1, typename T2, typename... Types>
+boost::optional<std::tuple<typename ToOutType<T1>::type,
+                           typename ToOutType<T2>::type,
+                           typename ToOutType<Types>::type...>>
+tryParse(const std::vector<std::string> &args, std::size_t idx)
+{
+    auto parsed = parseArg<T1>(args, idx);
+    if (parsed.second) {
+        if (auto tail = tryParse<T2, Types...>(args, idx + 1)) {
+            return std::tuple_cat(std::make_tuple(parsed.first), *tail);
+        }
+    } else {
+        if (auto tail = tryParse<T2, Types...>(args, idx)) {
+            return std::tuple_cat(std::make_tuple(parsed.first), *tail);
+        }
+    }
+    return {};
+}
+
+}
+
+template <typename... Types>
+boost::optional<std::tuple<typename detail::ToOutType<Types>::type...>>
+tryParse(const std::vector<std::string> &args)
+{
+    return detail::tryParse<Types...>(args, 0U);
+}
+
 namespace CmdUtils
 {
     Build
     getBuild(BuildHistory *bh, int buildId)
     {
+        if (buildId == LatestBuildMarker) {
+            buildId = bh->getLastBuildId();
+            if (buildId == 0) {
+                throw std::runtime_error("No last build");
+            }
+        }
+
         boost::optional<Build> build = bh->getBuild(buildId);
         if (!build) {
             throw std::runtime_error {
@@ -257,7 +363,7 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : parent("diff", 3U)
+    DiffCmd() : parent("diff", 2U, 3U)
     {
     }
 
@@ -267,14 +373,20 @@ private:
     {
         // TODO: allow diffing whole builds.
 
-        const int oldBuildId = std::stoi(args[0]);
-        const int newBuildId = std::stoi(args[1]);
+        int oldBuildId, newBuildId;
+        std::string filePath;
+        if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+            std::tie(oldBuildId, newBuildId, filePath) = *parsed;
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
 
         Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
         Build newBuild = CmdUtils::getBuild(bh, newBuildId);
 
-        File &oldFile = CmdUtils::getFile(oldBuild, args[2]);
-        File &newFile = CmdUtils::getFile(newBuild, args[2]);
+        File &oldFile = CmdUtils::getFile(oldBuild, filePath);
+        File &newFile = CmdUtils::getFile(newBuild, filePath);
 
         Text oldVersion = repo->readFile(oldBuild.getRef(),
                                          oldFile.getPath());
@@ -309,7 +421,7 @@ private:
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
-    DirsCmd() : parent("dirs", 1U)
+    DirsCmd() : parent("dirs", 0U, 1U)
     {
     }
 
@@ -319,7 +431,14 @@ private:
     {
         namespace fs = boost::filesystem;
 
-        const int buildId = std::stoi(args[0]);
+        int buildId;
+        if (auto parsed = tryParse<BuildId>(args)) {
+            buildId = std::get<0>(*parsed);
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
+
         Build build = CmdUtils::getBuild(bh, buildId);
 
         std::map<std::string, CovInfo> dirs;
@@ -355,7 +474,7 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : parent("files", 1U)
+    FilesCmd() : parent("files", 0U, 1U)
     {
     }
 
@@ -363,7 +482,14 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        const int buildId = std::stoi(args[0]);
+        int buildId;
+        if (auto parsed = tryParse<BuildId>(args)) {
+            buildId = std::get<0>(*parsed);
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
+
         Build build = CmdUtils::getBuild(bh, buildId);
 
         // TODO: colorize percents?
@@ -395,9 +521,17 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        const int buildId = std::stoi(args[0]);
+        int buildId;
+        std::string filePath;
+        if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+            std::tie(buildId, filePath) = *parsed;
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
+
         Build build = CmdUtils::getBuild(bh, buildId);
-        File &file = CmdUtils::getFile(build, args[1]);
+        File &file = CmdUtils::getFile(build, filePath);
 
         std::cout << build.getRef() << '\n';
         for (int hits : file.getCoverage()) {
@@ -462,7 +596,7 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
-    ShowCmd() : parent("show", 1U, 2U)
+    ShowCmd() : parent("show", 0U, 2U)
     {
     }
 
@@ -473,23 +607,36 @@ private:
         // TODO: maybe allow passing in path to directory, which would cause
         //       printing all files in that sub-tree (or only directly in it?).
 
-        const int buildId = std::stoi(args[0]);
+        int buildId;
+        std::string filePath;
+        bool printWholeBuild = false;
+        if (auto parsed = tryParse<BuildId>(args)) {
+            buildId = std::get<0>(*parsed);
+            printWholeBuild = true;
+        } else if (auto parsed = tryParse<FilePath>(args)) {
+            buildId = 0;
+            filePath = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+            std::tie(buildId, filePath) = *parsed;
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
+
         Build build = CmdUtils::getBuild(bh, buildId);
         FilePrinter printer;
 
-        if (args.size() == 1U) {
+        if (printWholeBuild) {
             RedirectToPager redirectToPager;
             printBuildHeader(build);
             for (const std::string &path : build.getPaths()) {
                 printFile(repo, build, *build.getFile(path), printer);
             }
-        } else if (boost::optional<File &> file = build.getFile(args[1])) {
+        } else {
+            File &file = CmdUtils::getFile(build, filePath);
             RedirectToPager redirectToPager;
             printBuildHeader(build);
-            printFile(repo, build, *file, printer);
-        } else {
-            std::cerr << "Can't find file: " << args[1] << '\n';
-            error();
+            printFile(repo, build, file, printer);
         }
     }
 };

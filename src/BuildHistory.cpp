@@ -225,6 +225,18 @@ BuildHistory::addBuild(const BuildData &buildData)
     return *getBuild(buildid);
 }
 
+int
+BuildHistory::getLastBuildId()
+{
+    try {
+        std::tuple<int> vals = db.queryOne("SELECT buildid FROM builds "
+                                           "ORDER BY buildid DESC LIMIT 1");
+        return std::get<0>(vals);
+    } catch (const std::runtime_error &) {
+        return 0;
+    }
+}
+
 boost::optional<Build>
 BuildHistory::getBuild(int id)
 {

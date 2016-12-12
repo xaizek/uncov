@@ -47,6 +47,13 @@ public:
 public:
     Build addBuild(const BuildData &buildData);
 
+    /**
+     * @brief Retrieves id of the last build.
+     *
+     * @returns The id or @c 0 if there is no builds.
+     */
+    int getLastBuildId();
+
     boost::optional<Build> getBuild(int id);
     std::vector<Build> getBuilds();
 
