@@ -182,6 +182,40 @@ getTerminalWidth()
     return ws.ws_col;
 }
 
+namespace
+{
+
+namespace CmdUtils
+{
+    Build
+    getBuild(BuildHistory *bh, int buildId)
+    {
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
+            throw std::runtime_error {
+                "Can't find build #" + std::to_string(buildId)
+            };
+        }
+        return *build;
+    }
+
+    File &
+    getFile(const Build &build, const std::string &path)
+    {
+        boost::optional<File &> file = build.getFile(path);
+        if (!file) {
+            throw std::runtime_error("Can't find file: " + path +
+                                     " in build #" +
+                                     std::to_string(build.getId()) + " of " +
+                                     build.getRefName() + " at " +
+                                     build.getRef());
+        }
+        return *file;
+    }
+}
+
+}
+
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
 public:
@@ -236,42 +270,18 @@ private:
         const int oldBuildId = std::stoi(args[0]);
         const int newBuildId = std::stoi(args[1]);
 
-        boost::optional<Build> oldBuild = bh->getBuild(oldBuildId);
-        boost::optional<Build> newBuild = bh->getBuild(newBuildId);
-        if (!oldBuild) {
-            std::cerr << "Can't find build #" << oldBuildId << '\n';
-            error();
-        }
-        if (!newBuild) {
-            std::cerr << "Can't find build #" << newBuildId << '\n';
-            error();
-        }
-        if (isFailed()) {
-            return;
-        }
+        Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
+        Build newBuild = CmdUtils::getBuild(bh, newBuildId);
 
-        boost::optional<File &> oldFile = oldBuild->getFile(args[2]);
-        boost::optional<File &> newFile = newBuild->getFile(args[2]);
-        if (!oldFile) {
-            std::cerr << "Can't find file " << args[2] << " in " << args[0]
-                      << '\n';
-            error();
-        }
-        if (!newFile) {
-            std::cerr << "Can't find file " << args[2] << " in " << args[1]
-                      << '\n';
-            error();
-        }
-        if (isFailed()) {
-            return;
-        }
+        File &oldFile = CmdUtils::getFile(oldBuild, args[2]);
+        File &newFile = CmdUtils::getFile(newBuild, args[2]);
 
-        Text oldVersion = repo->readFile(oldBuild->getRef(),
-                                         oldFile->getPath());
-        Text newVersion = repo->readFile(newBuild->getRef(),
-                                         newFile->getPath());
-        const std::vector<int> &oldCov = oldFile->getCoverage();
-        const std::vector<int> &newCov = newFile->getCoverage();
+        Text oldVersion = repo->readFile(oldBuild.getRef(),
+                                         oldFile.getPath());
+        Text newVersion = repo->readFile(newBuild.getRef(),
+                                         newFile.getPath());
+        const std::vector<int> &oldCov = oldFile.getCoverage();
+        const std::vector<int> &newCov = newFile.getCoverage();
 
         if (oldVersion.size() != oldCov.size() ||
             newVersion.size() != newCov.size()) {
@@ -282,11 +292,11 @@ private:
         RedirectToPager redirectToPager;
 
         printLineSeparator();
-        printBuildHeader(*oldBuild);
-        printFileHeader(*oldFile);
+        printBuildHeader(oldBuild);
+        printFileHeader(oldFile);
         printLineSeparator();
-        printBuildHeader(*newBuild);
-        printFileHeader(*newFile);
+        printBuildHeader(newBuild);
+        printFileHeader(newFile);
         printLineSeparator();
 
         FilePrinter filePrinter;
@@ -310,18 +320,14 @@ private:
         namespace fs = boost::filesystem;
 
         const int buildId = std::stoi(args[0]);
-        boost::optional<Build> build = bh->getBuild(buildId);
-        if (!build) {
-            std::cerr << "Can't find build #" << buildId << '\n';
-            return error();
-        }
+        Build build = CmdUtils::getBuild(bh, buildId);
 
         std::map<std::string, CovInfo> dirs;
-        for (const std::string &filePath : build->getPaths()) {
+        for (const std::string &filePath : build.getPaths()) {
             fs::path dirPath = filePath;
             dirPath.remove_filename();
 
-            File &file = *build->getFile(filePath);
+            File &file = *build.getFile(filePath);
             CovInfo &info = dirs[dirPath.string()];
 
             info.addCovered(file.getCoveredCount());
@@ -358,19 +364,15 @@ private:
     execImpl(const std::vector<std::string> &args) override
     {
         const int buildId = std::stoi(args[0]);
-        boost::optional<Build> build = bh->getBuild(buildId);
-        if (!build) {
-            std::cerr << "Can't find build #" << buildId << '\n';
-            return error();
-        }
+        Build build = CmdUtils::getBuild(bh, buildId);
 
         // TODO: colorize percents?
         TablePrinter tablePrinter({ "-File", "Coverage", "#" },
                                   getTerminalWidth());
 
         std::string percent(" %"), sep(" / ");
-        for (const std::string &filePath : build->getPaths()) {
-            CovInfo covInfo(*build->getFile(filePath));
+        for (const std::string &filePath : build.getPaths()) {
+            CovInfo covInfo(*build.getFile(filePath));
             tablePrinter.append({
                 filePath,
                 covInfo.formatCoverageRate() + percent,
@@ -394,20 +396,11 @@ private:
     execImpl(const std::vector<std::string> &args) override
     {
         const int buildId = std::stoi(args[0]);
-        boost::optional<Build> build = bh->getBuild(buildId);
-        if (!build) {
-            std::cerr << "Can't find build #" << buildId << '\n';
-            return error();
-        }
+        Build build = CmdUtils::getBuild(bh, buildId);
+        File &file = CmdUtils::getFile(build, args[1]);
 
-        boost::optional<File &> file = build->getFile(args[1]);
-        if (!file) {
-            std::cerr << "Can't find file: " << args[1] << '\n';
-            return error();
-        }
-
-        std::cout << build->getRef() << '\n';
-        for (int hits : file->getCoverage()) {
+        std::cout << build.getRef() << '\n';
+        for (int hits : file.getCoverage()) {
             std::cout << hits << '\n';
         }
     }
@@ -481,24 +474,19 @@ private:
         //       printing all files in that sub-tree (or only directly in it?).
 
         const int buildId = std::stoi(args[0]);
-        boost::optional<Build> build = bh->getBuild(buildId);
-        if (!build) {
-            std::cerr << "Can't find build #" << buildId << '\n';
-            return error();
-        }
-
+        Build build = CmdUtils::getBuild(bh, buildId);
         FilePrinter printer;
 
         if (args.size() == 1U) {
             RedirectToPager redirectToPager;
-            printBuildHeader(*build);
-            for (const std::string &path : build->getPaths()) {
-                printFile(repo, *build, *build->getFile(path), printer);
+            printBuildHeader(build);
+            for (const std::string &path : build.getPaths()) {
+                printFile(repo, build, *build.getFile(path), printer);
             }
-        } else if (boost::optional<File &> file = build->getFile(args[1])) {
+        } else if (boost::optional<File &> file = build.getFile(args[1])) {
             RedirectToPager redirectToPager;
-            printBuildHeader(*build);
-            printFile(repo, *build, *file, printer);
+            printBuildHeader(build);
+            printFile(repo, build, *file, printer);
         } else {
             std::cerr << "Can't find file: " << args[1] << '\n';
             error();
