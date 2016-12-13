@@ -148,7 +148,7 @@ DB::makeTransaction()
 }
 
 std::string
-DB::Row::makeTupleItem(std::size_t idx, std::string *)
+DB::Row::makeTupleItem(std::size_t idx, Marker<std::string>)
 {
     // TODO: try compressing the string here.
     if (sqlite3_column_type(ps, idx) != SQLITE_TEXT) {
@@ -158,7 +158,7 @@ DB::Row::makeTupleItem(std::size_t idx, std::string *)
 }
 
 int
-DB::Row::makeTupleItem(std::size_t idx, int *)
+DB::Row::makeTupleItem(std::size_t idx, Marker<int>)
 {
     if (sqlite3_column_type(ps, idx) != SQLITE_INTEGER) {
         throw std::runtime_error("Expected integer type of column.");

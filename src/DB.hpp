@@ -71,6 +71,9 @@ private:
 
 class DB::Row
 {
+    // Type marker for overload resolution.
+    template <typename T> struct Marker {};
+
 public:
     Row(sqlite3_stmt *ps) : ps(ps)
     {
@@ -95,14 +98,13 @@ private:
     template <typename... Types, std::size_t... Is>
     std::tuple<Types...> makeTuple(std::index_sequence<Is...>)
     {
-        return std::make_tuple(makeTupleItem(Is, static_cast<Types*>(nullptr))...);
+        return std::make_tuple(makeTupleItem(Is, Marker<Types>())...);
     }
 
     int getCountCount() const;
 
-    std::string makeTupleItem(std::size_t idx, std::string *);
-    int makeTupleItem(std::size_t idx, int *);
-    std::string makeTupleItem(std::size_t idx, void *) = delete;
+    std::string makeTupleItem(std::size_t idx, Marker<std::string>);
+    int makeTupleItem(std::size_t idx, Marker<int>);
 
 private:
     sqlite3_stmt *ps;
