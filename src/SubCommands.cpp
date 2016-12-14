@@ -189,6 +189,10 @@ namespace
 struct BuildId;
 struct FilePath;
 struct PositiveNumber;
+template <typename T>
+struct StringLiteral;
+
+struct Nothing {};
 
 const int LatestBuildMarker = 0;
 
@@ -204,6 +208,8 @@ template <>
 struct ToOutType<FilePath> { using type = std::string; };
 template <>
 struct ToOutType<PositiveNumber> { using type = unsigned int; };
+template <typename T>
+struct ToOutType<StringLiteral<T>> { using type = Nothing; };
 
 enum class ParseResult
 {
@@ -213,81 +219,102 @@ enum class ParseResult
 };
 
 template <typename T>
-std::pair<typename ToOutType<T>::type, ParseResult>
-parseArg(const std::vector<std::string> &args, std::size_t idx) = delete;
+struct parseArg;
 
 template <>
-std::pair<typename ToOutType<BuildId>::type, ParseResult>
-parseArg<BuildId>(const std::vector<std::string> &args, std::size_t idx)
+struct parseArg<BuildId>
 {
-    if (idx < args.size()) {
-        const std::string &arg = args[idx];
-        if (arg == "@@") {
-            return { LatestBuildMarker, ParseResult::Accepted };
-        }
-        if (arg.substr(0, 1) == "@") {
-            try {
-                std::size_t pos;
-                const int i = std::stoi(arg.substr(1), &pos);
-                if (pos == arg.length() - 1) {
-                    return { i, ParseResult::Accepted };
+    static std::pair<typename ToOutType<BuildId>::type, ParseResult>
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx < args.size()) {
+            const std::string &arg = args[idx];
+            if (arg == "@@") {
+                return { LatestBuildMarker, ParseResult::Accepted };
+            }
+            if (arg.substr(0, 1) == "@") {
+                try {
+                    std::size_t pos;
+                    const int i = std::stoi(arg.substr(1), &pos);
+                    if (pos == arg.length() - 1) {
+                        return { i, ParseResult::Accepted };
+                    }
+                } catch (const std::logic_error &) {
+                    throw std::runtime_error {
+                        "Failed to parse subcommand argument #" +
+                        std::to_string(idx + 1) + ": " + arg
+                    };
                 }
-            } catch (const std::logic_error &) {
-                throw std::runtime_error {
-                    "Failed to parse subcommand argument #" +
-                    std::to_string(idx + 1) + ": " + arg
-                };
             }
         }
+        return { 0, ParseResult::Skipped };
     }
-    return { 0, ParseResult::Skipped };
-}
+};
 
 template <>
-std::pair<typename ToOutType<FilePath>::type, ParseResult>
-parseArg<FilePath>(const std::vector<std::string> &args, std::size_t idx)
+struct parseArg<FilePath>
 {
-    if (idx < args.size()) {
-        return { args[idx], ParseResult::Accepted };
-    }
-    return { {}, ParseResult::Rejected };
-}
-
-template <>
-std::pair<typename ToOutType<PositiveNumber>::type, ParseResult>
-parseArg<PositiveNumber>(const std::vector<std::string> &args, std::size_t idx)
-{
-    if (idx >= args.size()) {
-        return { 0, ParseResult::Rejected };
-    }
-
-    const std::string &arg = args[idx];
-    try {
-        std::size_t pos;
-        const int i = std::stoul(arg, &pos);
-        if (pos == arg.length()) {
-            if (i <= 0) {
-                throw std::runtime_error {
-                    "Expected number greater than zero, got: " + arg
-                };
-            }
-            return { i, ParseResult::Accepted };
+    static std::pair<typename ToOutType<FilePath>::type, ParseResult>
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx < args.size()) {
+            return { args[idx], ParseResult::Accepted };
         }
-    } catch (const std::logic_error &) {
-        throw std::runtime_error {
-            "Failed to parse subcommand argument #" +
-            std::to_string(idx + 1) + ": " + arg
-        };
+        return { {}, ParseResult::Rejected };
     }
+};
 
-    return { {}, ParseResult::Rejected };
-}
+template <>
+struct parseArg<PositiveNumber>
+{
+    static std::pair<typename ToOutType<PositiveNumber>::type, ParseResult>
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx >= args.size()) {
+            return { 0, ParseResult::Rejected };
+        }
+
+        const std::string &arg = args[idx];
+        try {
+            std::size_t pos;
+            const int i = std::stoul(arg, &pos);
+            if (pos == arg.length()) {
+                if (i <= 0) {
+                    throw std::runtime_error {
+                        "Expected number greater than zero, got: " + arg
+                    };
+                }
+                return { i, ParseResult::Accepted };
+            }
+        } catch (const std::logic_error &) {
+            return { {}, ParseResult::Rejected };
+        }
+
+        return { {}, ParseResult::Rejected };
+    }
+};
+
+template <typename T>
+struct parseArg<StringLiteral<T>>
+{
+    static std::pair<typename ToOutType<StringLiteral<T>>::type, ParseResult>
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx >= args.size()) {
+            return { {}, ParseResult::Rejected };
+        }
+        if (args[idx] == T::text) {
+            return { {}, ParseResult::Accepted };
+        }
+        return { {}, ParseResult::Rejected };
+    }
+};
 
 template <typename T>
 boost::optional<std::tuple<typename ToOutType<T>::type>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
-    auto parsed = parseArg<T>(args, idx);
+    auto parsed = parseArg<T>::parse(args, idx);
     if (parsed.second == ParseResult::Accepted) {
         if (idx == args.size() - 1U) {
             return std::make_tuple(parsed.first);
@@ -302,7 +329,7 @@ boost::optional<std::tuple<typename ToOutType<T1>::type,
                            typename ToOutType<Types>::type...>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
-    auto parsed = parseArg<T1>(args, idx);
+    auto parsed = parseArg<T1>::parse(args, idx);
     switch (parsed.second) {
         case ParseResult::Accepted:
             if (auto tail = tryParse<T2, Types...>(args, idx + 1)) {
@@ -369,6 +396,8 @@ namespace CmdUtils
 
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
+    struct All { static constexpr const char *const text = "all"; };
+
 public:
     BuildsCmd() : parent("builds", 0U, 1U)
     {
@@ -382,9 +411,12 @@ private:
         //       in covered/relevant lines).
 
         // By default limit number of builds to display to 10.
+        bool limitBuilds = true;
         unsigned int maxBuildCount = 10;
         if (auto parsed = tryParse<PositiveNumber>(args)) {
             std::tie(maxBuildCount) = *parsed;
+        } else if (tryParse<StringLiteral<All>>(args)) {
+            limitBuilds = false;
         }
 
         // TODO: colorize percents?
@@ -394,7 +426,7 @@ private:
         };
 
         std::vector<Build> builds = bh->getBuilds();
-        if (builds.size() > maxBuildCount) {
+        if (limitBuilds && builds.size() > maxBuildCount) {
             builds.erase(builds.cbegin(), builds.cend() - maxBuildCount);
         }
 
