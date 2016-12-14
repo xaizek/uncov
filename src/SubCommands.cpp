@@ -188,6 +188,7 @@ namespace
 // Input tags for tryParse().  Not defined.
 struct BuildId;
 struct FilePath;
+struct PositiveNumber;
 
 const int LatestBuildMarker = 0;
 
@@ -201,6 +202,8 @@ template <>
 struct ToOutType<BuildId> { using type = int; };
 template <>
 struct ToOutType<FilePath> { using type = std::string; };
+template <>
+struct ToOutType<PositiveNumber> { using type = unsigned int; };
 
 enum class ParseResult
 {
@@ -247,6 +250,36 @@ parseArg<FilePath>(const std::vector<std::string> &args, std::size_t idx)
     if (idx < args.size()) {
         return { args[idx], ParseResult::Accepted };
     }
+    return { {}, ParseResult::Rejected };
+}
+
+template <>
+std::pair<typename ToOutType<PositiveNumber>::type, ParseResult>
+parseArg<PositiveNumber>(const std::vector<std::string> &args, std::size_t idx)
+{
+    if (idx >= args.size()) {
+        return { 0, ParseResult::Rejected };
+    }
+
+    const std::string &arg = args[idx];
+    try {
+        std::size_t pos;
+        const int i = std::stoul(arg, &pos);
+        if (pos == arg.length()) {
+            if (i <= 0) {
+                throw std::runtime_error {
+                    "Expected number greater than zero, got: " + arg
+                };
+            }
+            return { i, ParseResult::Accepted };
+        }
+    } catch (const std::logic_error &) {
+        throw std::runtime_error {
+            "Failed to parse subcommand argument #" +
+            std::to_string(idx + 1) + ": " + arg
+        };
+    }
+
     return { {}, ParseResult::Rejected };
 }
 
@@ -337,17 +370,22 @@ namespace CmdUtils
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
 public:
-    BuildsCmd() : parent("builds")
+    BuildsCmd() : parent("builds", 0U, 1U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &/*args*/) override
+    execImpl(const std::vector<std::string> &args) override
     {
         // TODO: calculate and display change of coverage (both in percents and
         //       in covered/relevant lines).
-        // TODO: by default limit number of builds to display to N (e.g., 10).
+
+        // By default limit number of builds to display to 10.
+        unsigned int maxBuildCount = 10;
+        if (auto parsed = tryParse<PositiveNumber>(args)) {
+            std::tie(maxBuildCount) = *parsed;
+        }
 
         // TODO: colorize percents?
         TablePrinter tablePrinter {
@@ -355,8 +393,13 @@ private:
             getTerminalWidth()
         };
 
+        std::vector<Build> builds = bh->getBuilds();
+        if (builds.size() > maxBuildCount) {
+            builds.erase(builds.cbegin(), builds.cend() - maxBuildCount);
+        }
+
         std::string sharp("#"), percent(" %"), sep(" / ");
-        for (const Build &build : bh->getBuilds()) {
+        for (const Build &build : builds) {
             CovInfo covInfo(build);
 
             tablePrinter.append({
