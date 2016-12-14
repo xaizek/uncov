@@ -59,24 +59,10 @@ public:
     }
 
 public:
-    void addCovered(int num)
+    void add(const CovInfo &rhs)
     {
-        coveredCount += num;
-    }
-
-    void addUncovered(int num)
-    {
-        uncoveredCount += num;
-    }
-
-    int getCoveredCount() const
-    {
-        return coveredCount;
-    }
-
-    int getUncoveredCount() const
-    {
-        return uncoveredCount;
+        coveredCount += rhs.coveredCount;
+        uncoveredCount += rhs.uncoveredCount;
     }
 
     std::string formatCoverageRate() const
@@ -536,8 +522,7 @@ private:
             File &file = *build.getFile(filePath);
             CovInfo &info = dirs[dirPath.string()];
 
-            info.addCovered(file.getCoveredCount());
-            info.addUncovered(file.getUncoveredCount());
+            info.add(CovInfo(file));
         }
 
         // TODO: colorize percents?
