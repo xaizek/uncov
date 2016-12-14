@@ -18,11 +18,84 @@
 #include "DB.hpp"
 
 #include <sqlite3.h>
+#include <zlib.h>
 
+#include <iterator>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+namespace
+{
+
+class Binder : public boost::static_visitor<>
+{
+public:
+    Binder(sqlite3_stmt *ps, int idx) : ps(ps), idx(idx)
+    {
+    }
+
+public:
+    void operator()(int i)
+    {
+        combineErrors(sqlite3_bind_int(ps, idx, i));
+    }
+
+    void operator()(const std::string &str)
+    {
+        combineErrors(sqlite3_bind_text(ps, idx,
+                                        str.c_str(), str.length(),
+                                        SQLITE_STATIC));
+    }
+
+    void operator()(const std::vector<int> &vec)
+    {
+        std::ostringstream oss;
+        std::copy(vec.cbegin(), vec.cend(),
+                  std::ostream_iterator<int>(oss, " "));
+        const std::string str = oss.str();
+
+        unsigned long compressedSize = compressBound(str.length());
+        std::vector<unsigned char> blob(4U + compressedSize);
+
+        // Serialize size in an endianness-independent way.
+        blob[0] = str.length() >> 24;
+        blob[1] = str.length() >> 16;
+        blob[2] = str.length() >> 8;
+        blob[3] = str.length();
+
+        if (compress(&blob[4], &compressedSize,
+                     reinterpret_cast<const unsigned char *>(str.data()),
+                     str.size()) != Z_OK) {
+            throw std::runtime_error("Failed to compress data");
+        }
+        blob.resize(4U + compressedSize);
+
+        combineErrors(sqlite3_bind_blob(ps, idx,
+                                        blob.data(), blob.size(),
+                                        SQLITE_TRANSIENT));
+    }
+
+public:
+    const int &error = errorValue;
+
+private:
+    void combineErrors(int error)
+    {
+        if (errorValue == SQLITE_OK) {
+            errorValue = error;
+        }
+    }
+
+private:
+    sqlite3_stmt *const ps;
+    const int idx;
+    int errorValue = SQLITE_OK;
+};
+
+}
 
 DB::DB(const std::string &path)
 {
@@ -81,35 +154,6 @@ DB::prepare(const std::string &stmt, const std::vector<Binding> &binds)
     };
     rawPs = nullptr;
 
-    class Binder : public boost::static_visitor<>
-    {
-    public:
-        Binder(sqlite3_stmt *ps, int idx) : ps(ps), idx(idx)
-        {
-        }
-
-    public:
-        void operator()(int i) const
-        {
-            error = sqlite3_bind_int(ps, idx, i);
-        }
-
-        void operator()(const std::string &str) const
-        {
-            // TODO: try compressing the string here.
-            error = sqlite3_bind_text(ps, idx,
-                                      str.c_str(), str.length(),
-                                      SQLITE_STATIC);
-        }
-
-    public:
-        mutable int error;
-
-    private:
-        sqlite3_stmt *const ps;
-        const int idx;
-    };
-
     for (const Binding &bind : binds) {
         const int idx =
             sqlite3_bind_parameter_index(ps.get(), bind.getName().c_str());
@@ -150,7 +194,6 @@ DB::makeTransaction()
 std::string
 DB::Row::makeTupleItem(std::size_t idx, Marker<std::string>)
 {
-    // TODO: try compressing the string here.
     if (sqlite3_column_type(ps, idx) != SQLITE_TEXT) {
         throw std::runtime_error("Expected text type of column.");
     }
@@ -164,6 +207,32 @@ DB::Row::makeTupleItem(std::size_t idx, Marker<int>)
         throw std::runtime_error("Expected integer type of column.");
     }
     return sqlite3_column_int(ps, idx);
+}
+
+std::vector<int>
+DB::Row::makeTupleItem(std::size_t idx, Marker<std::vector<int>>)
+{
+    if (sqlite3_column_type(ps, idx) != SQLITE_BLOB) {
+        throw std::runtime_error("Expected blob type of column.");
+    }
+
+    auto b = static_cast<const unsigned char *>(sqlite3_column_blob(ps, idx));
+    std::vector<unsigned char> blob(b, b + sqlite3_column_bytes(ps, idx));
+    unsigned long strSize =
+        (blob[0] << 24) + (blob[1] << 16) + (blob[2] << 8) + blob[3];
+
+    std::string str(strSize, '\0');
+    if (uncompress(reinterpret_cast<unsigned char *>(&str[0]), &strSize,
+                   &blob[4], strSize) != Z_OK) {
+        throw std::runtime_error("Failed to uncompress data");
+    }
+
+    std::istringstream is(str);
+    std::vector<int> vec;
+    for (int i; is >> i; ) {
+        vec.push_back(i);
+    }
+    return vec;
 }
 
 DB::RowWrapper::RowWrapper(stmtPtr ps) : Row(ps.get()), ps(std::move(ps))

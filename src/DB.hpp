@@ -105,6 +105,7 @@ private:
 
     std::string makeTupleItem(std::size_t idx, Marker<std::string>);
     int makeTupleItem(std::size_t idx, Marker<int>);
+    std::vector<int> makeTupleItem(std::size_t idx, Marker<std::vector<int>>);
 
 private:
     sqlite3_stmt *ps;
@@ -211,20 +212,26 @@ public:
         return *this;
     }
 
+    Binding & operator=(const std::vector<int> &val) &&
+    {
+        value = val;
+        return *this;
+    }
+
 public:
     const std::string & getName() const
     {
         return name;
     }
 
-    const boost::variant<std::string, int> & getValue() const
+    const boost::variant<std::string, int, std::vector<int>> & getValue() const
     {
         return value;
     }
 
 private:
     const std::string name;
-    boost::variant<std::string, int> value;
+    boost::variant<std::string, int, std::vector<int>> value;
 };
 
 inline Binding operator "" _b(const char name[], std::size_t len)

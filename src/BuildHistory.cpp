@@ -22,11 +22,19 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "DB.hpp"
+
+static void updateDBSchema(DB &db, int fromVersion);
+
+/**
+ * @brief Current database scheme version.
+ */
+const int AppDBVersion = 2;
 
 File::File(std::string path, std::vector<int> coverage)
     : path(std::move(path)), coverage(std::move(coverage))
@@ -111,20 +119,16 @@ operator<<(DB &db, const BuildData &bd)
 
     const int buildid = db.getLastRowId();
 
-    std::ostringstream oss;
     for (auto entry : bd.files) {
         File &file = entry.second;
 
-        oss.str(std::string());
         const std::vector<int> &coverage = file.getCoverage();
-        std::copy(coverage.cbegin(), coverage.cend(),
-                  std::ostream_iterator<int>(oss, " "));
 
         db.execute("INSERT INTO files (buildid, path, coverage) "
                    "VALUES (:buildid, :path, :coverage)",
                    { ":buildid"_b = buildid,
                      ":path"_b = file.getPath(),
-                     ":coverage"_b = oss.str() });
+                     ":coverage"_b = coverage });
     }
 
     transaction.commit();
@@ -194,28 +198,90 @@ Build::getFile(const std::string &path) const
 
 BuildHistory::BuildHistory(DB &db) : db(db)
 {
-    db.execute(R"(
-        CREATE TABLE IF NOT EXISTS builds (
-            buildid INTEGER,
-            vcsref TEXT NOT NULL,
-            vcsrefname TEXT NOT NULL,
-            covered INTEGER,
-            uncovered INTEGER,
+    std::tuple<int> vals = db.queryOne("pragma user_version");
 
-            PRIMARY KEY (buildid)
-        )
-    )");
+    const int fileDBVersion = std::get<0>(vals);
+    if (fileDBVersion > AppDBVersion) {
+        throw std::runtime_error("Database is from newer version: " +
+                                 std::to_string(fileDBVersion));
+    }
 
-    db.execute(R"(
-        CREATE TABLE IF NOT EXISTS files (
-            buildid INTEGER,
-            path TEXT NOT NULL,
-            coverage TEXT NOT NULL,
+    if (fileDBVersion < AppDBVersion) {
+        updateDBSchema(db, fileDBVersion);
+    }
+}
 
-            PRIMARY KEY (buildid, path),
-            FOREIGN KEY (buildid) REFERENCES builds(buildid)
-        )
-    )");
+/**
+ * @brief Performs update of database scheme to the latest version.
+ *
+ * This process might take some time.  Should either succeed or be no-op.
+ *
+ * @param db Database to update.
+ * @param fromVersion Current version of scheme.
+ */
+static void
+updateDBSchema(DB &db, int fromVersion)
+{
+    Transaction transaction = db.makeTransaction();
+
+    switch (fromVersion) {
+        case 0:
+            db.execute(R"(
+                CREATE TABLE IF NOT EXISTS builds (
+                    buildid INTEGER,
+                    vcsref TEXT NOT NULL,
+                    vcsrefname TEXT NOT NULL,
+                    covered INTEGER,
+                    uncovered INTEGER,
+
+                    PRIMARY KEY (buildid)
+                )
+            )");
+
+            db.execute(R"(
+                CREATE TABLE IF NOT EXISTS files (
+                    buildid INTEGER,
+                    path TEXT NOT NULL,
+                    coverage TEXT NOT NULL,
+
+                    PRIMARY KEY (buildid, path),
+                    FOREIGN KEY (buildid) REFERENCES builds(buildid)
+                )
+            )");
+            // Fall through.
+        case 1:
+            db.execute(R"(
+                CREATE TABLE files_new (
+                    buildid INTEGER,
+                    path TEXT NOT NULL,
+                    coverage BLOB NOT NULL,
+
+                    PRIMARY KEY (buildid, path),
+                    FOREIGN KEY (buildid) REFERENCES builds(buildid)
+                )
+            )");
+            for (std::tuple<int, std::string, std::string> vals :
+                db.queryAll("SELECT buildid, path, coverage FROM files")) {
+                std::istringstream is(std::get<2>(vals));
+                std::vector<int> coverage;
+                for (int i; is >> i; ) {
+                    coverage.push_back(i);
+                }
+
+                db.execute("INSERT INTO files_new (buildid, path, coverage) "
+                           "VALUES (:buildid, :path, :coverage)",
+                           { ":buildid"_b = std::get<0>(vals),
+                             ":path"_b = std::get<1>(vals),
+                             ":coverage"_b = coverage });
+            }
+            db.execute("DROP TABLE files");
+            db.execute("ALTER TABLE files_new RENAME TO files");
+            break;
+    }
+
+    db.execute("pragma user_version = " + std::to_string(AppDBVersion));
+    transaction.commit();
+    db.execute("VACUUM");
 }
 
 Build
@@ -284,19 +350,12 @@ boost::optional<File>
 BuildHistory::loadFile(int id, const std::string &path)
 {
     try {
-        std::tuple<std::string> vals =
+        std::tuple<std::vector<int>> vals =
             db.queryOne("SELECT coverage FROM files "
                         "WHERE buildid = :buildid AND path = :path",
                         { ":buildid"_b = id, ":path"_b = path });
 
-        std::istringstream is(std::get<0>(vals));
-
-        std::vector<int> coverage;
-        for (int i; is >> i; ) {
-            coverage.push_back(i);
-        }
-
-        return File(path, std::move(coverage));
+        return File(path, std::move(std::get<0>(vals)));
     } catch (const std::runtime_error &) {
         return {};
     }

@@ -1,5 +1,5 @@
 CXXFLAGS += -std=c++14 -Wall -Wextra -Werror -MMD -I$(abspath src)
-LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight
+LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_system
 
 ifneq ($(OS),Windows_NT)
