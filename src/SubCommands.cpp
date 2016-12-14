@@ -202,25 +202,32 @@ struct ToOutType<BuildId> { using type = int; };
 template <>
 struct ToOutType<FilePath> { using type = std::string; };
 
+enum class ParseResult
+{
+    Accepted,
+    Rejected,
+    Skipped
+};
+
 template <typename T>
-std::pair<typename ToOutType<T>::type, bool>
+std::pair<typename ToOutType<T>::type, ParseResult>
 parseArg(const std::vector<std::string> &args, std::size_t idx) = delete;
 
 template <>
-std::pair<typename ToOutType<BuildId>::type, bool>
+std::pair<typename ToOutType<BuildId>::type, ParseResult>
 parseArg<BuildId>(const std::vector<std::string> &args, std::size_t idx)
 {
     if (idx < args.size()) {
         const std::string &arg = args[idx];
         if (arg == "@@") {
-            return { LatestBuildMarker, true };
+            return { LatestBuildMarker, ParseResult::Accepted };
         }
         if (arg.substr(0, 1) == "@") {
             try {
                 std::size_t pos;
                 const int i = std::stoi(arg.substr(1), &pos);
                 if (pos == arg.length() - 1) {
-                    return { i, true };
+                    return { i, ParseResult::Accepted };
                 }
             } catch (const std::logic_error &) {
                 throw std::runtime_error {
@@ -230,17 +237,17 @@ parseArg<BuildId>(const std::vector<std::string> &args, std::size_t idx)
             }
         }
     }
-    return { 0, false };
+    return { 0, ParseResult::Skipped };
 }
 
 template <>
-std::pair<typename ToOutType<FilePath>::type, bool>
+std::pair<typename ToOutType<FilePath>::type, ParseResult>
 parseArg<FilePath>(const std::vector<std::string> &args, std::size_t idx)
 {
     if (idx < args.size()) {
-        return { args[idx], true };
+        return { args[idx], ParseResult::Accepted };
     }
-    return { {}, false };
+    return { {}, ParseResult::Rejected };
 }
 
 template <typename T>
@@ -248,12 +255,12 @@ boost::optional<std::tuple<typename ToOutType<T>::type>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
     auto parsed = parseArg<T>(args, idx);
-    if (!parsed.second && idx < args.size()) {
-        return {};
-    } else if (parsed.second && idx != args.size() - 1U) {
-        return {};
+    if (parsed.second == ParseResult::Accepted) {
+        if (idx == args.size() - 1U) {
+            return std::make_tuple(parsed.first);
+        }
     }
-    return std::make_tuple(parsed.first);
+    return {};
 }
 
 template <typename T1, typename T2, typename... Types>
@@ -263,14 +270,19 @@ boost::optional<std::tuple<typename ToOutType<T1>::type,
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
     auto parsed = parseArg<T1>(args, idx);
-    if (parsed.second) {
-        if (auto tail = tryParse<T2, Types...>(args, idx + 1)) {
-            return std::tuple_cat(std::make_tuple(parsed.first), *tail);
-        }
-    } else {
-        if (auto tail = tryParse<T2, Types...>(args, idx)) {
-            return std::tuple_cat(std::make_tuple(parsed.first), *tail);
-        }
+    switch (parsed.second) {
+        case ParseResult::Accepted:
+            if (auto tail = tryParse<T2, Types...>(args, idx + 1)) {
+                return std::tuple_cat(std::make_tuple(parsed.first), *tail);
+            }
+            break;
+        case ParseResult::Rejected:
+            return {};
+        case ParseResult::Skipped:
+            if (auto tail = tryParse<T2, Types...>(args, idx)) {
+                return std::tuple_cat(std::make_tuple(parsed.first), *tail);
+            }
+            break;
     }
     return {};
 }
