@@ -139,7 +139,8 @@ operator<<(DB &db, const BuildData &bd)
 Build::Build(int id, std::string ref, std::string refName,
              int coveredCount, int uncoveredCount, DataLoader &loader)
     : id(id), ref(std::move(ref)), refName(std::move(refName)),
-      coveredCount(coveredCount), uncoveredCount(uncoveredCount), loader(loader)
+      coveredCount(coveredCount), uncoveredCount(uncoveredCount),
+      loader(&loader)
 {
 }
 
@@ -177,7 +178,7 @@ const std::vector<std::string> &
 Build::getPaths() const
 {
     if (paths.empty()) {
-        paths = loader.loadPaths(id);
+        paths = loader->loadPaths(id);
     }
     return paths;
 }
@@ -190,7 +191,7 @@ Build::getFile(const std::string &path) const
         return match->second;
     }
 
-    if (boost::optional<File> file = loader.loadFile(id, path)) {
+    if (boost::optional<File> file = loader->loadFile(id, path)) {
         return files.emplace(path, *file).first->second;
     }
     return {};

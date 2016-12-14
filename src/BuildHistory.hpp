@@ -118,12 +118,12 @@ public:
     boost::optional<File &> getFile(const std::string &path) const;
 
 private:
-    const int id;
-    const std::string ref;
-    const std::string refName;
-    const int coveredCount;
-    const int uncoveredCount;
-    DataLoader &loader;
+    int id;
+    std::string ref;
+    std::string refName;
+    int coveredCount;
+    int uncoveredCount;
+    DataLoader *loader;
     mutable std::vector<std::string> paths;
     mutable std::unordered_map<std::string, File> files;
 };
