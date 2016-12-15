@@ -357,7 +357,6 @@ private:
             limitBuilds = false;
         }
 
-        // TODO: colorize percents?
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
               "C/U/R Line Changes", "Branch", "Commit" },
@@ -369,7 +368,7 @@ private:
             builds.erase(builds.cbegin(), builds.cend() - maxBuildCount);
         }
 
-        std::string sharp("#"), percent(" %"), sep(" / ");
+        std::string sharp("#"), sep(" / ");
         for (const Build &build : builds) {
             CovInfo covInfo(build);
 
@@ -383,9 +382,9 @@ private:
 
             tablePrinter.append({
                 sharp + std::to_string(build.getId()),
-                covInfo.formatCoverageRate() + percent,
+                covInfo.formatCoverageRate(),
                 covInfo.formatLines(sep),
-                covChange.formatCoverageRate() + percent,
+                covChange.formatCoverageRate(),
                 covChange.formatLines(sep),
                 build.getRefName(),
                 build.getRef()
@@ -488,21 +487,21 @@ private:
             info.add(CovInfo(file));
         }
 
-        // TODO: colorize percents?
         TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines" },
                                   getTerminalWidth());
 
-        std::string slash("/"), percent(" %"), sep(" / ");
+        std::string slash("/"), sep(" / ");
         for (const auto &entry : dirs) {
             const CovInfo &covInfo = entry.second;
             tablePrinter.append({
                 entry.first + slash,
-                covInfo.formatCoverageRate() + percent,
+                covInfo.formatCoverageRate(),
                 covInfo.formatLines(sep)
             });
         }
 
         tablePrinter.print(std::cout);
+        // TODO: show coverage changes from previous build.
     }
 };
 
@@ -527,21 +526,21 @@ private:
 
         Build build = CmdUtils::getBuild(bh, buildId);
 
-        // TODO: colorize percents?
         TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines" },
                                   getTerminalWidth());
 
-        std::string percent(" %"), sep(" / ");
+        std::string sep(" / ");
         for (const std::string &filePath : build.getPaths()) {
             CovInfo covInfo(*build.getFile(filePath));
             tablePrinter.append({
                 filePath,
-                covInfo.formatCoverageRate() + percent,
+                covInfo.formatCoverageRate(),
                 covInfo.formatLines(sep)
             });
         }
 
         tablePrinter.print(std::cout);
+        // TODO: show coverage changes from previous build.
     }
 };
 
@@ -688,11 +687,10 @@ printBuildHeader(BuildHistory *bh, const Build &build)
 
     CovChange covChange(prevCovInfo, covInfo);
 
-    // TODO: colorize percents?
     std::cout << (decor::bold << "Build:") << " #" << build.getId() << ", "
-              << covInfo.formatCoverageRate() << "% "
+              << covInfo.formatCoverageRate() << ' '
               << '(' << covInfo.formatLines("/") << "), "
-              << covChange.formatCoverageRate() << "% "
+              << covChange.formatCoverageRate() << ' '
               << '(' << covChange.formatLines("/") << "), "
               << build.getRefName() << " at " << build.getRef() << '\n';
 }
@@ -714,9 +712,8 @@ static void
 printFileHeader(const File &file)
 {
     CovInfo covInfo(file);
-    // TODO: colorize percents?
     std::cout << (decor::bold << "File: ") << file.getPath() << ", "
-              << covInfo.formatCoverageRate() << "% "
+              << covInfo.formatCoverageRate() << ' '
               << '(' << covInfo.formatLines("/") << ")\n";
 }
 

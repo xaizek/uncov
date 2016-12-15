@@ -21,6 +21,8 @@
 #include <sstream>
 #include <string>
 
+#include "printing.hpp"
+
 void
 CovInfo::add(const CovInfo &rhs)
 {
@@ -31,13 +33,11 @@ CovInfo::add(const CovInfo &rhs)
 std::string
 CovInfo::formatCoverageRate() const
 {
-    if (getRelevantLines() == 0) {
-        return "100";
-    }
+    const float coverage = (getRelevantLines() == 0) ? 100.0f : getCoverage();
 
     std::ostringstream oss;
     oss << std::fixed << std::right
-        << std::setprecision(2) << getCoverage();
+        << std::setprecision(2) << Coverage{coverage};
     return oss.str();
 }
 
@@ -76,17 +76,19 @@ std::string
 CovChange::formatCoverageRate() const
 {
     std::ostringstream oss;
-    oss << std::fixed << std::right << std::showpos
-        << std::setprecision(4) << coverageChange;
+    oss << std::fixed << std::right
+        << std::setprecision(4) << CoverageChange{coverageChange};
     return oss.str();
 }
 
 std::string
 CovChange::formatLines(const std::string &separator) const
 {
+    const int width = (separator.substr(0, 1) == " ") ? 4 : 0;
+
     std::ostringstream oss;
-    oss << std::showpos
-        << coveredChange << separator
-        << uncoveredChange << separator << relevantChange;
+    oss << CLinesChange{coveredChange} << separator << std::setw(width)
+        << ULinesChange{uncoveredChange} << separator << std::setw(width)
+        << RLinesChange{relevantChange};
     return oss.str();
 }
