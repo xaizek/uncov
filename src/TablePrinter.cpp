@@ -185,7 +185,6 @@ TablePrinter::TablePrinter(const std::vector<std::string> &headings,
         }
 
         boost::algorithm::to_upper(heading);
-        boost::algorithm::trim_left_if(heading, boost::is_from_range('_', '_'));
         cols.emplace_back(i, std::move(heading), left);
     }
 }
