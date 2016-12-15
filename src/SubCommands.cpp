@@ -444,7 +444,7 @@ private:
         printLineSeparator();
 
         FilePrinter filePrinter;
-        filePrinter.printDiff(args[2], oldVersion, oldCov, newVersion, newCov);
+        filePrinter.printDiff(filePath, oldVersion, oldCov, newVersion, newCov);
 
         // TODO: print some totals/stats here.
     }
