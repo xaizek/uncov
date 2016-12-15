@@ -184,7 +184,7 @@ struct parseArg<BuildId>
                 }
             }
         }
-        return { 0, ParseResult::Skipped };
+        return { LatestBuildMarker, ParseResult::Skipped };
     }
 };
 
@@ -254,6 +254,10 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
     auto parsed = parseArg<T>::parse(args, idx);
     if (parsed.second == ParseResult::Accepted) {
         if (idx == args.size() - 1U) {
+            return std::make_tuple(parsed.first);
+        }
+    } else if (parsed.second == ParseResult::Skipped) {
+        if (idx >= args.size()) {
             return std::make_tuple(parsed.first);
         }
     }
