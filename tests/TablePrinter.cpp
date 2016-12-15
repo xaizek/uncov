@@ -96,3 +96,30 @@ TEST_CASE("Left and right alignment of columns", "[TablePrinter][alignment]")
         "ccc    a\n";
     REQUIRE(oss.str() == expected);
 }
+
+TEST_CASE("Escape sequences do not contribute to column width",
+          "[TablePrinter][sizing]")
+{
+    TablePrinter table({ "id", "title" }, 80);
+    table.append({ "\033[34mid", "title" });
+
+    std::ostringstream oss;
+    table.print(oss);
+
+    const std::string expected = "ID  TITLE\n"
+                                 "\033[34mid  title\n";
+    REQUIRE(oss.str() == expected);
+}
+
+TEST_CASE("Escape sequences are truncated properly", "[TablePrinter][sizing]")
+{
+    TablePrinter table({ "id", "title" }, 8);
+    table.append({ "id", "\033[34mtitle" });
+
+    std::ostringstream oss;
+    table.print(oss);
+
+    const std::string expected = "ID  T...\n"
+                                 "id  \033[34mt\033[1m\033[0m...\n";
+    REQUIRE(oss.str() == expected);
+}

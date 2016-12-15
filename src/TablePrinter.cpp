@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iterator>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,6 +33,10 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "decoration.hpp"
+
+static unsigned int measureWidth(const std::string &s);
+static unsigned int measurePrefixLength(const std::string &s,
+                                        unsigned int prefixWidth);
 
 /**
  * @brief Helper class that represents single column of a table.
@@ -89,7 +94,7 @@ public:
      */
     void append(std::string val)
     {
-        width = std::max(width, static_cast<unsigned int>(val.size()));
+        width = std::max(width, measureWidth(val));
         values.emplace_back(std::move(val));
     }
 
@@ -138,13 +143,17 @@ private:
      */
     std::string truncate(const std::string &s) const
     {
-        if (s.length() <= width) {
+        if (measureWidth(s) <= width) {
             return s;
         }
         if (width <= 3U) {
             return std::string("...").substr(0U, width);
         }
-        return s.substr(0U, width - 3U) + "...";
+        const unsigned int prefixLen = measurePrefixLength(s, width - 3U);
+        std::ostringstream oss;
+        oss << s.substr(0U, prefixLen)
+            << (prefixLen > width - 3U ? "\033[1m\033[0m" : "") << "...";
+        return oss.str();
     }
 
 private:
@@ -298,8 +307,7 @@ TablePrinter::printTableHeader(std::ostream &os)
 {
     for (Column &col : cols) {
         os << (decor::white_fg + decor::black_bg + decor::bold + decor::inv
-           << (col.leftAlign() ? std::left : std::right)
-           << std::setw(col.getWidth()) << col.getHeading());
+           << alignCell(col.getHeading(), col));
 
         if (&col != &cols.back()) {
             os << gap;
@@ -313,12 +321,78 @@ TablePrinter::printTableRows(std::ostream &os)
 {
     for (unsigned int i = 0, n = items.size(); i < n; ++i) {
         for (Column &col : cols) {
-            os << (col.leftAlign() ? std::left : std::right);
-            os << std::setw(col.getWidth()) << col[i];
+            os << alignCell(col[i], col);
             if (&col != &cols.back()) {
                 os << gap;
             }
         }
         os << '\n';
     }
+}
+
+std::string
+TablePrinter::alignCell(std::string s, const Column &col) const
+{
+    unsigned int lineWidth = measureWidth(s);
+    if (lineWidth >= col.getWidth()) {
+        return s;
+    }
+
+    const unsigned int padWidth = col.getWidth() - lineWidth;
+    if (col.leftAlign()) {
+        s.insert(s.length(), padWidth, ' ');
+    } else {
+        s.insert(0, padWidth, ' ');
+    }
+    return s;
+}
+
+/**
+ * @brief Calculates width of a string ignoring embedded escape sequences.
+ *
+ * @param s String to measure.
+ *
+ * @returns The width.
+ */
+static unsigned int
+measureWidth(const std::string &s)
+{
+    unsigned int valWidth = 0U;
+    const char *str = s.c_str();
+    while (*str != '\0') {
+        if (*str != '\033') {
+            ++valWidth;
+            ++str;
+            continue;
+        }
+
+        const char *const next = std::strchr(str, 'm');
+        str = (next == nullptr) ? (str + std::strlen(str)) : (next + 1);
+    }
+    return valWidth;
+}
+
+/**
+ * @brief Calculates length of string prefix ignoring embedded escape sequences.
+ *
+ * @param s String to measure.
+ * @param prefixWidth Width of the prefix.
+ *
+ * @returns Lengths of byte sequence that matches specified prefix width.
+ */
+static unsigned int
+measurePrefixLength(const std::string &s, unsigned int prefixWidth)
+{
+    const char *str = s.c_str();
+    while (*str != '\0' && prefixWidth> 0U) {
+        if (*str != '\033') {
+            --prefixWidth;
+            ++str;
+            continue;
+        }
+
+        const char *const next = std::strchr(str, 'm');
+        str = (next == nullptr) ? (str + std::strlen(str)) : (next + 1);
+    }
+    return str - s.c_str();
 }

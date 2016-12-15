@@ -84,6 +84,17 @@ private:
      * @param os Output stream.
      */
     void printTableRows(std::ostream &os);
+    /**
+     * @brief Pads string to align it according to column parameters.
+     *
+     * We can't simply use @c std::setw, because of escape sequences.
+     *
+     * @param s String to align.
+     * @param col Source of width and alignment type.
+     *
+     * @returns Aligned cell.
+     */
+    std::string alignCell(std::string s, const Column &col) const;
 
 private:
     /**
