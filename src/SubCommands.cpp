@@ -359,7 +359,7 @@ private:
 
         // TODO: colorize percents?
         TablePrinter tablePrinter {
-            { "Build", "Coverage", "C/R Lines", "Coverage Change",
+            { "Build", "Coverage", "C/R Lines", "Cov Change",
               "C/U/R Line Changes", "Branch", "Commit" },
             getTerminalWidth()
         };
