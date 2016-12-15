@@ -54,6 +54,15 @@ public:
      */
     int getLastBuildId();
 
+    /**
+     * @brief Retrieves id of the build previous to the given one.
+     *
+     * @param id Some existing build.
+     *
+     * @returns The id or @c 0 if there is no existing previous build.
+     */
+    int getPreviousBuildId(int id);
+
     boost::optional<Build> getBuild(int id);
     std::vector<Build> getBuilds();
 

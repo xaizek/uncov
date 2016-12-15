@@ -304,6 +304,13 @@ BuildHistory::getLastBuildId()
     }
 }
 
+int
+BuildHistory::getPreviousBuildId(int id)
+{
+    // TODO: try looking for closest build in terms of commits.
+    return id - 1;
+}
+
 boost::optional<Build>
 BuildHistory::getBuild(int id)
 {

@@ -30,7 +30,6 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -39,62 +38,14 @@
 #include "Repository.hpp"
 #include "SubCommand.hpp"
 #include "TablePrinter.hpp"
+#include "coverage.hpp"
 #include "decoration.hpp"
 
-static void printBuildHeader(const Build &build);
+static void printBuildHeader(BuildHistory *bh, const Build &build);
 static void printFile(const Repository *repo, const Build &build,
                       const File &file, FilePrinter &printer);
 static void printFileHeader(const File &file);
 static void printLineSeparator();
-
-class CovInfo
-{
-public:
-    CovInfo() = default;
-    template <typename T>
-    explicit CovInfo(const T &coverable)
-        : coveredCount(coverable.getCoveredCount()),
-          uncoveredCount(coverable.getUncoveredCount())
-    {
-    }
-
-public:
-    void add(const CovInfo &rhs)
-    {
-        coveredCount += rhs.coveredCount;
-        uncoveredCount += rhs.uncoveredCount;
-    }
-
-    std::string formatCoverageRate() const
-    {
-        if (getRelevantLines() == 0) {
-            return "100";
-        }
-
-        auto rate = 100*coveredCount/static_cast<float>(getRelevantLines());
-
-        std::ostringstream oss;
-        oss << std::fixed << std::right
-            << std::setprecision(2) << rate;
-        return oss.str();
-    }
-
-    std::string formatLines(const std::string &separator) const
-    {
-        return std::to_string(coveredCount) + separator
-             + std::to_string(getRelevantLines());
-    }
-
-private:
-    int getRelevantLines() const
-    {
-        return coveredCount + uncoveredCount;
-    }
-
-private:
-    int coveredCount = 0;
-    int uncoveredCount = 0;
-};
 
 class RedirectToPager
 {
@@ -393,9 +344,6 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        // TODO: calculate and display change of coverage (both in percents and
-        //       in covered/relevant lines).
-
         // By default limit number of builds to display to 10.
         bool limitBuilds = true;
         unsigned int maxBuildCount = 10;
@@ -407,7 +355,8 @@ private:
 
         // TODO: colorize percents?
         TablePrinter tablePrinter {
-            { "Build", "Coverage", "Lines", "Branch", "Commit" },
+            { "Build", "Coverage", "C/R Lines", "Coverage Change",
+              "C/U/R Line Changes", "Branch", "Commit" },
             getTerminalWidth()
         };
 
@@ -420,10 +369,20 @@ private:
         for (const Build &build : builds) {
             CovInfo covInfo(build);
 
+            const int prevBuildId = bh->getPreviousBuildId(build.getId());
+            CovInfo prevCovInfo;
+            if (prevBuildId != 0) {
+                prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
+            }
+
+            CovChange covChange(prevCovInfo, covInfo);
+
             tablePrinter.append({
                 sharp + std::to_string(build.getId()),
                 covInfo.formatCoverageRate() + percent,
                 covInfo.formatLines(sep),
+                covChange.formatCoverageRate() + percent,
+                covChange.formatLines(sep),
                 build.getRefName(),
                 build.getRef()
             });
@@ -477,10 +436,10 @@ private:
         RedirectToPager redirectToPager;
 
         printLineSeparator();
-        printBuildHeader(oldBuild);
+        printBuildHeader(bh, oldBuild);
         printFileHeader(oldFile);
         printLineSeparator();
-        printBuildHeader(newBuild);
+        printBuildHeader(bh, newBuild);
         printFileHeader(newFile);
         printLineSeparator();
 
@@ -659,8 +618,7 @@ private:
 
         if (!isFailed()) {
             Build build = bh->addBuild(bd);
-            printBuildHeader(build);
-            // TODO: display change of coverage since previous build.
+            printBuildHeader(bh, build);
         }
     }
 };
@@ -700,27 +658,38 @@ private:
 
         if (printWholeBuild) {
             RedirectToPager redirectToPager;
-            printBuildHeader(build);
+            printBuildHeader(bh, build);
             for (const std::string &path : build.getPaths()) {
                 printFile(repo, build, *build.getFile(path), printer);
             }
         } else {
             File &file = CmdUtils::getFile(build, filePath);
             RedirectToPager redirectToPager;
-            printBuildHeader(build);
+            printBuildHeader(bh, build);
             printFile(repo, build, file, printer);
         }
     }
 };
 
 static void
-printBuildHeader(const Build &build)
+printBuildHeader(BuildHistory *bh, const Build &build)
 {
     CovInfo covInfo(build);
+
+    const int prevBuildId = bh->getPreviousBuildId(build.getId());
+    CovInfo prevCovInfo;
+    if (prevBuildId != 0) {
+        prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
+    }
+
+    CovChange covChange(prevCovInfo, covInfo);
+
     // TODO: colorize percents?
     std::cout << (decor::bold << "Build:") << " #" << build.getId() << ", "
               << covInfo.formatCoverageRate() << "% "
               << '(' << covInfo.formatLines("/") << "), "
+              << covChange.formatCoverageRate() << "% "
+              << '(' << covChange.formatLines("/") << "), "
               << build.getRefName() << " at " << build.getRef() << '\n';
 }
 
