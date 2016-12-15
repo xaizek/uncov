@@ -134,6 +134,11 @@ extern const Decoration magenta_bg;
 extern const Decoration cyan_bg;
 extern const Decoration white_bg;
 
+/**
+ * @brief Forces disabling of decorations.
+ */
+void disableDecorations();
+
 }
 
 #endif // UNCOVER__DECORATION_HPP__

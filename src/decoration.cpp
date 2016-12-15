@@ -28,11 +28,8 @@ namespace {
 class Colors
 {
 public:
-    Colors() : isAscii(isatty(fileno(stdout)))
-    {
-    }
+    void disable() { isAscii = false; }
 
-public:
     const char * bold () { return isAscii ? "\033[1m" : ""; }
     const char * inv  () { return isAscii ? "\033[7m" : ""; }
     const char * def  () { return isAscii ? "\033[1m\033[0m" : ""; }
@@ -56,7 +53,7 @@ public:
     const char * white_bg   () { return isAscii ? "\033[47m" : ""; }
 
 private:
-    const bool isAscii;
+    bool isAscii = isatty(fileno(stdout));
 } C;
 
 }
@@ -128,4 +125,11 @@ ScopedDecoration::decorate(std::ostream &os) const
     }
     os << def;
     return os;
+}
+
+
+void
+decor::disableDecorations()
+{
+    C.disable();
 }
