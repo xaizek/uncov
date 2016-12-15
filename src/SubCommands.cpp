@@ -489,7 +489,7 @@ private:
         }
 
         // TODO: colorize percents?
-        TablePrinter tablePrinter({ "-Directory", "Coverage", "#" },
+        TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines" },
                                   getTerminalWidth());
 
         std::string slash("/"), percent(" %"), sep(" / ");
@@ -528,7 +528,7 @@ private:
         Build build = CmdUtils::getBuild(bh, buildId);
 
         // TODO: colorize percents?
-        TablePrinter tablePrinter({ "-File", "Coverage", "#" },
+        TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines" },
                                   getTerminalWidth());
 
         std::string percent(" %"), sep(" / ");
