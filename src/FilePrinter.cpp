@@ -257,22 +257,24 @@ FilePrinter::printDiff(const std::string &path,
         return line;
     };
 
+    decor::Decoration additionDec = decor::green_fg + decor::bold;
+    decor::Decoration removalDec = decor::red_fg + decor::bold;
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case LineType::Added:
                 std::cout << oldCovCol.blank() << ':'
                           << newCovCol[line.newLine] << ':'
-                          << (decor::green_fg + decor::bold << '+')
+                          << (additionDec << '+')
                           << getNLine(line.newLine);
                 break;
             case LineType::Removed:
-                std::cout << oldCovCol[line.oldLine]
-                          << ':' << newCovCol.blank()
-                          << ':' << (decor::red_fg + decor::bold << '-')
+                std::cout << oldCovCol[line.oldLine] << ':'
+                          << newCovCol.blank() << ':'
+                          << (removalDec << '-')
                           << getOLine(line.oldLine);
                 break;
             case LineType::Note:
-                std::cout << (decor::none << " <<< " + line.text + " >>>");
+                std::cout << " <<< " + line.text + " >>>";
                 break;
             case LineType::Common:
                 std::cout << oldCovCol[line.oldLine] << ':'
