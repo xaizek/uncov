@@ -194,28 +194,12 @@ private:
 
 class Binding
 {
-public:
-    explicit Binding(std::string name) : name(std::move(name))
-    {
-    }
+    friend class BlankBinding;
 
-public:
-    Binding & operator=(const std::string &val) &&
+    Binding(std::string name,
+            boost::variant<std::string, int, std::vector<int>> value)
+        : name(std::move(name)), value(value)
     {
-        value = val;
-        return *this;
-    }
-
-    Binding & operator=(int val) &&
-    {
-        value = val;
-        return *this;
-    }
-
-    Binding & operator=(const std::vector<int> &val) &&
-    {
-        value = val;
-        return *this;
     }
 
 public:
@@ -231,12 +215,39 @@ public:
 
 private:
     const std::string name;
-    boost::variant<std::string, int, std::vector<int>> value;
+    const boost::variant<std::string, int, std::vector<int>> value;
 };
 
-inline Binding operator "" _b(const char name[], std::size_t len)
+class BlankBinding
 {
-    return Binding(std::string(name, len));
+public:
+    explicit BlankBinding(std::string name) : name(std::move(name))
+    {
+    }
+
+public:
+    Binding operator=(std::string val) &&
+    {
+        return Binding(name, std::move(val));
+    }
+
+    Binding operator=(int val) &&
+    {
+        return Binding(name, val);
+    }
+
+    Binding operator=(std::vector<int> val) &&
+    {
+        return Binding(name, std::move(val));
+    }
+
+private:
+    const std::string name;
+};
+
+inline BlankBinding operator "" _b(const char name[], std::size_t len)
+{
+    return BlankBinding(std::string(name, len));
 }
 
 #endif // UNCOVER__DB_HPP__
