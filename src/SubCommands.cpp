@@ -43,11 +43,17 @@
 #include "decoration.hpp"
 
 static void printBuildHeader(BuildHistory *bh, const Build &build);
+static CovChange getBuildCovChange(BuildHistory *bh, const Build &build,
+                                   const CovInfo &covInfo);
 static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
                       FilePrinter &printer);
 static void printFileHeader(BuildHistory *bh, const Build &build,
                             const File &file);
+static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
+                                  const std::string &path,
+                                  boost::optional<Build> *prevBuildHint,
+                                  const CovInfo &covInfo);
 static void printLineSeparator();
 
 class RedirectToPager
@@ -199,14 +205,7 @@ private:
         std::string sharp("#"), sep(" / ");
         for (const Build &build : builds) {
             CovInfo covInfo(build);
-
-            const int prevBuildId = bh->getPreviousBuildId(build.getId());
-            CovInfo prevCovInfo;
-            if (prevBuildId != 0) {
-                prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
-            }
-
-            CovChange covChange(prevCovInfo, covInfo);
+            CovChange covChange = getBuildCovChange(bh, build, covInfo);
 
             tablePrinter.append({
                 sharp + std::to_string(build.getId()),
@@ -317,6 +316,7 @@ private:
         for (const auto &entry : newDirs) {
             const CovInfo &covInfo = entry.second;
             CovChange covChange(prevDirs[entry.first], covInfo);
+
             tablePrinter.append({
                 entry.first + slash,
                 covInfo.formatCoverageRate(),
@@ -378,16 +378,8 @@ private:
         std::string sep(" / ");
         for (const std::string &filePath : build.getPaths()) {
             CovInfo covInfo(*build.getFile(filePath));
-
-            CovInfo prevCovInfo;
-            if (prevBuild) {
-                boost::optional<File &> file = prevBuild->getFile(filePath);
-                if (file) {
-                    prevCovInfo = CovInfo(*file);
-                }
-            }
-
-            CovChange covChange(prevCovInfo, covInfo);
+            CovChange covChange = getFileCovChange(bh, build, filePath,
+                                                   &prevBuild, covInfo);
 
             tablePrinter.append({
                 filePath,
@@ -536,14 +528,7 @@ static void
 printBuildHeader(BuildHistory *bh, const Build &build)
 {
     CovInfo covInfo(build);
-
-    const int prevBuildId = bh->getPreviousBuildId(build.getId());
-    CovInfo prevCovInfo;
-    if (prevBuildId != 0) {
-        prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
-    }
-
-    CovChange covChange(prevCovInfo, covInfo);
+    CovChange covChange = getBuildCovChange(bh, build, covInfo);
 
     std::cout << (decor::bold << "Build:") << " #" << build.getId() << ", "
               << covInfo.formatCoverageRate() << ' '
@@ -551,6 +536,17 @@ printBuildHeader(BuildHistory *bh, const Build &build)
               << covChange.formatCoverageRate() << ' '
               << '(' << covChange.formatLines("/") << "), "
               << build.getRefName() << " at " << build.getRef() << '\n';
+}
+
+static CovChange
+getBuildCovChange(BuildHistory *bh, const Build &build, const CovInfo &covInfo)
+{
+    CovInfo prevCovInfo;
+    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+        prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
+    }
+
+    return CovChange(prevCovInfo, covInfo);
 }
 
 static void
@@ -570,23 +566,37 @@ static void
 printFileHeader(BuildHistory *bh, const Build &build, const File &file)
 {
     CovInfo covInfo(file);
-
-    CovInfo prevCovInfo;
-    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
-        boost::optional<File &> prevFile = bh->getBuild(prevBuildId)
-                                             ->getFile(file.getPath());
-        if (prevFile) {
-            prevCovInfo = CovInfo(*prevFile);
-        }
-    }
-
-    CovChange covChange(prevCovInfo, covInfo);
+    CovChange covChange = getFileCovChange(bh, build, file.getPath(), nullptr,
+                                           covInfo);
 
     std::cout << (decor::bold << "File: ") << file.getPath() << ", "
               << covInfo.formatCoverageRate() << ' '
               << '(' << covInfo.formatLines("/") << "), "
               << covChange.formatCoverageRate() << ' '
               << '(' << covChange.formatLines("/") << ")\n";
+}
+
+static CovChange
+getFileCovChange(BuildHistory *bh, const Build &build, const std::string &path,
+                 boost::optional<Build> *prevBuildHint, const CovInfo &covInfo)
+{
+    boost::optional<Build> prevBuild;
+    if (prevBuildHint == nullptr) {
+        if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+            prevBuild = bh->getBuild(prevBuildId);
+        }
+        prevBuildHint = &prevBuild;
+    }
+
+    CovInfo prevCovInfo;
+    if (*prevBuildHint) {
+        boost::optional<File &> file = (*prevBuildHint)->getFile(path);
+        if (file) {
+            prevCovInfo = CovInfo(*file);
+        }
+    }
+
+    return CovChange(prevCovInfo, covInfo);
 }
 
 static void
