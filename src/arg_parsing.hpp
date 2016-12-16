@@ -18,7 +18,7 @@
 #ifndef UNCOVER__ARG_PARSING_HPP__
 #define UNCOVER__ARG_PARSING_HPP__
 
-#include <boost/optional/optional_fwd.hpp>
+#include <boost/optional.hpp>
 
 #include <cstddef>
 
@@ -35,24 +35,21 @@ struct PositiveNumber;
 template <typename T>
 struct StringLiteral;
 
+// Special output type.
 struct Nothing {};
 
+// Build id when not provided in arguments.
 const int LatestBuildMarker = 0;
 
 namespace detail
 {
 
+template <typename T>
+struct parseArg;
+
 // Map of input tags to output types.
 template <typename InType>
-struct ToOutType;
-template <>
-struct ToOutType<BuildId> { using type = int; };
-template <>
-struct ToOutType<FilePath> { using type = std::string; };
-template <>
-struct ToOutType<PositiveNumber> { using type = unsigned int; };
-template <typename T>
-struct ToOutType<StringLiteral<T>> { using type = Nothing; };
+using ToOutType = typename parseArg<InType>::resultType;
 
 enum class ParseResult
 {
@@ -61,34 +58,39 @@ enum class ParseResult
     Skipped
 };
 
-template <typename T>
-struct parseArg;
-
 template <>
 struct parseArg<BuildId>
 {
-    static std::pair<typename ToOutType<BuildId>::type, ParseResult>
+    using resultType = int;
+
+    static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
 template <>
 struct parseArg<FilePath>
 {
-    static std::pair<typename ToOutType<FilePath>::type, ParseResult>
+    using resultType = std::string;
+
+    static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
 template <>
 struct parseArg<PositiveNumber>
 {
-    static std::pair<typename ToOutType<PositiveNumber>::type, ParseResult>
+    using resultType = unsigned int;
+
+    static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
 template <typename T>
 struct parseArg<StringLiteral<T>>
 {
-    static std::pair<typename ToOutType<StringLiteral<T>>::type, ParseResult>
+    using resultType = Nothing;
+
+    static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx)
     {
         if (idx >= args.size()) {
@@ -102,7 +104,7 @@ struct parseArg<StringLiteral<T>>
 };
 
 template <typename T>
-boost::optional<std::tuple<typename ToOutType<T>::type>>
+boost::optional<std::tuple<ToOutType<T>>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
     auto parsed = parseArg<T>::parse(args, idx);
@@ -119,9 +121,7 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
 }
 
 template <typename T1, typename T2, typename... Types>
-boost::optional<std::tuple<typename ToOutType<T1>::type,
-                           typename ToOutType<T2>::type,
-                           typename ToOutType<Types>::type...>>
+boost::optional<std::tuple<ToOutType<T1>, ToOutType<T2>, ToOutType<Types>...>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
 {
     auto parsed = parseArg<T1>::parse(args, idx);
@@ -145,7 +145,7 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
 }
 
 template <typename... Types>
-boost::optional<std::tuple<typename detail::ToOutType<Types>::type...>>
+boost::optional<std::tuple<detail::ToOutType<Types>...>>
 tryParse(const std::vector<std::string> &args)
 {
     return detail::tryParse<Types...>(args, 0U);

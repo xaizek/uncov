@@ -25,8 +25,9 @@
 
 using namespace detail;
 
-std::pair<typename ToOutType<BuildId>::type, ParseResult>
+auto
 parseArg<BuildId>::parse(const std::vector<std::string> &args, std::size_t idx)
+    -> std::pair<resultType, ParseResult>
 {
     if (idx < args.size()) {
         const std::string &arg = args[idx];
@@ -51,8 +52,9 @@ parseArg<BuildId>::parse(const std::vector<std::string> &args, std::size_t idx)
     return { LatestBuildMarker, ParseResult::Skipped };
 }
 
-std::pair<typename ToOutType<FilePath>::type, ParseResult>
+auto
 parseArg<FilePath>::parse(const std::vector<std::string> &args, std::size_t idx)
+    -> std::pair<resultType, ParseResult>
 {
     if (idx < args.size()) {
         return { args[idx], ParseResult::Accepted };
@@ -60,8 +62,9 @@ parseArg<FilePath>::parse(const std::vector<std::string> &args, std::size_t idx)
     return { {}, ParseResult::Rejected };
 }
 
-std::pair<typename ToOutType<PositiveNumber>::type, ParseResult>
+auto
 parseArg<PositiveNumber>::parse(const std::vector<std::string> &args, std::size_t idx)
+    -> std::pair<resultType, ParseResult>
 {
     if (idx >= args.size()) {
         return { 0, ParseResult::Rejected };
