@@ -43,9 +43,11 @@
 #include "decoration.hpp"
 
 static void printBuildHeader(BuildHistory *bh, const Build &build);
-static void printFile(const Repository *repo, const Build &build,
-                      const File &file, FilePrinter &printer);
-static void printFileHeader(const File &file);
+static void printFile(BuildHistory *bh, const Repository *repo,
+                      const Build &build, const File &file,
+                      FilePrinter &printer);
+static void printFileHeader(BuildHistory *bh, const Build &build,
+                            const File &file);
 static void printLineSeparator();
 
 class RedirectToPager
@@ -266,10 +268,10 @@ private:
 
         printLineSeparator();
         printBuildHeader(bh, oldBuild);
-        printFileHeader(oldFile);
+        printFileHeader(bh, oldBuild, oldFile);
         printLineSeparator();
         printBuildHeader(bh, newBuild);
-        printFileHeader(newFile);
+        printFileHeader(bh, newBuild, newFile);
         printLineSeparator();
 
         FilePrinter filePrinter;
@@ -290,8 +292,6 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        namespace fs = boost::filesystem;
-
         int buildId;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
@@ -302,9 +302,38 @@ private:
 
         Build build = CmdUtils::getBuild(bh, buildId);
 
+        std::map<std::string, CovInfo> newDirs = getDirsCoverage(build);
+
+        std::map<std::string, CovInfo> prevDirs;
+        if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+            prevDirs = getDirsCoverage(*bh->getBuild(prevBuildId));
+        }
+
+        TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines",
+                                    "Cov Change", "C/U/R Line Changes" },
+                                  getTerminalWidth());
+
+        std::string slash("/"), sep(" / ");
+        for (const auto &entry : newDirs) {
+            const CovInfo &covInfo = entry.second;
+            CovChange covChange(prevDirs[entry.first], covInfo);
+            tablePrinter.append({
+                entry.first + slash,
+                covInfo.formatCoverageRate(),
+                covInfo.formatLines(sep),
+                covChange.formatCoverageRate(),
+                covChange.formatLines(sep)
+            });
+        }
+
+        tablePrinter.print(std::cout);
+    }
+
+    std::map<std::string, CovInfo> getDirsCoverage(const Build &build) const
+    {
         std::map<std::string, CovInfo> dirs;
         for (const std::string &filePath : build.getPaths()) {
-            fs::path dirPath = filePath;
+            boost::filesystem::path dirPath = filePath;
             dirPath.remove_filename();
 
             File &file = *build.getFile(filePath);
@@ -312,22 +341,7 @@ private:
 
             info.add(CovInfo(file));
         }
-
-        TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines" },
-                                  getTerminalWidth());
-
-        std::string slash("/"), sep(" / ");
-        for (const auto &entry : dirs) {
-            const CovInfo &covInfo = entry.second;
-            tablePrinter.append({
-                entry.first + slash,
-                covInfo.formatCoverageRate(),
-                covInfo.formatLines(sep)
-            });
-        }
-
-        tablePrinter.print(std::cout);
-        // TODO: show coverage changes from previous build.
+        return dirs;
     }
 };
 
@@ -352,21 +366,39 @@ private:
 
         Build build = CmdUtils::getBuild(bh, buildId);
 
-        TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines" },
+        boost::optional<Build> prevBuild;
+        if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+            prevBuild = bh->getBuild(prevBuildId);
+        }
+
+        TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines",
+                                    "Cov Change", "C/U/R Line Changes" },
                                   getTerminalWidth());
 
         std::string sep(" / ");
         for (const std::string &filePath : build.getPaths()) {
             CovInfo covInfo(*build.getFile(filePath));
+
+            CovInfo prevCovInfo;
+            if (prevBuild) {
+                boost::optional<File &> file = prevBuild->getFile(filePath);
+                if (file) {
+                    prevCovInfo = CovInfo(*file);
+                }
+            }
+
+            CovChange covChange(prevCovInfo, covInfo);
+
             tablePrinter.append({
                 filePath,
                 covInfo.formatCoverageRate(),
-                covInfo.formatLines(sep)
+                covInfo.formatLines(sep),
+                covChange.formatCoverageRate(),
+                covChange.formatLines(sep),
             });
         }
 
         tablePrinter.print(std::cout);
-        // TODO: show coverage changes from previous build.
     }
 };
 
@@ -489,13 +521,13 @@ private:
             RedirectToPager redirectToPager;
             printBuildHeader(bh, build);
             for (const std::string &path : build.getPaths()) {
-                printFile(repo, build, *build.getFile(path), printer);
+                printFile(bh, repo, build, *build.getFile(path), printer);
             }
         } else {
             File &file = CmdUtils::getFile(build, filePath);
             RedirectToPager redirectToPager;
             printBuildHeader(bh, build);
-            printFile(repo, build, file, printer);
+            printFile(bh, repo, build, file, printer);
         }
     }
 };
@@ -522,11 +554,11 @@ printBuildHeader(BuildHistory *bh, const Build &build)
 }
 
 static void
-printFile(const Repository *repo, const Build &build, const File &file,
-          FilePrinter &printer)
+printFile(BuildHistory *bh, const Repository *repo, const Build &build,
+          const File &file, FilePrinter &printer)
 {
     printLineSeparator();
-    printFileHeader(file);
+    printFileHeader(bh, build, file);
     printLineSeparator();
 
     const std::string &path = file.getPath();
@@ -535,12 +567,26 @@ printFile(const Repository *repo, const Build &build, const File &file,
 }
 
 static void
-printFileHeader(const File &file)
+printFileHeader(BuildHistory *bh, const Build &build, const File &file)
 {
     CovInfo covInfo(file);
+
+    CovInfo prevCovInfo;
+    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+        boost::optional<File &> prevFile = bh->getBuild(prevBuildId)
+                                             ->getFile(file.getPath());
+        if (prevFile) {
+            prevCovInfo = CovInfo(*prevFile);
+        }
+    }
+
+    CovChange covChange(prevCovInfo, covInfo);
+
     std::cout << (decor::bold << "File: ") << file.getPath() << ", "
               << covInfo.formatCoverageRate() << ' '
-              << '(' << covInfo.formatLines("/") << ")\n";
+              << '(' << covInfo.formatLines("/") << "), "
+              << covChange.formatCoverageRate() << ' '
+              << '(' << covChange.formatLines("/") << ")\n";
 }
 
 static void
