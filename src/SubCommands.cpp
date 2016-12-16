@@ -225,7 +225,7 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : parent("diff", 2U, 3U)
+    DiffCmd() : parent("diff", 1U, 3U)
     {
     }
 
@@ -235,17 +235,32 @@ private:
     {
         // TODO: allow diffing whole builds.
 
+        bool findPrev = false;
         int oldBuildId, newBuildId;
         std::string filePath;
-        if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+        if (auto parsed = tryParse<FilePath>(args)) {
+            findPrev = true;
+            newBuildId = LatestBuildMarker;
+            std::tie(filePath) = *parsed;
+        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
             std::tie(oldBuildId, newBuildId, filePath) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
-        Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
         Build newBuild = CmdUtils::getBuild(bh, newBuildId);
+
+        if (findPrev) {
+            oldBuildId = bh->getPreviousBuildId(newBuild.getId());
+            if (oldBuildId == 0) {
+                std::cerr << "Failed to obtain previous build of #"
+                          << newBuild.getId() << '\n';
+                return error();
+            }
+        }
+
+        Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
 
         File &oldFile = CmdUtils::getFile(oldBuild, filePath);
         File &newFile = CmdUtils::getFile(newBuild, filePath);
