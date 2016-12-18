@@ -96,8 +96,10 @@ public:
     {
         const int MinHitsNumWidth = 5;
         // XXX: this could in principle be stored in database.
-        const int maxHits = *std::max_element(coverage.cbegin(),
-                                              coverage.cend());
+        int maxHits = 0;
+        if (!coverage.empty()) {
+            maxHits = *std::max_element(coverage.cbegin(), coverage.cend());
+        }
         hitsNumWidth = std::max(MinHitsNumWidth, local::countWidth(maxHits));
     }
 
