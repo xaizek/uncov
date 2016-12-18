@@ -2,6 +2,7 @@
 /coverage/
 /debug/
 /release/
+/sanitize-basic/
 *.d
 *.o
 /uncover
