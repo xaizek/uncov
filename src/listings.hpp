@@ -39,4 +39,7 @@ void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build);
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const File &file);
 
+void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
+                     const std::string &filePath);
+
 #endif // UNCOVER__LISTINGS_HPP__

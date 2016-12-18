@@ -32,6 +32,8 @@
 static std::map<std::string, CovInfo> getDirsCoverage(const Build &build);
 static CovChange getBuildCovChange(BuildHistory *bh, const Build &build,
                                    const CovInfo &covInfo);
+static void printFileHeader(std::ostream &os, const std::string &filePath,
+                            const CovInfo &covInfo, const CovChange &covChange);
 static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
                                   const std::string &path,
                                   boost::optional<Build> *prevBuildHint,
@@ -161,8 +163,24 @@ printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
     CovInfo covInfo(file);
     CovChange covChange = getFileCovChange(bh, build, file.getPath(), nullptr,
                                            covInfo);
+    printFileHeader(os, file.getPath(), covInfo, covChange);
+}
 
-    os << (decor::bold << "File: ") << file.getPath() << ", "
+void
+printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
+                const std::string &filePath)
+{
+    CovInfo covInfo;
+    CovChange covChange = getFileCovChange(bh, build, filePath, nullptr,
+                                           covInfo);
+    printFileHeader(os, filePath, covInfo, covChange);
+}
+
+static void
+printFileHeader(std::ostream &os, const std::string &filePath,
+                const CovInfo &covInfo, const CovChange &covChange)
+{
+    os << (decor::bold << "File: ") << filePath << ", "
        << covInfo.formatCoverageRate() << ' '
        << '(' << covInfo.formatLines("/") << "), "
        << covChange.formatCoverageRate() << ' '

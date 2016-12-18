@@ -26,9 +26,12 @@
 #include <boost/optional.hpp>
 #include <boost/scope_exit.hpp>
 
+#include <cassert>
+
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -204,7 +207,7 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : parent("diff", 1U, 3U)
+    DiffCmd() : parent("diff", 0U, 3U)
     {
     }
 
@@ -212,9 +215,8 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        // TODO: allow diffing whole builds.
-
         bool findPrev = false;
+        bool buildsDiff = false;
         int oldBuildId, newBuildId;
         std::string filePath;
         if (auto parsed = tryParse<FilePath>(args)) {
@@ -223,6 +225,14 @@ private:
             std::tie(filePath) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
             std::tie(oldBuildId, newBuildId, filePath) = *parsed;
+        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+            findPrev = true;
+            buildsDiff = true;
+            std::tie(oldBuildId, newBuildId) = *parsed;
+        } else if (args.empty()) {
+            findPrev = true;
+            buildsDiff = true;
+            newBuildId = LatestBuildMarker;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
@@ -241,15 +251,49 @@ private:
 
         Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
 
-        File &oldFile = CmdUtils::getFile(oldBuild, filePath);
-        File &newFile = CmdUtils::getFile(newBuild, filePath);
+        RedirectToPager redirectToPager;
 
-        Text oldVersion = repo->readFile(oldBuild.getRef(),
-                                         oldFile.getPath());
-        Text newVersion = repo->readFile(newBuild.getRef(),
-                                         newFile.getPath());
-        const std::vector<int> &oldCov = oldFile.getCoverage();
-        const std::vector<int> &newCov = newFile.getCoverage();
+        if (buildsDiff) {
+            diffBuilds(oldBuild, newBuild);
+        } else {
+            printInfo(oldBuild, newBuild, filePath, true, true);
+            diffFile(oldBuild, newBuild, filePath);
+        }
+
+        // TODO: maybe print some totals/stats here.
+    }
+
+    void diffBuilds(const Build &oldBuild, const Build &newBuild)
+    {
+        const std::vector<std::string> &oldPaths = oldBuild.getPaths();
+        const std::vector<std::string> &newPaths = newBuild.getPaths();
+
+        std::set<std::string> allFiles(oldPaths.cbegin(), oldPaths.cend());
+        allFiles.insert(newPaths.cbegin(), newPaths.cend());
+
+        printInfo(oldBuild, newBuild, std::string(), true, false);
+
+        for (const std::string &path : allFiles) {
+            std::cout << '\n';
+            printInfo(oldBuild, newBuild, path, false, true);
+            diffFile(oldBuild, newBuild, path);
+        }
+    }
+
+    void diffFile(const Build &oldBuild, const Build &newBuild,
+                  const std::string &filePath)
+    {
+        boost::optional<File &> oldFile = oldBuild.getFile(filePath);
+        boost::optional<File &> newFile = newBuild.getFile(filePath);
+
+        Text oldVersion = oldFile ? repo->readFile(oldBuild.getRef(), filePath)
+                                  : std::string();
+        Text newVersion = newFile ? repo->readFile(newBuild.getRef(), filePath)
+                                  : std::string();
+        const std::vector<int> &oldCov = oldFile ? oldFile->getCoverage()
+                                                 : std::vector<int>{};
+        const std::vector<int> &newCov = newFile ? newFile->getCoverage()
+                                                 : std::vector<int>{};
 
         if (oldVersion.size() != oldCov.size() ||
             newVersion.size() != newCov.size()) {
@@ -257,21 +301,31 @@ private:
             return error();
         }
 
-        RedirectToPager redirectToPager;
-
-        printLineSeparator();
-        printBuildHeader(std::cout, bh, oldBuild);
-        printFileHeader(std::cout, bh, oldBuild, oldFile);
-        printLineSeparator();
-        printBuildHeader(std::cout, bh, newBuild);
-        printFileHeader(std::cout, bh, newBuild, newFile);
-        printLineSeparator();
-
         FilePrinter filePrinter;
         filePrinter.printDiff(std::cout, filePath, oldVersion,
                               oldCov, newVersion, newCov);
+    }
 
-        // TODO: print some totals/stats here.
+    void printInfo(const Build &oldBuild, const Build &newBuild,
+                   const std::string &filePath, bool buildInfo, bool fileInfo)
+    {
+        assert((buildInfo || fileInfo) && "Expected at least one flag set.");
+
+        printLineSeparator();
+        if (buildInfo) {
+            printBuildHeader(std::cout, bh, oldBuild);
+        }
+        if (fileInfo) {
+            printFileHeader(std::cout, bh, oldBuild, filePath);
+        }
+        printLineSeparator();
+        if (buildInfo) {
+            printBuildHeader(std::cout, bh, newBuild);
+        }
+        if (fileInfo) {
+            printFileHeader(std::cout, bh, newBuild, filePath);
+        }
+        printLineSeparator();
     }
 };
 
