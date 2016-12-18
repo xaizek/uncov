@@ -208,9 +208,12 @@ FilePrinter::print(std::ostream &os, const std::string &path,
            << covCol[lineNo] << ": " << fileLine << '\n';
     }
 
-    if (lineNo != coverage.size()) {
+    if (lineNo < coverage.size()) {
         os << (decor::red_bg + decor::bold
-           << "ERROR:") << " not enough lines in the file." << std::endl;
+           << "ERROR:") << " not enough lines in the file.\n";
+    } else if (lineNo > coverage.size()) {
+        os << (decor::red_bg + decor::bold
+           << "ERROR:") << " too many lines in the file.\n";
     }
 }
 
