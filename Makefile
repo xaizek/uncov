@@ -39,7 +39,7 @@ else
     else
         ifneq ($(call pos,sanitize-basic,$(MAKECMDGOALS)),-1)
             out_dir := sanitize-basic
-            EXTRA_CXXFLAGS += -O3 -fsanitize=address -fsanitize=undefined
+            EXTRA_CXXFLAGS += -fsanitize=address -fsanitize=undefined
             EXTRA_LDFLAGS  += -fsanitize=address -fsanitize=undefined -pthread
         else
             with_cov := 0
