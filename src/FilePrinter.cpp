@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <deque>
 #include <iomanip>
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -91,8 +91,8 @@ class CoverageColumn
     }
 
 public:
-    explicit CoverageColumn(const std::vector<int> &coverage)
-        : coverage(coverage)
+    CoverageColumn(std::ostream &os, const std::vector<int> &coverage)
+        : os(os), coverage(coverage)
     {
         const int MinHitsNumWidth = 5;
         // XXX: this could in principle be stored in database.
@@ -115,14 +115,14 @@ public:
 private:
     void printBlank() const
     {
-        std::cout << std::setw(hitsNumWidth) << "" << ' ';
+        os << std::setw(hitsNumWidth) << "" << ' ';
     }
 
     void printAt(std::size_t lineNo) const
     {
         if (lineNo >= coverage.size()) {
-            std::cout << (decor::red_bg + decor::inv + decor::bold
-                      << std::setw(hitsNumWidth) << "ERROR" << ' ');
+            os << (decor::red_bg + decor::inv + decor::bold
+               << std::setw(hitsNumWidth) << "ERROR" << ' ');
             return;
         }
 
@@ -137,10 +137,11 @@ private:
             prefix = 'x' + std::to_string(hits);
         }
 
-        std::cout << (dec << std::setw(hitsNumWidth) << prefix << ' ');
+        os << (dec << std::setw(hitsNumWidth) << prefix << ' ');
     }
 
 private:
+    std::ostream &os;
     const std::vector<int> &coverage;
     int hitsNumWidth;
 };
@@ -185,7 +186,8 @@ FilePrinter::FilePrinter() : sourceHighlight("esc256.outlang"),
 }
 
 void
-FilePrinter::print(const std::string &path, const std::string &contents,
+FilePrinter::print(std::ostream &os, const std::string &path,
+                   const std::string &contents,
                    const std::vector<int> &coverage)
 {
     const int MinLineNoWidth = 5;
@@ -197,18 +199,18 @@ FilePrinter::print(const std::string &path, const std::string &contents,
     const int nLines = coverage.size();
     const int lineNoWidth = std::max(MinLineNoWidth, local::countWidth(nLines));
 
-    CoverageColumn covCol(coverage);
+    CoverageColumn covCol(os, coverage);
 
-    std::size_t lineNo = 0;
+    std::size_t lineNo = 0U;
     for (std::string fileLine; std::getline(ss, fileLine); ++lineNo) {
-        std::cout << (decor::white_bg + decor::black_fg
-                  << std::setw(lineNoWidth) << lineNo + 1 << ' ')
-                  << covCol[lineNo] << ": " << fileLine << '\n';
+        os << (decor::white_bg + decor::black_fg
+           << std::setw(lineNoWidth) << lineNo + 1 << ' ')
+           << covCol[lineNo] << ": " << fileLine << '\n';
     }
 
     if (lineNo != coverage.size()) {
-        std::cout << (decor::red_bg + decor::bold
-                  << "ERROR:") << " not enough lines in the file." << std::endl;
+        os << (decor::red_bg + decor::bold
+           << "ERROR:") << " not enough lines in the file." << std::endl;
     }
 }
 
@@ -224,7 +226,7 @@ local::countWidth(int n)
 }
 
 void
-FilePrinter::printDiff(const std::string &path,
+FilePrinter::printDiff(std::ostream &os, const std::string &path,
                        Text &oText, const std::vector<int> &oCov,
                        Text &nText, const std::vector<int> &nCov)
 {
@@ -235,7 +237,7 @@ FilePrinter::printDiff(const std::string &path,
            "Coverage information must be accurate");
 
     const std::deque<DiffLine> diff = local::computeDiff(o, oCov, n, nCov);
-    CoverageColumn oldCovCol(oCov), newCovCol(nCov);
+    CoverageColumn oldCovCol(os, oCov), newCovCol(os, nCov);
 
     const std::string &lang = getLang(path);
     std::stringstream fss, sss;
@@ -262,32 +264,32 @@ FilePrinter::printDiff(const std::string &path,
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case LineType::Added:
-                std::cout << oldCovCol.blank() << ':'
-                          << newCovCol[line.newLine] << ':'
-                          << (additionDec << '+')
-                          << getNLine(line.newLine);
+                os << oldCovCol.blank() << ':'
+                   << newCovCol[line.newLine] << ':'
+                   << (additionDec << '+')
+                   << getNLine(line.newLine);
                 break;
             case LineType::Removed:
-                std::cout << oldCovCol[line.oldLine] << ':'
-                          << newCovCol.blank() << ':'
-                          << (removalDec << '-')
-                          << getOLine(line.oldLine);
+                os << oldCovCol[line.oldLine] << ':'
+                   << newCovCol.blank() << ':'
+                   << (removalDec << '-')
+                   << getOLine(line.oldLine);
                 break;
             case LineType::Note:
-                std::cout << " <<< " + line.text + " >>>";
+                os << " <<< " + line.text + " >>>";
                 break;
             case LineType::Common:
-                std::cout << oldCovCol[line.oldLine] << ':'
-                          << newCovCol[line.newLine] << ": "
-                          << getOLine(line.oldLine);
+                os << oldCovCol[line.oldLine] << ':'
+                   << newCovCol[line.newLine] << ": "
+                   << getOLine(line.oldLine);
                 break;
             case LineType::Identical:
-                std::cout << oldCovCol.blank() << ':'
-                          << newCovCol.blank() << ": "
-                          << getOLine(line.oldLine);
+                os << oldCovCol.blank() << ':'
+                   << newCovCol.blank() << ": "
+                   << getOLine(line.oldLine);
                 break;
         }
-        std::cout << '\n';
+        os << '\n';
     }
 }
 

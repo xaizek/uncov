@@ -23,6 +23,7 @@
 
 #include <cstddef>
 
+#include <iosfwd>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -48,8 +49,8 @@ public:
     FilePrinter();
 
 public:
-    void print(const std::string &path, const std::string &contents,
-               const std::vector<int> &coverage);
+    void print(std::ostream &os, const std::string &path,
+               const std::string &contents, const std::vector<int> &coverage);
 
     /**
      * @brief Finds and prints differences between two versions of a file.
@@ -59,6 +60,7 @@ public:
      * backtracking afterward to compose result.  Requires lots of memory for
      * very big files.
      *
+     * @param os Stream to print output to.
      * @param path Name of the file (for highlighting detection).
      * @param oText Old version of the file.
      * @param oCov Coverage of old version.
@@ -68,7 +70,7 @@ public:
      * @note `oText.size() == oCov.size() && nText.size() == nCov.size()` is
      *       assumed.
      */
-    void printDiff(const std::string &path,
+    void printDiff(std::ostream &os, const std::string &path,
                    Text &oText, const std::vector<int> &oCov,
                    Text &nText, const std::vector<int> &nCov);
 

@@ -268,7 +268,8 @@ private:
         printLineSeparator();
 
         FilePrinter filePrinter;
-        filePrinter.printDiff(filePath, oldVersion, oldCov, newVersion, newCov);
+        filePrinter.printDiff(std::cout, filePath, oldVersion,
+                              oldCov, newVersion, newCov);
 
         // TODO: print some totals/stats here.
     }
@@ -481,7 +482,8 @@ printFile(BuildHistory *bh, const Repository *repo, const Build &build,
 
     const std::string &path = file.getPath();
     const std::string &ref = build.getRef();
-    printer.print(path, repo->readFile(ref, path), file.getCoverage());
+    printer.print(std::cout, path, repo->readFile(ref, path),
+                  file.getCoverage());
 }
 
 static void
