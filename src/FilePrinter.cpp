@@ -183,6 +183,8 @@ FilePrinter::FilePrinter() : sourceHighlight("esc256.outlang"),
                              langMap("lang.map")
 {
     sourceHighlight.setStyleFile("esc256.style");
+    // XXX: hard-coded value of 4 spaces per tabulation.
+    sourceHighlight.setTabSpaces(4);
 }
 
 void
