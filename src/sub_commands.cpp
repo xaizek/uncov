@@ -38,51 +38,12 @@
 #include "integration.hpp"
 #include "listings.hpp"
 
+static Build getBuild(BuildHistory *bh, int buildId);
+static File & getFile(const Build &build, const std::string &path);
 static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
                       FilePrinter &printer);
 static void printLineSeparator();
-
-namespace
-{
-
-namespace CmdUtils
-{
-    Build
-    getBuild(BuildHistory *bh, int buildId)
-    {
-        if (buildId == LatestBuildMarker) {
-            buildId = bh->getLastBuildId();
-            if (buildId == 0) {
-                throw std::runtime_error("No last build");
-            }
-        }
-
-        boost::optional<Build> build = bh->getBuild(buildId);
-        if (!build) {
-            throw std::runtime_error {
-                "Can't find build #" + std::to_string(buildId)
-            };
-        }
-        return *build;
-    }
-
-    File &
-    getFile(const Build &build, const std::string &path)
-    {
-        boost::optional<File &> file = build.getFile(path);
-        if (!file) {
-            throw std::runtime_error("Can't find file: " + path +
-                                     " in build #" +
-                                     std::to_string(build.getId()) + " of " +
-                                     build.getRefName() + " at " +
-                                     build.getRef());
-        }
-        return *file;
-    }
-}
-
-}
 
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
@@ -160,7 +121,7 @@ private:
             return error();
         }
 
-        Build newBuild = CmdUtils::getBuild(bh, newBuildId);
+        Build newBuild = getBuild(bh, newBuildId);
 
         if (findPrev) {
             oldBuildId = bh->getPreviousBuildId(newBuild.getId());
@@ -171,7 +132,7 @@ private:
             }
         }
 
-        Build oldBuild = CmdUtils::getBuild(bh, oldBuildId);
+        Build oldBuild = getBuild(bh, oldBuildId);
 
         RedirectToPager redirectToPager;
 
@@ -270,7 +231,7 @@ private:
             return error();
         }
 
-        Build build = CmdUtils::getBuild(bh, buildId);
+        Build build = getBuild(bh, buildId);
 
         TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines",
                                     "Cov Change", "C/U/R Line Changes" },
@@ -303,7 +264,7 @@ private:
             return error();
         }
 
-        Build build = CmdUtils::getBuild(bh, buildId);
+        Build build = getBuild(bh, buildId);
 
         TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines",
                                     "Cov Change", "C/U/R Line Changes" },
@@ -338,8 +299,8 @@ private:
             return error();
         }
 
-        Build build = CmdUtils::getBuild(bh, buildId);
-        File &file = CmdUtils::getFile(build, filePath);
+        Build build = getBuild(bh, buildId);
+        File &file = getFile(build, filePath);
 
         std::cout << build.getRef() << '\n';
         for (int hits : file.getCoverage()) {
@@ -430,7 +391,7 @@ private:
             return error();
         }
 
-        Build build = CmdUtils::getBuild(bh, buildId);
+        Build build = getBuild(bh, buildId);
         FilePrinter printer;
 
         if (printWholeBuild) {
@@ -440,13 +401,45 @@ private:
                 printFile(bh, repo, build, *build.getFile(path), printer);
             }
         } else {
-            File &file = CmdUtils::getFile(build, filePath);
+            File &file = getFile(build, filePath);
             RedirectToPager redirectToPager;
             printBuildHeader(std::cout, bh, build);
             printFile(bh, repo, build, file, printer);
         }
     }
 };
+
+static Build
+getBuild(BuildHistory *bh, int buildId)
+{
+    if (buildId == LatestBuildMarker) {
+        buildId = bh->getLastBuildId();
+        if (buildId == 0) {
+            throw std::runtime_error("No last build");
+        }
+    }
+
+    boost::optional<Build> build = bh->getBuild(buildId);
+    if (!build) {
+        throw std::runtime_error {
+            "Can't find build #" + std::to_string(buildId)
+        };
+    }
+    return *build;
+}
+
+static File &
+getFile(const Build &build, const std::string &path)
+{
+    boost::optional<File &> file = build.getFile(path);
+    if (!file) {
+        throw std::runtime_error("Can't find file: " + path + " in build #" +
+                                 std::to_string(build.getId()) + " of " +
+                                 build.getRefName() + " at " +
+                                 build.getRef());
+    }
+    return *file;
+}
 
 static void
 printFile(BuildHistory *bh, const Repository *repo, const Build &build,
