@@ -15,16 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <sys/ioctl.h>
-#include <sys/wait.h>
-#include <termios.h>
-
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/iostreams/device/file.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/optional.hpp>
-#include <boost/scope_exit.hpp>
 
 #include <cassert>
 
@@ -43,84 +35,13 @@
 #include "arg_parsing.hpp"
 #include "coverage.hpp"
 #include "decoration.hpp"
+#include "integration.hpp"
 #include "listings.hpp"
 
 static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
                       FilePrinter &printer);
 static void printLineSeparator();
-
-class RedirectToPager
-{
-    template <typename T>
-    using stream_buffer = boost::iostreams::stream_buffer<T>;
-    using file_descriptor_sink = boost::iostreams::file_descriptor_sink;
-
-public:
-    RedirectToPager()
-    {
-        int pipePair[2];
-        if (pipe(pipePair) != 0) {
-            throw std::runtime_error("Failed to create a pipe");
-        }
-        BOOST_SCOPE_EXIT_ALL(pipePair) { close(pipePair[0]); };
-
-        pid = fork();
-        if (pid == -1) {
-            close(pipePair[1]);
-            throw std::runtime_error("Fork has failed");
-        }
-        if (pid == 0) {
-            close(pipePair[1]);
-            if (dup2(pipePair[0], STDIN_FILENO) == -1) {
-                _Exit(EXIT_FAILURE);
-            }
-            close(pipePair[0]);
-            // XXX: hard-coded invocation of less.
-            execlp("less", "less", "-R", static_cast<char *>(nullptr));
-            _Exit(127);
-        }
-
-        out.open(file_descriptor_sink(pipePair[1],
-                                      boost::iostreams::close_handle));
-        rdbuf = std::cout.rdbuf(&out);
-
-        // XXX: here we could add a custom stream buffer, which would collect up
-        //      to <terminal height> lines and if buffer is closed with this
-        //      limit not reached, put lines on the screen as is; if we hit the
-        //      limit in the process, open a pipe and redirect everything we got
-        //      and all new output there.
-    }
-
-    ~RedirectToPager()
-    {
-        std::cout.rdbuf(rdbuf);
-        out.close();
-        int wstatus;
-        waitpid(pid, &wstatus, 0);
-    }
-
-private:
-    stream_buffer<file_descriptor_sink> out;
-    std::streambuf *rdbuf;
-    pid_t pid;
-};
-
-/**
- * @brief Retrieves terminal width.
- *
- * @returns Actual terminal width, or maximum possible value for the type.
- */
-static unsigned int
-getTerminalWidth()
-{
-    winsize ws;
-    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) != 0) {
-        return std::numeric_limits<unsigned int>::max();
-    }
-
-    return ws.ws_col;
-}
 
 namespace
 {
@@ -188,7 +109,7 @@ private:
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
               "C/U/R Line Changes", "Branch", "Commit" },
-            getTerminalWidth()
+            getTerminalSize().first
         };
 
         std::vector<Build> builds = bh->getBuilds();
@@ -200,6 +121,7 @@ private:
             tablePrinter.append(describeBuild(bh, build));
         }
 
+        RedirectToPager redirectToPager;
         tablePrinter.print(std::cout);
     }
 };
@@ -352,7 +274,7 @@ private:
 
         TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines",
                                     "Cov Change", "C/U/R Line Changes" },
-                                  getTerminalWidth());
+                                  getTerminalSize().first);
 
         for (std::vector<std::string> &dirRow : describeBuildDirs(bh, build)) {
             tablePrinter.append(std::move(dirRow));
@@ -385,7 +307,7 @@ private:
 
         TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines",
                                     "Cov Change", "C/U/R Line Changes" },
-                                  getTerminalWidth());
+                                  getTerminalSize().first);
 
         for (std::vector<std::string> &fileRow :
              describeBuildFiles(bh, build)) {
