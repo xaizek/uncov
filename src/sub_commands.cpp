@@ -241,6 +241,7 @@ private:
             tablePrinter.append(std::move(dirRow));
         }
 
+        RedirectToPager redirectToPager;
         tablePrinter.print(std::cout);
     }
 };
@@ -275,6 +276,7 @@ private:
             tablePrinter.append(std::move(fileRow));
         }
 
+        RedirectToPager redirectToPager;
         tablePrinter.print(std::cout);
     }
 };
