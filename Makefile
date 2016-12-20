@@ -92,7 +92,7 @@ debug release: $(bin)
 sanitize-basic: $(bin)
 
 coverage: check $(bin)
-	find $(out_dir)/ -name '*.o' -exec gcov -p {} \;
+	find $(out_dir)/ -name '*.o' -exec gcov -p {} +
 	uncover-gcov --root . --build-root . --no-gcov --exclude tests | \
 	    uncover . new
 	find . -name '*.gcov' -delete
