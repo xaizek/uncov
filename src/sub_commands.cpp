@@ -66,7 +66,7 @@ private:
             std::tie(maxBuildCount) = *parsed;
         } else if (tryParse<StringLiteral<All>>(args)) {
             limitBuilds = false;
-        } else {
+        } else if (!args.empty()) {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
