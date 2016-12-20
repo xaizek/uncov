@@ -20,6 +20,7 @@
 
 #include <cassert>
 
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -139,8 +140,10 @@ private:
         if (buildsDiff) {
             diffBuilds(oldBuild, newBuild);
         } else {
-            printInfo(oldBuild, newBuild, filePath, true, true);
-            diffFile(oldBuild, newBuild, filePath);
+            auto printHeader = [this, &oldBuild, &newBuild, &filePath]() {
+                printInfo(oldBuild, newBuild, filePath, true, true);
+            };
+            diffFile(oldBuild, newBuild, filePath, printHeader);
         }
 
         // TODO: maybe print some totals/stats here.
@@ -159,15 +162,23 @@ private:
         for (const std::string &path : allFiles) {
             std::cout << '\n';
             printInfo(oldBuild, newBuild, path, false, true);
-            diffFile(oldBuild, newBuild, path);
+            diffFile(oldBuild, newBuild, path, {});
         }
     }
 
     void diffFile(const Build &oldBuild, const Build &newBuild,
-                  const std::string &filePath)
+                  const std::string &filePath,
+                  std::function<void()> printHeader)
     {
         boost::optional<File &> oldFile = oldBuild.getFile(filePath);
         boost::optional<File &> newFile = newBuild.getFile(filePath);
+
+        if (!oldFile && !newFile) {
+            std::cerr << "No " << filePath << " file in both builds (#"
+                      << oldBuild.getId() << " and #" << newBuild.getId()
+                      << ")\n";
+            return error();
+        }
 
         Text oldVersion = oldFile ? repo->readFile(oldBuild.getRef(), filePath)
                                   : std::string();
@@ -182,6 +193,10 @@ private:
             newVersion.size() != newCov.size()) {
             std::cerr << "Coverage information is not accurate\n";
             return error();
+        }
+
+        if (printHeader) {
+            printHeader();
         }
 
         FilePrinter filePrinter;
