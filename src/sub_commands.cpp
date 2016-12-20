@@ -350,14 +350,22 @@ private:
 
         for (std::string path, sha1Hash; std::cin >> path >> sha1Hash; ) {
             int nLines;
-            std::cin >> nLines;
+            if (!(std::cin >> nLines) || nLines < 0) {
+                std::cerr << "Invalid input format\n";
+                error();
+                break;
+            }
 
             std::vector<int> coverage;
             coverage.reserve(nLines);
 
             while (nLines-- > 0) {
                 int i;
-                std::cin >> i;
+                if (!(std::cin >> i)) {
+                    std::cerr << "Invalid input format\n";
+                    error();
+                    break;
+                }
                 coverage.push_back(i);
             }
 

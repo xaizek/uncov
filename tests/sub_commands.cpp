@@ -17,6 +17,8 @@
 
 #include "Catch/catch.hpp"
 
+#include <boost/filesystem/operations.hpp>
+
 #include <cstdlib>
 
 #include <iostream>
@@ -30,6 +32,72 @@
 
 #include "TestUtils.hpp"
 
+/**
+ * @brief Temporarily redirects specified stream from a string.
+ */
+class StreamSubstitute
+{
+public:
+    /**
+     * @brief Constructs instance that redirects @p is.
+     *
+     * @param is Stream to redirect.
+     * @param str Contents to splice into the stream.
+     */
+    StreamSubstitute(std::istream &is, const std::string &str)
+        : is(is), iss(str)
+    {
+        rdbuf = is.rdbuf();
+        is.rdbuf(iss.rdbuf());
+    }
+
+    /**
+     * @brief Restores original state of the stream.
+     */
+    ~StreamSubstitute()
+    {
+        is.rdbuf(rdbuf);
+    }
+
+private:
+    /**
+     * @brief Stream that is being redirected.
+     */
+    std::istream &is;
+    /**
+     * @brief Temporary input buffer of the stream.
+     */
+    std::istringstream iss;
+    /**
+     * @brief Original input buffer of the stream.
+     */
+    std::streambuf *rdbuf;
+};
+
+class FileRestorer
+{
+public:
+    FileRestorer(const std::string &from, const std::string &to)
+        : from(from), to(to)
+    {
+        boost::filesystem::copy_file(from, to);
+    }
+
+    FileRestorer(const FileRestorer &) = delete;
+    FileRestorer & operator=(const FileRestorer &) = delete;
+
+    ~FileRestorer()
+    {
+        namespace fs = boost::filesystem;
+        fs::remove(from);
+        fs::rename(to, from);
+    }
+
+private:
+    const std::string from;
+    const std::string to;
+};
+
 static SubCommand * getCmd(const std::string &name);
 
 TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
@@ -42,6 +110,98 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
     REQUIRE(getCmd("diff")->exec(bh, repo, { "no-such-path" }) == EXIT_FAILURE);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() != std::string());
+}
+
+TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncover.sqlite");
+    BuildHistory bh(db);
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+
+    SECTION("Missing hashsum")
+    {
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "test-file1.cpp\n"
+                                  "5\n"
+                                  "-1 1 -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+    }
+
+    SECTION("Not number in coverage")
+    {
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "test-file1.cpp\n"
+                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "5\n"
+                                  "-1 asdf -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+    }
+
+    SECTION("Wrong file hash")
+    {
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "test-file1.cpp\n"
+                                  "1100c7cb3e1d5121bcc4a287c6b128\n"
+                                  "5\n"
+                                  "-1 1 -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+    }
+
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() != std::string());
+}
+
+TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    const std::string dbPath = repo.getGitPath() + "/uncover.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+
+    SECTION("File missing from commit is just skipped")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "no-such-file\n"
+                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "5\n"
+                                  "-1 1 -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
+
+        CHECK(cerrCapture.get() != std::string());
+    }
+
+    SECTION("Well-formed input is accepted")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "test-file1.cpp\n"
+                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "5\n"
+                                  "-1 1 -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
+
+        CHECK(cerrCapture.get() == std::string());
+    }
+
+    CHECK(coutCapture.get() != std::string());
 }
 
 static SubCommand *
