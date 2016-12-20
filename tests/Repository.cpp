@@ -19,11 +19,7 @@
 
 #include "Repository.hpp"
 
-#include "TestUtils.hpp"
-
 TEST_CASE("Repository is discovered by nested path", "[Repository]")
 {
-    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git");
-
     REQUIRE_NOTHROW(Repository repo("tests/test-repo/subdir"));
 }
