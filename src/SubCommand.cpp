@@ -64,7 +64,7 @@ SubCommand::exec(BuildHistory &bh, Repository &repo,
         execImpl(args);
     }
 
-    return isFailed() ? EXIT_FAILURE : EXIT_SUCCESS;
+    return hasErrors ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 void
