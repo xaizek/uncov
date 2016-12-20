@@ -18,8 +18,61 @@
 #ifndef UNCOVER__TESTS__TESTUTILS_HPP__
 #define UNCOVER__TESTS__TESTUTILS_HPP__
 
+#include <iosfwd>
+#include <sstream>
 #include <string>
 #include <vector>
+
+/**
+ * @brief Temporarily redirects specified stream into a string.
+ */
+class StreamCapture
+{
+public:
+    /**
+     * @brief Constructs instance that redirects @p os.
+     *
+     * @param os Stream to redirect.
+     */
+    StreamCapture(std::ostream &os) : os(os)
+    {
+        rdbuf = os.rdbuf();
+        os.rdbuf(oss.rdbuf());
+    }
+
+    /**
+     * @brief Restores original state of the stream.
+     */
+    ~StreamCapture()
+    {
+        os.rdbuf(rdbuf);
+    }
+
+public:
+    /**
+     * @brief Retrieves captured output collected so far.
+     *
+     * @returns String containing the output.
+     */
+    std::string get() const
+    {
+        return oss.str();
+    }
+
+private:
+    /**
+     * @brief Stream that is being redirected.
+     */
+    std::ostream &os;
+    /**
+     * @brief Temporary output buffer of the stream.
+     */
+    std::ostringstream oss;
+    /**
+     * @brief Original output buffer of the stream.
+     */
+    std::streambuf *rdbuf;
+};
 
 class TempDirCopy
 {
@@ -46,6 +99,21 @@ private:
  */
 inline std::vector<std::string>
 vs(std::vector<std::string> v)
+{
+    return v;
+}
+
+/**
+ * @brief Creates a @c std::vector<int> from initializer list.
+ *
+ * This is to be used in assertions, to shorten them and make more readable.
+ *
+ * @param v Temporary vector.
+ *
+ * @returns The vector.
+ */
+inline std::vector<int>
+vi(std::vector<int> v)
 {
     return v;
 }

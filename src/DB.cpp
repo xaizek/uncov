@@ -223,7 +223,7 @@ DB::Row::makeTupleItem(std::size_t idx, Marker<std::vector<int>>)
 
     std::string str(strSize, '\0');
     if (uncompress(reinterpret_cast<unsigned char *>(&str[0]), &strSize,
-                   &blob[4], strSize) != Z_OK) {
+                   &blob[4], blob.size() - 4U) != Z_OK) {
         throw std::runtime_error("Failed to uncompress data");
     }
 
