@@ -39,7 +39,15 @@ class Repository
     class GitObjPtr;
 
 public:
+    /**
+     * @brief Creates an instance from path to or in repository.
+     *
+     * @param path Path to the repository root or nested directory.
+     *
+     * @throws std::invalid_argument On failure to find or open repository.
+     */
     explicit Repository(const std::string &path);
+
     Repository(const Repository &rhs) = delete;
     Repository & operator=(const Repository &rhs) = delete;
     ~Repository();

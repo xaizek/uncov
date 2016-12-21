@@ -17,9 +17,16 @@
 
 #include "Catch/catch.hpp"
 
+#include <stdexcept>
+
 #include "Repository.hpp"
 
 TEST_CASE("Repository is discovered by nested path", "[Repository]")
 {
     REQUIRE_NOTHROW(Repository repo("tests/test-repo/subdir"));
+}
+
+TEST_CASE("Repository throws on wrong path", "[Repository]")
+{
+    REQUIRE_THROWS_AS(Repository repo("/no-such-path"), std::invalid_argument);
 }
