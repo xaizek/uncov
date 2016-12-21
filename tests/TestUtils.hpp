@@ -88,6 +88,19 @@ private:
     const std::string to;
 };
 
+class FileRestorer
+{
+public:
+    FileRestorer(const std::string &from, const std::string &to);
+    FileRestorer(const FileRestorer &) = delete;
+    FileRestorer & operator=(const FileRestorer &) = delete;
+    ~FileRestorer();
+
+private:
+    const std::string from;
+    const std::string to;
+};
+
 /**
  * @brief Creates a @c std::vector<std::string> from initializer list.
  *

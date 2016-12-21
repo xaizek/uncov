@@ -25,6 +25,17 @@
 
 #include "TestUtils.hpp"
 
+TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
+{
+    Repository repo("tests/test-repo/subdir");
+    const std::string dbPath = repo.getGitPath() + "/uncover.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    db.execute("pragma user_version = 99999");
+
+    REQUIRE_THROWS_AS(BuildHistory bh(db), std::runtime_error);
+}
+
 TEST_CASE("File is loaded from database", "[Build][File]")
 {
     Repository repo("tests/test-repo/subdir");

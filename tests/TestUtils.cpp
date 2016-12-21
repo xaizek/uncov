@@ -51,3 +51,15 @@ TempDirCopy::~TempDirCopy()
         // Don't throw from the destructor.
     }
 }
+
+FileRestorer::FileRestorer(const std::string &from, const std::string &to)
+    : from(from), to(to)
+{
+    fs::copy_file(from, to);
+}
+
+FileRestorer::~FileRestorer()
+{
+    fs::remove(from);
+    fs::rename(to, from);
+}

@@ -17,8 +17,6 @@
 
 #include "Catch/catch.hpp"
 
-#include <boost/filesystem/operations.hpp>
-
 #include <cstdlib>
 
 #include <iostream>
@@ -72,30 +70,6 @@ private:
      * @brief Original input buffer of the stream.
      */
     std::streambuf *rdbuf;
-};
-
-class FileRestorer
-{
-public:
-    FileRestorer(const std::string &from, const std::string &to)
-        : from(from), to(to)
-    {
-        boost::filesystem::copy_file(from, to);
-    }
-
-    FileRestorer(const FileRestorer &) = delete;
-    FileRestorer & operator=(const FileRestorer &) = delete;
-
-    ~FileRestorer()
-    {
-        namespace fs = boost::filesystem;
-        fs::remove(from);
-        fs::rename(to, from);
-    }
-
-private:
-    const std::string from;
-    const std::string to;
 };
 
 static SubCommand * getCmd(const std::string &name);

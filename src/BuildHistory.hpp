@@ -44,6 +44,13 @@ public:
 class BuildHistory : private DataLoader
 {
 public:
+    /**
+     * @brief Creates an instance with the database.
+     *
+     * @param db Database used as a storage.
+     *
+     * @throws std::runtime_error on database with too new schema.
+     */
     BuildHistory(DB &db);
 
 public:
