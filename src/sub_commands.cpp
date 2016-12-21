@@ -348,7 +348,7 @@ private:
 
         BuildData bd(std::move(ref), refName);
 
-        for (std::string path, sha1Hash; std::cin >> path >> sha1Hash; ) {
+        for (std::string path, hash; std::cin >> path >> hash; ) {
             int nLines;
             if (!(std::cin >> nLines) || nLines < 0) {
                 std::cerr << "Invalid input format\n";
@@ -373,12 +373,13 @@ private:
             if (file == files.cend()) {
                 std::cerr << "Skipping file missing in " << refName << ": "
                           << path << '\n';
-            } else if (!boost::iequals(file->second, sha1Hash)) {
+            } else if (!boost::iequals(file->second, hash)) {
                 std::cerr << path << " file at " << refName
-                          << " doesn't match reported SHA-1\n";
+                          << " doesn't match reported MD5 hash\n";
                 error();
             } else {
-                bd.addFile(File(std::move(path), std::move(coverage)));
+                bd.addFile(File(std::move(path), std::move(hash),
+                                std::move(coverage)));
             }
         }
 

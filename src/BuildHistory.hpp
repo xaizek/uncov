@@ -20,6 +20,7 @@
 
 #include <boost/optional/optional_fwd.hpp>
 
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -35,8 +36,9 @@ protected:
     ~DataLoader() = default;
 
 public:
-    virtual std::vector<std::string> loadPaths(int id) = 0;
-    virtual boost::optional<File> loadFile(int id, const std::string &path) = 0;
+    virtual std::map<std::string, int> loadPaths(int buildid) = 0;
+    virtual boost::optional<File> loadFile(int fileid,
+                                           const std::string &path) = 0;
 };
 
 class BuildHistory : private DataLoader
@@ -67,8 +69,8 @@ public:
     std::vector<Build> getBuilds();
 
 private:
-    virtual std::vector<std::string> loadPaths(int id) override;
-    virtual boost::optional<File> loadFile(int id,
+    virtual std::map<std::string, int> loadPaths(int buildid) override;
+    virtual boost::optional<File> loadFile(int fileid,
                                            const std::string &path) override;
 
 private:
@@ -78,16 +80,18 @@ private:
 class File
 {
 public:
-    File(std::string path, std::vector<int> coverage);
+    File(std::string path, std::string hash, std::vector<int> coverage);
 
 public:
     const std::string & getPath() const;
+    const std::string & getHash() const;
     const std::vector<int> & getCoverage() const;
     int getCoveredCount() const;
     int getUncoveredCount() const;
 
 private:
     const std::string path;
+    const std::string hash;
     const std::vector<int> coverage;
     int coveredCount;
     int uncoveredCount;
@@ -123,7 +127,7 @@ public:
     const std::string & getRefName() const;
     int getCoveredCount() const;
     int getUncoveredCount() const;
-    const std::vector<std::string> & getPaths() const;
+    std::vector<std::string> getPaths() const;
     boost::optional<File &> getFile(const std::string &path) const;
 
 private:
@@ -133,7 +137,7 @@ private:
     int coveredCount;
     int uncoveredCount;
     DataLoader *loader;
-    mutable std::vector<std::string> paths;
+    mutable std::map<std::string, int> pathMap;
     mutable std::unordered_map<std::string, File> files;
 };
 

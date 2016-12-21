@@ -310,7 +310,7 @@ def combine_reports(original, new):
         return new
     report = {}
     report['name'] = original['name']
-    report['sha1_digest'] = original['sha1_digest']
+    report['source_digest'] = original['source_digest']
     coverage = []
     for original_num, new_num in zip(original['coverage'], new['coverage']):
         if original_num is None:
@@ -353,10 +353,8 @@ def collect_non_report_files(args, discovered_files):
                     for _ in fobj:
                         coverage.append(None)
                     fobj.seek(0)
-                    # XXX: we do here as git does to its blobs
                     data = fobj.read()
-                    data = 'blob %d\0%s' % (len(data), data)
-                    src_report['sha1_digest'] = hashlib.sha1(data).hexdigest()
+                    src_report['source_digest'] = hashlib.md5(data).hexdigest()
                 src_report['coverage'] = coverage
                 non_report_files.append(src_report)
     return non_report_files
@@ -412,11 +410,9 @@ def collect(args):
                     src_report['name'] = posix_path(src_path)
                     discovered_files.add(src_path)
                     with io.open(source_file_path, mode='rb') as src_file:
-                        # XXX: we do here as git does to its blobs
                         data = src_file.read()
-                        data = 'blob %d\0%s' % (len(data), data)
-                        src_report['sha1_digest'] = \
-                                hashlib.sha1(data).hexdigest()
+                        src_report['source_digest'] = \
+                                hashlib.md5(data).hexdigest()
 
                     src_report['coverage'] = parse_gcov_file(fobj, gcov_path)
                     if src_path in src_files:
@@ -520,7 +516,7 @@ def run():
     src_files = cov_report['source_files']
     for rec in src_files:
         print(rec['name'])
-        print(rec['sha1_digest'])
+        print(rec['source_digest'])
         print(len(rec['coverage']))
         for c in rec['coverage']:
             if c is None:

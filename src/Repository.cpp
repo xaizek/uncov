@@ -28,6 +28,8 @@
 #include <utility>
 #include <vector>
 
+#include "md5.hpp"
+
 template <typename T>
 class Repository::GitObjPtr
 {
@@ -131,32 +133,46 @@ Repository::listFiles(const std::string &ref) const
 {
     GitObjPtr<git_tree> treeRoot = getRefRoot(ref);
 
-    std::vector<std::pair<std::string, std::string>> fileData;
+    struct Payload
+    {
+        git_repository *repo;
+        std::vector<std::pair<std::string, std::string>> files;
+    }
+    payload = { repo, {} };
 
-    auto cb = [](const char root[], const git_tree_entry *entry,
-                 void *payload) {
+    auto cb = [](const char root[], const git_tree_entry *entry, void *data) {
         if (git_tree_entry_type(entry) != GIT_OBJ_BLOB) {
             return 0;
         }
 
-        const auto files = static_cast<decltype(fileData) *>(payload);
+        const auto payload = static_cast<Payload *>(data);
 
-        char oidStr[GIT_OID_HEXSZ + 1];
-        git_oid_tostr(oidStr, sizeof(oidStr), git_tree_entry_id(entry));
+        GitObjPtr<git_object> blobObj;
+        if (git_tree_entry_to_object(&blobObj, payload->repo, entry) != 0) {
+            throw std::runtime_error("Failed to as object from tree entry");
+        }
 
-        files->emplace_back(std::string(root) + git_tree_entry_name(entry),
-                            oidStr);
+        auto *const blob = blobObj.as<const git_blob>();
+        std::string fileContents(
+            static_cast<const char *>(git_blob_rawcontent(blob)),
+            static_cast<std::size_t>(git_blob_rawsize(blob))
+        );
+
+        payload->files.emplace_back(
+            std::string(root) + git_tree_entry_name(entry),
+            md5(fileContents)
+        );
 
         return 0;
     };
 
-    if (git_tree_walk(treeRoot, GIT_TREEWALK_PRE, cb, &fileData) != 0) {
+    if (git_tree_walk(treeRoot, GIT_TREEWALK_PRE, cb, &payload) != 0) {
         throw std::runtime_error("Failed to walk the tree");
     }
 
     return {
-        std::make_move_iterator(fileData.begin()),
-        std::make_move_iterator(fileData.end())
+        std::make_move_iterator(payload.files.begin()),
+        std::make_move_iterator(payload.files.end())
     };
 }
 

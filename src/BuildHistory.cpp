@@ -26,18 +26,22 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
 
 #include "DB.hpp"
+#include "md5.hpp"
 
+static std::string hashCoverage(const std::vector<int> &vec);
 static void updateDBSchema(DB &db, int fromVersion);
 
 /**
  * @brief Current database scheme version.
  */
-const int AppDBVersion = 2;
+const int AppDBVersion = 1;
 
-File::File(std::string path, std::vector<int> coverage)
-    : path(std::move(path)), coverage(std::move(coverage))
+File::File(std::string path, std::string hash, std::vector<int> coverage)
+    : path(std::move(path)), hash(std::move(hash)),
+      coverage(std::move(coverage))
 {
     coveredCount = 0;
     uncoveredCount = 0;
@@ -54,6 +58,12 @@ const std::string &
 File::getPath() const
 {
     return path;
+}
+
+const std::string &
+File::getHash() const
+{
+    return hash;
 }
 
 const std::vector<int> &
@@ -123,17 +133,54 @@ operator<<(DB &db, const BuildData &bd)
         File &file = entry.second;
 
         const std::vector<int> &coverage = file.getCoverage();
+        const std::string covHash = hashCoverage(coverage);
 
-        db.execute("INSERT INTO files (buildid, path, coverage) "
-                   "VALUES (:buildid, :path, :coverage)",
+        int fileid = -1;
+
+        for (std::tuple<int> val :
+            db.queryAll("SELECT fileid FROM files "
+                        "WHERE path = :path AND hash = :hash AND "
+                              "covhash = :covhash",
+                        { ":path"_b = file.getPath(),
+                          ":hash"_b = file.getHash(),
+                          ":covhash"_b = covHash })) {
+            fileid = std::get<0>(val);
+        }
+
+        if (fileid == -1) {
+            db.execute("INSERT INTO files (path, hash, covhash, coverage) "
+                       "VALUES (:path, :hash, :covhash, :coverage)",
+                       { ":path"_b = file.getPath(),
+                         ":hash"_b = file.getHash(),
+                         ":covhash"_b = covHash,
+                         ":coverage"_b = coverage });
+            fileid = db.getLastRowId();
+        }
+
+        db.execute("INSERT INTO filemap (buildid, fileid) "
+                   "VALUES (:buildid, :fileid)",
                    { ":buildid"_b = buildid,
-                     ":path"_b = file.getPath(),
-                     ":coverage"_b = coverage });
+                     ":fileid"_b = fileid });
     }
 
     transaction.commit();
 
     return buildid;
+}
+
+/**
+ * @brief Hashes coverage vector into a string.
+ *
+ * @param vec Coverage to hash.
+ *
+ * @returns String containing MD5 hash of the coverage.
+ */
+static std::string
+hashCoverage(const std::vector<int> &vec)
+{
+    std::ostringstream oss;
+    std::copy(vec.cbegin(), vec.cend(), std::ostream_iterator<int>(oss, " "));
+    return md5(oss.str());
 }
 
 Build::Build(int id, std::string ref, std::string refName,
@@ -174,11 +221,18 @@ Build::getUncoveredCount() const
     return uncoveredCount;
 }
 
-const std::vector<std::string> &
+std::vector<std::string>
 Build::getPaths() const
 {
-    if (paths.empty()) {
-        paths = loader->loadPaths(id);
+    // Make sure file path to file id mapping is loaded.
+    if (pathMap.empty()) {
+        pathMap = loader->loadPaths(id);
+    }
+
+    std::vector<std::string> paths;
+    paths.reserve(pathMap.size());
+    for (const auto &entry : pathMap) {
+        paths.push_back(entry.first);
     }
     return paths;
 }
@@ -186,14 +240,29 @@ Build::getPaths() const
 boost::optional<File &>
 Build::getFile(const std::string &path) const
 {
-    auto match = files.find(path);
-    if (match != files.end()) {
-        return match->second;
+    // Check if this file was already loaded.
+    const auto fileMatch = files.find(path);
+    if (fileMatch != files.end()) {
+        return fileMatch->second;
     }
 
-    if (boost::optional<File> file = loader->loadFile(id, path)) {
-        return files.emplace(path, *file).first->second;
+    // Make sure file path to file id mapping is loaded.
+    if (pathMap.empty()) {
+        pathMap = loader->loadPaths(id);
     }
+
+    // Requested file should be in the map.
+    const auto pathMatch = pathMap.find(path);
+    if (pathMatch == pathMap.end()) {
+        return {};
+    }
+
+    // Load the file and cache it.
+    if (boost::optional<File> file = loader->loadFile(pathMatch->second,
+                                                      path)) {
+        return files.emplace(path, std::move(*file)).first->second;
+    }
+
     return {};
 }
 
@@ -203,7 +272,9 @@ BuildHistory::BuildHistory(DB &db) : db(db)
 
     const int fileDBVersion = std::get<0>(vals);
     if (fileDBVersion > AppDBVersion) {
-        throw std::runtime_error("Database is from newer version: " +
+        throw std::runtime_error("Database schema version is newer than "
+                                 "supported by the application (up to " +
+                                 std::to_string(AppDBVersion) + "): " +
                                  std::to_string(fileDBVersion));
     }
 
@@ -228,7 +299,7 @@ updateDBSchema(DB &db, int fromVersion)
     switch (fromVersion) {
         case 0:
             db.execute(R"(
-                CREATE TABLE IF NOT EXISTS builds (
+                CREATE TABLE builds (
                     buildid INTEGER,
                     vcsref TEXT NOT NULL,
                     vcsrefname TEXT NOT NULL,
@@ -238,50 +309,35 @@ updateDBSchema(DB &db, int fromVersion)
                     PRIMARY KEY (buildid)
                 )
             )");
-
             db.execute(R"(
-                CREATE TABLE IF NOT EXISTS files (
-                    buildid INTEGER,
+                CREATE TABLE files (
+                    fileid INTEGER,
                     path TEXT NOT NULL,
-                    coverage TEXT NOT NULL,
+                    hash TEXT NOT NULL,
+                    covhash TEXT NOT NULL,
+                    coverage BLOB NOT NULL,
 
-                    PRIMARY KEY (buildid, path),
-                    FOREIGN KEY (buildid) REFERENCES builds(buildid)
+                    PRIMARY KEY (fileid)
+                )
+            )");
+            db.execute(R"(
+                CREATE TABLE filemap (
+                    buildid INTEGER,
+                    fileid INTEGER,
+
+                    FOREIGN KEY (buildid) REFERENCES builds(buildid),
+                    FOREIGN KEY (fileid) REFERENCES files(fileid)
                 )
             )");
             // Fall through.
         case 1:
-            db.execute(R"(
-                CREATE TABLE files_new (
-                    buildid INTEGER,
-                    path TEXT NOT NULL,
-                    coverage BLOB NOT NULL,
-
-                    PRIMARY KEY (buildid, path),
-                    FOREIGN KEY (buildid) REFERENCES builds(buildid)
-                )
-            )");
-            for (std::tuple<int, std::string, std::string> vals :
-                db.queryAll("SELECT buildid, path, coverage FROM files")) {
-                std::istringstream is(std::get<2>(vals));
-                std::vector<int> coverage;
-                for (int i; is >> i; ) {
-                    coverage.push_back(i);
-                }
-
-                db.execute("INSERT INTO files_new (buildid, path, coverage) "
-                           "VALUES (:buildid, :path, :coverage)",
-                           { ":buildid"_b = std::get<0>(vals),
-                             ":path"_b = std::get<1>(vals),
-                             ":coverage"_b = coverage });
-            }
-            db.execute("DROP TABLE files");
-            db.execute("ALTER TABLE files_new RENAME TO files");
             break;
     }
 
     db.execute("pragma user_version = " + std::to_string(AppDBVersion));
     transaction.commit();
+
+    // Compact database after migration by defragmenting it.
     db.execute("VACUUM");
 }
 
@@ -342,28 +398,30 @@ BuildHistory::getBuilds()
     return builds;
 }
 
-std::vector<std::string>
-BuildHistory::loadPaths(int id)
+std::map<std::string, int>
+BuildHistory::loadPaths(int buildid)
 {
-    std::vector<std::string> paths;
-    for (std::tuple<std::string> vals : db.queryAll("SELECT path FROM files "
-                                                    "WHERE buildid = :buildid",
-                                                    { ":buildid"_b = id })) {
-        paths.push_back(std::get<0>(vals));
+    std::map<std::string, int> paths;
+    for (std::tuple<std::string, int> vals : db.queryAll(
+            "SELECT path, fileid FROM files NATURAL JOIN filemap "
+            "WHERE buildid = :buildid",
+            { ":buildid"_b = buildid })) {
+        paths.emplace(std::move(std::get<0>(vals)), std::get<1>(vals));
     }
     return paths;
 }
 
 boost::optional<File>
-BuildHistory::loadFile(int id, const std::string &path)
+BuildHistory::loadFile(int fileid, const std::string &path)
 {
     try {
-        std::tuple<std::vector<int>> vals =
-            db.queryOne("SELECT coverage FROM files "
-                        "WHERE buildid = :buildid AND path = :path",
-                        { ":buildid"_b = id, ":path"_b = path });
+        std::tuple<std::string, std::vector<int>> vals =
+            db.queryOne("SELECT hash, coverage FROM files "
+                        "WHERE fileid = :fileid",
+                        { ":fileid"_b = fileid });
 
-        return File(path, std::move(std::get<0>(vals)));
+        return File(path, std::move(std::get<0>(vals)),
+                    std::move(std::get<1>(vals)));
     } catch (const std::runtime_error &) {
         return {};
     }

@@ -136,7 +136,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "8e354da4df664b71e06c764feb29a20d64351a01\n"
                                   "master\n"
                                   "test-file1.cpp\n"
-                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 asdf -1 1 -1\n");
         REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
@@ -148,7 +148,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "8e354da4df664b71e06c764feb29a20d64351a01\n"
                                   "master\n"
                                   "test-file1.cpp\n"
-                                  "1100c7cb3e1d5121bcc4a287c6b128\n"
+                                  "734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
         REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
@@ -174,7 +174,7 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "8e354da4df664b71e06c764feb29a20d64351a01\n"
                                   "master\n"
                                   "no-such-file\n"
-                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
         REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
@@ -191,7 +191,7 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "8e354da4df664b71e06c764feb29a20d64351a01\n"
                                   "master\n"
                                   "test-file1.cpp\n"
-                                  "1100c7cb3e1d5121bcc4a287c6b1289fb0963a44\n"
+                                  "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
         REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
