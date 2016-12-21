@@ -16,6 +16,7 @@
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
 
 #include <cassert>
@@ -38,6 +39,54 @@
 #include "decoration.hpp"
 #include "integration.hpp"
 #include "listings.hpp"
+
+class InRepoPath
+{
+    using fsPath = boost::filesystem::path;
+
+public:
+    explicit InRepoPath(const Repository *repo) : repo(repo)
+    {
+    }
+
+public:
+    InRepoPath & operator=(std::string path)
+    {
+        if (path.substr(0, 1) == "/") {
+            path.erase(path.begin());
+        }
+
+        this->path = normalize(path).string();
+        return *this;
+    }
+
+    operator std::string() const
+    {
+        return path;
+    }
+
+private:
+    static fsPath normalize(const fsPath &path)
+    {
+        fsPath result;
+        for (fsPath::iterator it = path.begin(); it != path.end(); ++it) {
+            if (*it == "..") {
+                if(result.filename() == "..") {
+                    result /= *it;
+                } else {
+                    result = result.parent_path();
+                }
+            } else if (*it != ".") {
+                result /= *it;
+            }
+        }
+        return result;
+    }
+
+private:
+    const Repository *repo;
+    std::string path;
+};
 
 static Build getBuild(BuildHistory *bh, int buildId);
 static File & getFile(const Build &build, const std::string &path);
@@ -105,7 +154,7 @@ private:
         bool findPrev = false;
         bool buildsDiff = false;
         int oldBuildId, newBuildId;
-        std::string filePath;
+        InRepoPath filePath(repo);
         if (auto parsed = tryParse<FilePath>(args)) {
             findPrev = true;
             newBuildId = LatestBuildMarker;
@@ -311,7 +360,7 @@ private:
     execImpl(const std::vector<std::string> &args) override
     {
         int buildId;
-        std::string filePath;
+        InRepoPath filePath(repo);
         if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildId, filePath) = *parsed;
         } else {
@@ -349,6 +398,9 @@ private:
         BuildData bd(std::move(ref), refName);
 
         for (std::string path, hash; std::cin >> path >> hash; ) {
+            // Normalize path in place (via temporary object).
+            path = (InRepoPath(repo) = path);
+
             int nLines;
             if (!(std::cin >> nLines) || nLines < 0) {
                 std::cerr << "Invalid input format\n";
@@ -405,7 +457,7 @@ private:
         //       printing all files in that sub-tree (or only directly in it?).
 
         int buildId;
-        std::string filePath;
+        InRepoPath filePath(repo);
         bool printWholeBuild = false;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);

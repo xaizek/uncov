@@ -158,6 +158,23 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
         CHECK(cerrCapture.get() != std::string());
     }
 
+    SECTION("File path is normalized")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "master\n"
+                                  "././test-file1.cpp\n"
+                                  "7e734c598d6ebdc19bbd660f6a7a6c73\n"
+                                  "5\n"
+                                  "-1 1 -1 1 -1\n");
+        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
+
+        CHECK(cerrCapture.get() == std::string());
+    }
+
     SECTION("Well-formed input is accepted")
     {
         auto sizeWas = bh.getBuilds().size();
