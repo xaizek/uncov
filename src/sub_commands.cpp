@@ -287,7 +287,8 @@ private:
 
         if (oldVersion.size() != oldCov.size() ||
             newVersion.size() != newCov.size()) {
-            std::cerr << "Coverage information is not accurate\n";
+            std::cerr << "Coverage information for file " << filePath
+                      << " is not accurate\n";
             return error();
         }
 
