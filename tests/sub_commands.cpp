@@ -81,7 +81,7 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    REQUIRE(getCmd("diff")->exec(bh, repo, { "no-such-path" }) == EXIT_FAILURE);
+    CHECK(getCmd("diff")->exec(bh, repo, { "no-such-path" }) == EXIT_FAILURE);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() != std::string());
 }
@@ -101,7 +101,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "test-file1.cpp\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
     }
 
     SECTION("Not number in coverage")
@@ -113,7 +113,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 asdf -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
     }
 
     SECTION("Wrong file hash")
@@ -125,7 +125,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_FAILURE);
     }
 
     CHECK(coutCapture.get() == std::string());
@@ -151,7 +151,7 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
 
@@ -168,7 +168,7 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
 
@@ -185,7 +185,7 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        REQUIRE(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(bh, repo, {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
 
