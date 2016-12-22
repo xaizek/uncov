@@ -21,6 +21,7 @@
 
 #include <srchilite/sourcehighlight.h>
 #include <srchilite/langmap.h>
+#include <srchilite/lineranges.h>
 
 #include <cassert>
 
@@ -198,6 +199,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
 
     std::istringstream iss(contents);
     std::stringstream ss;
+    sourceHighlight.setLineRanges(nullptr);
     sourceHighlight.highlight(iss, ss, getLang(path));
 
     const int nLines = coverage.size();
@@ -244,28 +246,38 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
            "Coverage information must be accurate");
 
     const std::deque<DiffLine> diff = local::computeDiff(o, oCov, n, nCov);
-    CoverageColumn oldCovCol(os, oCov), newCovCol(os, nCov);
+
+    srchilite::LineRanges fLines, sLines;
+    for (const DiffLine &line : diff) {
+        switch (line.type) {
+            case LineType::Added:
+                sLines.addRange(std::to_string(line.newLine + 1));
+                break;
+            case LineType::Removed:
+            case LineType::Common:
+            case LineType::Identical:
+                fLines.addRange(std::to_string(line.oldLine + 1));
+                break;
+            case LineType::Note:
+                // Do nothing.
+                break;
+        }
+    }
 
     const std::string &lang = getLang(path);
     std::stringstream fss, sss;
+    sourceHighlight.setLineRanges(&fLines);
     sourceHighlight.highlight(oText.asStream(), fss, lang);
+    sourceHighlight.setLineRanges(&sLines);
     sourceHighlight.highlight(nText.asStream(), sss, lang);
 
-    auto getOLine = [&fss, currLine = -1](int lineNo) mutable {
+    auto getLine = [](std::stringstream &ss) {
         std::string line;
-        do {
-            std::getline(fss, line);
-        } while (++currLine != lineNo);
-        return line;
-    };
-    auto getNLine = [&sss, currLine = -1](int lineNo) mutable {
-        std::string line;
-        do {
-            std::getline(sss, line);
-        } while (++currLine != lineNo);
+        std::getline(ss, line);
         return line;
     };
 
+    CoverageColumn oldCovCol(os, oCov), newCovCol(os, nCov);
     decor::Decoration additionDec = decor::green_fg + decor::bold;
     decor::Decoration removalDec = decor::red_fg + decor::bold;
     for (const DiffLine &line : diff) {
@@ -274,13 +286,13 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
                 os << oldCovCol.blank() << ':'
                    << newCovCol[line.newLine] << ':'
                    << (additionDec << '+')
-                   << getNLine(line.newLine);
+                   << getLine(sss);
                 break;
             case LineType::Removed:
                 os << oldCovCol[line.oldLine] << ':'
                    << newCovCol.blank() << ':'
                    << (removalDec << '-')
-                   << getOLine(line.oldLine);
+                   << getLine(fss);
                 break;
             case LineType::Note:
                 os << " <<< " + line.text + " >>>";
@@ -288,12 +300,12 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
             case LineType::Common:
                 os << oldCovCol[line.oldLine] << ':'
                    << newCovCol[line.newLine] << ": "
-                   << getOLine(line.oldLine);
+                   << getLine(fss);
                 break;
             case LineType::Identical:
                 os << oldCovCol.blank() << ':'
                    << newCovCol.blank() << ": "
-                   << getOLine(line.oldLine);
+                   << getLine(fss);
                 break;
         }
         os << '\n';
