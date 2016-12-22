@@ -28,8 +28,26 @@ class File;
 
 std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build);
 
-std::vector<std::vector<std::string>> describeBuildDirs(BuildHistory *bh,
-                                                        const Build &build);
+/**
+ * @brief Formats information about directories within the build as a table.
+ *
+ * Returned table consists of the following columns:
+ *
+ *  * Directory
+ *  * Coverage
+ *  * C/R Lines
+ *  * Cov Change
+ *  * C/U/R Line Changes
+ *
+ * @param bh Object maintaining history of all builds.
+ * @param build The build we're describing.
+ * @param dirFilter Root directory that filters displayed dirs.  Can be empty.
+ *
+ * @returns Table of strings describing the build.
+ */
+std::vector<std::vector<std::string>>
+describeBuildDirs(BuildHistory *bh, const Build &build,
+                  const std::string &dirFilter);
 
 /**
  * @brief Formats information about files within the build as a table.

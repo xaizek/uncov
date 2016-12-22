@@ -30,7 +30,8 @@
 #include "coverage.hpp"
 #include "decoration.hpp"
 
-static std::map<std::string, CovInfo> getDirsCoverage(const Build &build);
+static std::map<std::string, CovInfo>
+getDirsCoverage(const Build &build, const std::string &dirFilter);
 static CovChange getBuildCovChange(BuildHistory *bh, const Build &build,
                                    const CovInfo &covInfo);
 static void printFileHeader(std::ostream &os, const std::string &filePath,
@@ -58,13 +59,14 @@ describeBuild(BuildHistory *bh, const Build &build)
 }
 
 std::vector<std::vector<std::string>>
-describeBuildDirs(BuildHistory *bh, const Build &build)
+describeBuildDirs(BuildHistory *bh, const Build &build,
+                  const std::string &dirFilter)
 {
-    std::map<std::string, CovInfo> newDirs = getDirsCoverage(build);
+    std::map<std::string, CovInfo> newDirs = getDirsCoverage(build, dirFilter);
 
     std::map<std::string, CovInfo> prevDirs;
     if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
-        prevDirs = getDirsCoverage(*bh->getBuild(prevBuildId));
+        prevDirs = getDirsCoverage(*bh->getBuild(prevBuildId), dirFilter);
     }
 
     std::vector<std::vector<std::string>> rows;
@@ -87,10 +89,14 @@ describeBuildDirs(BuildHistory *bh, const Build &build)
 }
 
 static std::map<std::string, CovInfo>
-getDirsCoverage(const Build &build)
+getDirsCoverage(const Build &build, const std::string &dirFilter)
 {
     std::map<std::string, CovInfo> dirs;
     for (const std::string &filePath : build.getPaths()) {
+        if (!pathIsInSubtree(dirFilter, filePath)) {
+            continue;
+        }
+
         boost::filesystem::path dirPath = filePath;
         dirPath.remove_filename();
 

@@ -365,8 +365,11 @@ private:
     execImpl(const std::vector<std::string> &args) override
     {
         int buildId;
+        InRepoPath dirFilter(repo);
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+            std::tie(buildId, dirFilter) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
@@ -378,7 +381,8 @@ private:
                                     "Cov Change", "C/U/R Line Changes" },
                                   getTerminalSize().first);
 
-        for (std::vector<std::string> &dirRow : describeBuildDirs(bh, build)) {
+        for (std::vector<std::string> &dirRow :
+             describeBuildDirs(bh, build, dirFilter)) {
             tablePrinter.append(std::move(dirRow));
         }
 
