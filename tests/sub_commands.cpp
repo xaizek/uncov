@@ -17,6 +17,8 @@
 
 #include "Catch/catch.hpp"
 
+#include <boost/filesystem/operations.hpp>
+
 #include <cstdlib>
 
 #include <iostream>
@@ -49,6 +51,9 @@ public:
         is.rdbuf(iss.rdbuf());
     }
 
+    StreamSubstitute(const StreamSubstitute &rhs) = delete;
+    StreamSubstitute & operator=(const StreamSubstitute &rhs) = delete;
+
     /**
      * @brief Restores original state of the stream.
      */
@@ -72,6 +77,28 @@ private:
     std::streambuf *rdbuf;
 };
 
+class Chdir
+{
+public:
+    explicit Chdir(const std::string &where)
+        : previousPath(boost::filesystem::current_path())
+    {
+        boost::filesystem::current_path(where);
+    }
+
+    Chdir(const Chdir &rhs) = delete;
+    Chdir & operator=(const Chdir &rhs) = delete;
+
+    ~Chdir()
+    {
+        boost::system::error_code ec;
+        boost::filesystem::current_path(previousPath, ec);
+    }
+
+private:
+    const boost::filesystem::path previousPath;
+};
+
 static SubCommand * getCmd(const std::string &name);
 
 TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
@@ -86,9 +113,25 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
     CHECK(cerrCapture.get() != std::string());
 }
 
+TEST_CASE("Paths to files can be relative inside repository",
+          "[subcommands][get-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    DB db(repo.getGitPath() + "/uncover.sqlite");
+    BuildHistory bh(db);
+
+    Chdir chdirInsideRepoSubdir("tests/test-repo/subdir");
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("get")->exec(bh, repo,
+                              { "@@", "../test-file1.cpp" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() != std::string());
+    CHECK(cerrCapture.get() == std::string());
+}
+
 TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 {
-    Repository repo("tests/test-repo/subdir");
+    Repository repo("tests/test-repo/");
     DB db(repo.getGitPath() + "/uncover.sqlite");
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -134,7 +177,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 
 TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
 {
-    Repository repo("tests/test-repo/subdir");
+    Repository repo("tests/test-repo");
     const std::string dbPath = repo.getGitPath() + "/uncover.sqlite";
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);

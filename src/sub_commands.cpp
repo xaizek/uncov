@@ -16,6 +16,7 @@
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
 
@@ -52,8 +53,14 @@ public:
 public:
     InRepoPath & operator=(std::string path)
     {
+        namespace fs = boost::filesystem;
+        fsPath absRepoRoot =
+            fs::absolute(normalize(repo->getGitPath())).parent_path();
+
         if (path.substr(0, 1) == "/") {
             path.erase(path.begin());
+        } else if (pathIsInSubtree(absRepoRoot, fs::current_path())) {
+            path = relative(absRepoRoot, fs::absolute(path)).string();
         }
 
         this->path = normalize(path).string();
@@ -81,6 +88,43 @@ private:
             }
         }
         return result;
+    }
+
+    static bool pathIsInSubtree(const fsPath &root, const fsPath &path)
+    {
+        auto rootLen = std::distance(root.begin(), root.end());
+        auto pathLen = std::distance(path.begin(), path.end());
+        if (pathLen < rootLen) {
+            return false;
+        }
+
+        return std::equal(root.begin(), root.end(), path.begin());
+    }
+
+    static fsPath relative(fsPath base, fsPath path)
+    {
+        auto baseIt = base.begin();
+        auto pathIt = path.begin();
+
+        // Loop through both
+        while (baseIt != base.end() && pathIt != path.end() &&
+               *pathIt == *baseIt) {
+            ++pathIt;
+            ++baseIt;
+        }
+
+        fsPath finalPath;
+        while (baseIt != base.end()) {
+            finalPath /= "..";
+            ++baseIt;
+        }
+
+        while (pathIt != path.end()) {
+            finalPath /= *pathIt;
+            ++pathIt;
+        }
+
+        return finalPath;
     }
 
 private:
