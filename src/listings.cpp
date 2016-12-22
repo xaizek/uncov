@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/fs.hpp"
 #include "BuildHistory.hpp"
 #include "coverage.hpp"
 #include "decoration.hpp"
@@ -102,7 +103,8 @@ getDirsCoverage(const Build &build)
 }
 
 std::vector<std::vector<std::string>>
-describeBuildFiles(BuildHistory *bh, const Build &build)
+describeBuildFiles(BuildHistory *bh, const Build &build,
+                   const std::string &dirFilter)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
@@ -115,6 +117,10 @@ describeBuildFiles(BuildHistory *bh, const Build &build)
     }
 
     for (const std::string &filePath : paths) {
+        if (!pathIsInSubtree(dirFilter, filePath)) {
+            continue;
+        }
+
         CovInfo covInfo(*build.getFile(filePath));
         CovChange covChange = getFileCovChange(bh, build, filePath,
                                                &prevBuild, covInfo);

@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/fs.hpp"
 #include "BuildHistory.hpp"
 #include "FilePrinter.hpp"
 #include "Repository.hpp"
@@ -87,6 +88,11 @@ public:
         return path;
     }
 
+    bool empty() const
+    {
+        return path.empty();
+    }
+
 private:
     static fsPath normalize(const fsPath &path)
     {
@@ -103,17 +109,6 @@ private:
             }
         }
         return result;
-    }
-
-    static bool pathIsInSubtree(const fsPath &root, const fsPath &path)
-    {
-        auto rootLen = std::distance(root.begin(), root.end());
-        auto pathLen = std::distance(path.begin(), path.end());
-        if (pathLen < rootLen) {
-            return false;
-        }
-
-        return std::equal(root.begin(), root.end(), path.begin());
     }
 
     static fsPath relative(fsPath base, fsPath path)
@@ -214,13 +209,13 @@ private:
         bool findPrev = false;
         bool buildsDiff = false;
         int oldBuildId, newBuildId;
-        InRepoPath filePath(repo);
+        InRepoPath path(repo);
         if (auto parsed = tryParse<FilePath>(args)) {
             findPrev = true;
             newBuildId = LatestBuildMarker;
-            std::tie(filePath) = *parsed;
+            std::tie(path) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
-            std::tie(oldBuildId, newBuildId, filePath) = *parsed;
+            std::tie(oldBuildId, newBuildId, path) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
             findPrev = true;
             buildsDiff = true;
@@ -248,30 +243,36 @@ private:
         Build oldBuild = getBuild(bh, oldBuildId);
 
         if (!buildsDiff) {
-            PathCategory oldType = classifyPath(oldBuild, filePath);
-            PathCategory newType = classifyPath(newBuild, filePath);
+            PathCategory oldType = classifyPath(oldBuild, path);
+            PathCategory newType = classifyPath(newBuild, path);
 
             if (oldType == PathCategory::None &&
                 newType == PathCategory::None) {
-                std::cerr << "No " << filePath.str()
-                          << " file in both builds (#" << oldBuild.getId()
-                          << " and #" << newBuild.getId() << ")\n";
+                std::cerr << "No " << path.str() << " file in both builds (#"
+                          << oldBuild.getId() << " and #" << newBuild.getId()
+                          << ")\n";
                 return error();
+            }
+
+            if (oldType != PathCategory::File &&
+                newType != PathCategory::File) {
+                buildsDiff = true;
             }
         }
 
         RedirectToPager redirectToPager;
 
         if (buildsDiff) {
-            diffBuilds(oldBuild, newBuild);
+            diffBuilds(oldBuild, newBuild, path);
         } else {
-            diffFile(oldBuild, newBuild, filePath, true);
+            diffFile(oldBuild, newBuild, path, true);
         }
 
         // TODO: maybe print some totals/stats here.
     }
 
-    void diffBuilds(const Build &oldBuild, const Build &newBuild)
+    void diffBuilds(const Build &oldBuild, const Build &newBuild,
+                    const std::string &dirFilter)
     {
         const std::vector<std::string> &oldPaths = oldBuild.getPaths();
         const std::vector<std::string> &newPaths = newBuild.getPaths();
@@ -282,7 +283,9 @@ private:
         printInfo(oldBuild, newBuild, std::string(), true, false);
 
         for (const std::string &path : allFiles) {
-            diffFile(oldBuild, newBuild, path, false);
+            if (pathIsInSubtree(dirFilter, path)) {
+                diffFile(oldBuild, newBuild, path, false);
+            }
         }
     }
 
@@ -396,8 +399,11 @@ private:
     execImpl(const std::vector<std::string> &args) override
     {
         int buildId;
+        InRepoPath dirFilter(repo);
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+            std::tie(buildId, dirFilter) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
@@ -410,7 +416,7 @@ private:
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &fileRow :
-             describeBuildFiles(bh, build)) {
+             describeBuildFiles(bh, build, dirFilter)) {
             tablePrinter.append(std::move(fileRow));
         }
 
@@ -524,39 +530,49 @@ private:
     virtual void
     execImpl(const std::vector<std::string> &args) override
     {
-        // TODO: maybe allow passing in path to directory, which would cause
-        //       printing all files in that sub-tree (or only directly in it?).
-
         int buildId;
-        InRepoPath filePath(repo);
+        InRepoPath path(repo);
         bool printWholeBuild = false;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
             printWholeBuild = true;
         } else if (auto parsed = tryParse<FilePath>(args)) {
             buildId = 0;
-            filePath = std::get<0>(*parsed);
+            path = std::get<0>(*parsed);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
-            std::tie(buildId, filePath) = *parsed;
+            std::tie(buildId, path) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
         Build build = getBuild(bh, buildId);
+
+        PathCategory fileType = path.empty() ? PathCategory::Directory
+                                             : classifyPath(build, path);
+        if (fileType == PathCategory::None) {
+            std::cerr << "No such file " << path.str() << " in build #"
+                      << buildId << "\n";
+            return error();
+        }
+
         FilePrinter printer;
+        RedirectToPager redirectToPager;
+        printBuildHeader(std::cout, bh, build);
 
         if (printWholeBuild) {
-            RedirectToPager redirectToPager;
-            printBuildHeader(std::cout, bh, build);
             for (const std::string &path : build.getPaths()) {
                 printFile(bh, repo, build, *build.getFile(path), printer);
             }
+        } else if (fileType == PathCategory::Directory) {
+            for (const std::string &filePath : build.getPaths()) {
+                if (pathIsInSubtree(path.str(), filePath)) {
+                    printFile(bh, repo, build, *build.getFile(filePath),
+                              printer);
+                }
+            }
         } else {
-            File &file = getFile(build, filePath);
-            RedirectToPager redirectToPager;
-            printBuildHeader(std::cout, bh, build);
-            printFile(bh, repo, build, file, printer);
+            printFile(bh, repo, build, *build.getFile(path), printer);
         }
     }
 };
