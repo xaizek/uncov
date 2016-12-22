@@ -292,21 +292,23 @@ private:
         boost::optional<File &> oldFile = oldBuild.getFile(filePath);
         boost::optional<File &> newFile = newBuild.getFile(filePath);
 
-        if (!oldFile && !newFile) {
-            std::cerr << "No " << filePath << " file in both builds (#"
-                      << oldBuild.getId() << " and #" << newBuild.getId()
-                      << ")\n";
-            return error();
+        const std::string &oldHash = oldFile ? oldFile->getHash()
+                                             : std::string();
+        const std::string &newHash = newFile ? newFile->getHash()
+                                             : std::string();
+        const std::vector<int> &oldCov = oldFile ? oldFile->getCoverage()
+                                                 : std::vector<int>{};
+        const std::vector<int> &newCov = newFile ? newFile->getCoverage()
+                                                 : std::vector<int>{};
+        if (oldHash == newHash && oldCov == newCov) {
+            // Do nothing for files that didn't change at all.
+            return;
         }
 
         Text oldVersion = oldFile ? repo->readFile(oldBuild.getRef(), filePath)
                                   : std::string();
         Text newVersion = newFile ? repo->readFile(newBuild.getRef(), filePath)
                                   : std::string();
-        const std::vector<int> &oldCov = oldFile ? oldFile->getCoverage()
-                                                 : std::vector<int>{};
-        const std::vector<int> &newCov = newFile ? newFile->getCoverage()
-                                                 : std::vector<int>{};
 
         if (oldVersion.size() != oldCov.size() ||
             newVersion.size() != newCov.size()) {
