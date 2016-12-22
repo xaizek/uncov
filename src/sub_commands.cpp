@@ -41,6 +41,16 @@
 #include "integration.hpp"
 #include "listings.hpp"
 
+/**
+ * @brief Type of path in some build.
+ */
+enum class PathCategory
+{
+    File,      ///< Path refers to a file.
+    Directory, ///< Path refers to a directory.
+    None       ///< Path is not in the build.
+};
+
 class InRepoPath
 {
     using fsPath = boost::filesystem::path;
@@ -68,6 +78,11 @@ public:
     }
 
     operator std::string() const
+    {
+        return path;
+    }
+
+    const std::string & str() const
     {
         return path;
     }
@@ -138,6 +153,7 @@ static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
                       FilePrinter &printer);
 static void printLineSeparator();
+static PathCategory classifyPath(const Build &build, const std::string &path);
 
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
@@ -231,15 +247,25 @@ private:
 
         Build oldBuild = getBuild(bh, oldBuildId);
 
+        if (!buildsDiff) {
+            PathCategory oldType = classifyPath(oldBuild, filePath);
+            PathCategory newType = classifyPath(newBuild, filePath);
+
+            if (oldType == PathCategory::None &&
+                newType == PathCategory::None) {
+                std::cerr << "No " << filePath.str()
+                          << " file in both builds (#" << oldBuild.getId()
+                          << " and #" << newBuild.getId() << ")\n";
+                return error();
+            }
+        }
+
         RedirectToPager redirectToPager;
 
         if (buildsDiff) {
             diffBuilds(oldBuild, newBuild);
         } else {
-            auto printHeader = [this, &oldBuild, &newBuild, &filePath]() {
-                printInfo(oldBuild, newBuild, filePath, true, true);
-            };
-            diffFile(oldBuild, newBuild, filePath, printHeader);
+            diffFile(oldBuild, newBuild, filePath, true);
         }
 
         // TODO: maybe print some totals/stats here.
@@ -256,15 +282,12 @@ private:
         printInfo(oldBuild, newBuild, std::string(), true, false);
 
         for (const std::string &path : allFiles) {
-            std::cout << '\n';
-            printInfo(oldBuild, newBuild, path, false, true);
-            diffFile(oldBuild, newBuild, path, {});
+            diffFile(oldBuild, newBuild, path, false);
         }
     }
 
     void diffFile(const Build &oldBuild, const Build &newBuild,
-                  const std::string &filePath,
-                  std::function<void()> printHeader)
+                  const std::string &filePath, bool standalone)
     {
         boost::optional<File &> oldFile = oldBuild.getFile(filePath);
         boost::optional<File &> newFile = newBuild.getFile(filePath);
@@ -292,8 +315,9 @@ private:
             return error();
         }
 
-        if (printHeader) {
-            printHeader();
+        printInfo(oldBuild, newBuild, filePath, standalone, true);
+        if (!standalone) {
+            std::cout << '\n';
         }
 
         FilePrinter filePrinter;
@@ -586,4 +610,29 @@ printLineSeparator()
 {
     std::cout << std::setfill('-') << std::setw(80) << '\n'
               << std::setfill(' ');
+}
+
+/**
+ * @brief Categorizes path within repository as file, directory or absent.
+ *
+ * @param build Build to look up file in.
+ * @param path Path of the file.
+ *
+ * @returns The category.
+ */
+static PathCategory
+classifyPath(const Build &build, const std::string &path)
+{
+    for (const std::string &filePath : build.getPaths()) {
+        if (filePath == path) {
+            return PathCategory::File;
+        }
+
+        boost::filesystem::path dirPath = filePath;
+        dirPath.remove_filename();
+        if (dirPath == path) {
+            return PathCategory::Directory;
+        }
+    }
+    return PathCategory::None;
 }
