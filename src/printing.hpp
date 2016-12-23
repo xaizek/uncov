@@ -18,6 +18,7 @@
 #ifndef UNCOVER__PRINTING_HPP__
 #define UNCOVER__PRINTING_HPP__
 
+#include <iomanip>
 #include <ostream>
 #include <string>
 
