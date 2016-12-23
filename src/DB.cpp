@@ -149,9 +149,7 @@ DB::prepare(const std::string &stmt, const std::vector<Binding> &binds)
                                  sqlite3_errmsg(conn));
     }
 
-    std::unique_ptr<sqlite3_stmt, decltype(&sqlite3_finalize)> ps {
-        rawPs, sqlite3_finalize
-    };
+    stmtPtr ps(rawPs, sqlite3_finalize);
     rawPs = nullptr;
 
     for (const Binding &bind : binds) {
