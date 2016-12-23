@@ -107,12 +107,6 @@ public:
      */
     using SubCommand::SubCommand;
 
-protected:
-    /**
-     * @brief Handy typedef for derived classes to ease parent construction.
-     */
-    using parent = AutoSubCommand;
-
 private:
     /**
      * @brief Static initialization of this variable performs the registration.

@@ -154,7 +154,7 @@ class BuildsCmd : public AutoSubCommand<BuildsCmd>
     struct All { static constexpr const char *const text = "all"; };
 
 public:
-    BuildsCmd() : parent("builds", 0U, 1U)
+    BuildsCmd() : AutoSubCommand("builds", 0U, 1U)
     {
     }
 
@@ -197,7 +197,7 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : parent("diff", 0U, 3U)
+    DiffCmd() : AutoSubCommand("diff", 0U, 3U)
     {
     }
 
@@ -355,7 +355,7 @@ private:
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
-    DirsCmd() : parent("dirs", 0U, 1U)
+    DirsCmd() : AutoSubCommand("dirs", 0U, 1U)
     {
     }
 
@@ -393,7 +393,7 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : parent("files", 0U, 1U)
+    FilesCmd() : AutoSubCommand("files", 0U, 1U)
     {
     }
 
@@ -431,7 +431,7 @@ private:
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
-    GetCmd() : parent("get", 2U)
+    GetCmd() : AutoSubCommand("get", 2U)
     {
     }
 
@@ -461,7 +461,7 @@ private:
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
-    NewCmd() : parent("new")
+    NewCmd() : AutoSubCommand("new")
     {
     }
 
@@ -525,7 +525,7 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
-    ShowCmd() : parent("show", 0U, 2U)
+    ShowCmd() : AutoSubCommand("show", 0U, 2U)
     {
     }
 
