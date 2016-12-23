@@ -38,7 +38,6 @@
 #include "TablePrinter.hpp"
 #include "arg_parsing.hpp"
 #include "coverage.hpp"
-#include "decoration.hpp"
 #include "integration.hpp"
 #include "listings.hpp"
 
