@@ -108,7 +108,10 @@ std::ostream &
 Decoration::decorate(std::ostream &os) const
 {
     if (decorator != nullptr) {
-        return os << decorator;
+        const auto width = os.width({});
+        os << decorator;
+        static_cast<void>(os.width(width));
+        return os;
     }
     if (lhs != nullptr && rhs != nullptr) {
         return os << *lhs << *rhs;
@@ -126,7 +129,6 @@ ScopedDecoration::decorate(std::ostream &os) const
     os << def;
     return os;
 }
-
 
 void
 decor::disableDecorations()
