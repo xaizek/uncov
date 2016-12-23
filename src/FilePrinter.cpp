@@ -33,7 +33,7 @@
 #include <string>
 #include <vector>
 
-#include "decoration.hpp"
+#include "printing.hpp"
 
 namespace {
 
@@ -124,23 +124,11 @@ private:
     void printAt(std::size_t lineNo) const
     {
         if (lineNo >= coverage.size()) {
-            os << (decor::red_bg + decor::inv + decor::bold
-               << std::setw(hitsNumWidth) << "ERROR" << ' ');
+            os << std::setw(hitsNumWidth) << ErrorMsg{"ERROR "};
             return;
         }
 
-        const int hits = coverage[lineNo];
-        decor::Decoration dec;
-        std::string prefix;
-        if (hits == 0) {
-            dec = decor::red_fg + decor::inv + decor::bold;
-            prefix = "x0";
-        } else if (hits > 0) {
-            dec = decor::green_fg + decor::inv + decor::bold;
-            prefix = 'x' + std::to_string(hits);
-        }
-
-        os << (dec << std::setw(hitsNumWidth) << prefix << ' ');
+        os << std::setw(hitsNumWidth) << HitsCount{coverage[lineNo]};
     }
 
 private:
@@ -209,17 +197,14 @@ FilePrinter::print(std::ostream &os, const std::string &path,
 
     std::size_t lineNo = 0U;
     for (std::string fileLine; std::getline(ss, fileLine); ++lineNo) {
-        os << (decor::white_bg + decor::black_fg
-           << std::setw(lineNoWidth) << lineNo + 1 << ' ')
+        os << std::setw(lineNoWidth) << LineNo{lineNo + 1}
            << covCol[lineNo] << ": " << fileLine << '\n';
     }
 
     if (lineNo < coverage.size()) {
-        os << (decor::red_bg + decor::bold
-           << "ERROR:") << " not enough lines in the file.\n";
+        os << ErrorMsg{"ERROR"} << ": not enough lines in the file.\n";
     } else if (lineNo > coverage.size()) {
-        os << (decor::red_bg + decor::bold
-           << "ERROR:") << " too many lines in the file.\n";
+        os << ErrorMsg{"ERROR"} << ": too many lines in the file.\n";
     }
 }
 
@@ -278,21 +263,17 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
     };
 
     CoverageColumn oldCovCol(os, oCov), newCovCol(os, nCov);
-    decor::Decoration additionDec = decor::green_fg + decor::bold;
-    decor::Decoration removalDec = decor::red_fg + decor::bold;
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case LineType::Added:
                 os << oldCovCol.blank() << ':'
                    << newCovCol[line.newLine] << ':'
-                   << (additionDec << '+')
-                   << getLine(sss);
+                   << LineAdded{getLine(sss)};
                 break;
             case LineType::Removed:
                 os << oldCovCol[line.oldLine] << ':'
                    << newCovCol.blank() << ':'
-                   << (removalDec << '-')
-                   << getLine(fss);
+                   << LineRemoved{getLine(fss)};
                 break;
             case LineType::Note:
                 os << " <<< " + line.text + " >>>";

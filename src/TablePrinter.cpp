@@ -32,7 +32,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
-#include "decoration.hpp"
+#include "printing.hpp"
 
 static unsigned int measureWidth(const std::string &s);
 static unsigned int measurePrefixLength(const std::string &s,
@@ -306,8 +306,7 @@ void
 TablePrinter::printTableHeader(std::ostream &os)
 {
     for (Column &col : cols) {
-        os << (decor::white_fg + decor::black_bg + decor::bold + decor::inv
-           << alignCell(col.getHeading(), col));
+        os << TableHeader{alignCell(col.getHeading(), col)};
 
         if (&col != &cols.back()) {
             os << gap;

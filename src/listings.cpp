@@ -28,7 +28,7 @@
 #include "utils/fs.hpp"
 #include "BuildHistory.hpp"
 #include "coverage.hpp"
-#include "decoration.hpp"
+#include "printing.hpp"
 
 static std::map<std::string, CovInfo>
 getDirsCoverage(const Build &build, const std::string &dirFilter);
@@ -149,7 +149,7 @@ printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build)
     CovInfo covInfo(build);
     CovChange covChange = getBuildCovChange(bh, build, covInfo);
 
-    os << (decor::bold << "Build:") << " #" << build.getId() << ", "
+    os << Label{"Build"} << ": #" << build.getId() << ", "
        << covInfo.formatCoverageRate() << ' '
        << '(' << covInfo.formatLines("/") << "), "
        << covChange.formatCoverageRate() << ' '
@@ -192,7 +192,7 @@ static void
 printFileHeader(std::ostream &os, const std::string &filePath,
                 const CovInfo &covInfo, const CovChange &covChange)
 {
-    os << (decor::bold << "File: ") << filePath << ", "
+    os << Label{"File"} << ": " << filePath << ", "
        << covInfo.formatCoverageRate() << ' '
        << '(' << covInfo.formatLines("/") << "), "
        << covChange.formatCoverageRate() << ' '

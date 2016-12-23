@@ -18,141 +18,108 @@
 #ifndef UNCOVER__PRINTING_HPP__
 #define UNCOVER__PRINTING_HPP__
 
-#include <iomanip>
-#include <ostream>
+#include <cstddef>
+
+#include <iosfwd>
 #include <string>
 
-#include "decoration.hpp"
+/**
+ * @brief Wrapper to enable multiple overloads for the same type of data.
+ *
+ * Should be used only as a temporary object as it doesn't copying passed in
+ * data.
+ *
+ * @tparam T Type of the contained data.
+ * @tparam C Tag structure to enforce creation of different types.
+ */
+template <typename T, typename C>
+class PrintWrapper
+{
+    /**
+     * @brief Prints wrapped data in a formatted way (depends on type).
+     *
+     * Instantiation of this template declares this function.
+     *
+     * @param os Stream to output formatted data to.
+     * @param w Data Container.
+     *
+     * @returns @p os.
+     */
+    friend std::ostream & operator<<(std::ostream &os, const PrintWrapper &w);
+
+public:
+    /**
+     * @brief Initializes data field.
+     *
+     * @param d Data to be initialized with.
+     */
+    PrintWrapper(const T &data) : data(data) {}
+
+private:
+    /**
+     * @brief Value to be processed (might be a temporary).
+     */
+    const T &data;
+};
 
 /**
  * @brief Strong typing of integer meaning covered lines change.
  */
-struct CLinesChange { const int &data; };
+using CLinesChange = PrintWrapper<int, struct CLinesChangeTag>;
 
 /**
  * @brief Strong typing of integer meaning uncovered lines change.
  */
-struct ULinesChange { const int &data; };
+using ULinesChange = PrintWrapper<int, struct ULinesChangeTag>;
 
 /**
  * @brief Strong typing of integer meaning relevant lines change.
  */
-struct RLinesChange { const int &data; };
+using RLinesChange = PrintWrapper<int, struct RLinesChangeTag>;
 
 /**
  * @brief Strong typing of float meaning coverage change in percents.
  */
-struct CoverageChange { const float &data; };
+using CoverageChange = PrintWrapper<float, struct CoverageChangeTag>;
 
 /**
  * @brief Strong typing of float meaning coverage in percents.
  */
-struct Coverage { const float &data; };
+using Coverage = PrintWrapper<float, struct CoverageTag>;
 
 /**
- * @brief Formatted covered lines change printer.
- *
- * @param os Stream to output formatted data to.
- * @param change Covered lines change.
- *
- * @returns @p os.
+ * @brief Strong typing of string containing label's title.
  */
-inline std::ostream &
-operator<<(std::ostream &os, const CLinesChange &change)
-{
-    if (change.data < 0) {
-        os << decor::bold + decor::red_fg;
-    } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
-    } else {
-        os << decor::bold + decor::green_fg << std::showpos;
-    }
-    return os << change.data << decor::def << std::noshowpos;
-}
+using Label = PrintWrapper<std::string, struct LabelTag>;
 
 /**
- * @brief Formatted uncovered lines change printer.
- *
- * @param os Stream to output formatted data to.
- * @param change Uncovered lines change.
- *
- * @returns @p os.
+ * @brief Strong typing of string containing error's title.
  */
-inline std::ostream &
-operator<<(std::ostream &os, const ULinesChange &change)
-{
-    const auto width = os.width();
-    if (change.data > 0) {
-        os << decor::bold + decor::red_fg << std::showpos;
-    } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
-    } else {
-        os << decor::bold + decor::green_fg;
-    }
-    return os << std::setw(width) << change.data << decor::def
-              << std::noshowpos;
-}
+using ErrorMsg = PrintWrapper<std::string, struct ErrorMsgTag>;
 
 /**
- * @brief Formatted relevant lines change printer.
- *
- * @param os Stream to output formatted data to.
- * @param change Relevant lines change.
- *
- * @returns @p os.
+ * @brief Strong typing of string containing header of a table.
  */
-inline std::ostream &
-operator<<(std::ostream &os, const RLinesChange &change)
-{
-    const auto width = os.width();
-    if (change.data > 0) {
-        os << std::showpos;
-    }
-    return os << (decor::yellow_fg << std::setw(width) << change.data)
-              << std::noshowpos;
-}
+using TableHeader = PrintWrapper<std::string, struct TableHeaderTag>;
 
 /**
- * @brief Formatted coverage change printer.
- *
- * @param os Stream to output formatted data to.
- * @param change Coverage change in percents.
- *
- * @returns @p os.
+ * @brief Strong typing of int representing line number.
  */
-inline std::ostream &
-operator<<(std::ostream &os, const CoverageChange &change)
-{
-    if (change.data < 0) {
-        os << decor::bold + decor::red_fg;
-    } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
-    } else {
-        os << decor::bold + decor::green_fg << '+';
-    }
-    return os << change.data << '%' << decor::def;
-}
+using LineNo = PrintWrapper<std::size_t, struct LineNoTag>;
 
 /**
- * @brief Formatted coverage printer.
- *
- * @param os Stream to output formatted data to.
- * @param change Coverage in percents.
- *
- * @returns @p os.
+ * @brief Strong typing of string representing added line.
  */
-inline std::ostream &
-operator<<(std::ostream &os, const Coverage &coverage)
-{
-    // XXX: hardcoded coverage thresholds.
-    if (coverage.data < 70.0f) {
-        os << decor::bold + decor::red_fg;
-    } else if (coverage.data < 90.0f) {
-        os << decor::bold + decor::yellow_fg;
-    } else {
-        os << decor::bold + decor::green_fg;
-    }
-    return os << coverage.data << '%' << decor::def;
-}
+using LineAdded = PrintWrapper<std::string, struct LineAddedTag>;
+
+/**
+ * @brief Strong typing of string representing removed line.
+ */
+using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
+
+/**
+ * @brief Strong typing of int representing number of hits.
+ */
+using HitsCount = PrintWrapper<int, struct HitsCountTag>;
 
 #endif // UNCOVER__PRINTING_HPP__
