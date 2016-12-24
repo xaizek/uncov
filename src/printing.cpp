@@ -22,122 +22,189 @@
 #include <iomanip>
 #include <ostream>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
 #include "decoration.hpp"
+
+namespace {
+
+const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
+    { "linesbad",     decor::bold + decor::red_fg   },
+    { "linesok",      decor::bold + decor::black_fg },
+    { "linesgood",    decor::bold + decor::green_fg },
+    { "lineschanged", decor::yellow_fg },
+    { "covbad",       decor::bold + decor::red_fg },
+    { "covok",        decor::bold + decor::black_fg },
+    { "covgood",      decor::bold + decor::green_fg },
+    { "lineno",       decor::white_bg + decor::black_fg },
+    { "missed",       decor::red_fg + decor::inv + decor::bold },
+    { "covered",      decor::green_fg + decor::inv + decor::bold },
+    { "added",        decor::green_fg + decor::bold },
+    { "removed",      decor::red_fg + decor::bold },
+    { "header",       decor::white_fg + decor::black_bg + decor::bold +
+                      decor::inv },
+    { "error",        decor::red_bg + decor::inv + decor::bold },
+    { "label",        decor::bold },
+};
+
+class Highlight
+{
+public:
+    Highlight(std::string groupName) : groupName(std::move(groupName))
+    {
+    }
+
+    Highlight(Highlight &&hi, std::function<void(std::ostream&)> app)
+        : groupName(std::move(hi.groupName)), apps(std::move(hi.apps))
+    {
+        apps.push_back(app);
+    }
+
+public:
+    std::ostream & decorate(std::ostream &os) const
+    {
+        os << highlightGroups.at(groupName);
+
+        for (const auto app : apps) {
+            app(os);
+        }
+
+        os << decor::def;
+
+        return os;
+    }
+
+private:
+    const std::string groupName;
+    std::vector<std::function<void(std::ostream&)>> apps;
+};
+
+template <typename T>
+Highlight
+operator<<(Highlight &&hi, const T &val)
+{
+    return Highlight(std::move(hi), [val](std::ostream &os) { os << val; });
+}
+
+inline std::ostream &
+operator<<(std::ostream &os, const Highlight &hi)
+{
+    return hi.decorate(os);
+}
+
+}
 
 std::ostream &
 operator<<(std::ostream &os, const CLinesChange &change)
 {
     if (change.data < 0) {
-        os << decor::bold + decor::red_fg;
+        return os << (Highlight("linesbad") << change.data);
     } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
+        return os << (Highlight("linesok") << change.data);
     } else {
-        os << decor::bold + decor::green_fg << std::showpos;
+        return os << std::showpos
+                  << (Highlight("linesgood") << change.data)
+                  << std::noshowpos;
     }
-    return os << change.data << decor::def << std::noshowpos;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const ULinesChange &change)
 {
-    const auto width = os.width();
     if (change.data > 0) {
-        os << decor::bold + decor::red_fg << std::showpos;
+        return os << std::showpos
+                  << (Highlight("linesbad") << change.data)
+                  << std::noshowpos;
     } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
+        return os << (Highlight("linesok") << change.data);
     } else {
-        os << decor::bold + decor::green_fg;
+        return os << (Highlight("linesgood") << change.data);
     }
-    return os << std::setw(width) << change.data << decor::def
-              << std::noshowpos;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const RLinesChange &change)
 {
-    const auto width = os.width();
     if (change.data > 0) {
         os << std::showpos;
     }
-    return os << (decor::yellow_fg << std::setw(width) << change.data)
-              << std::noshowpos;
+    return os << (Highlight("lineschanged") << change.data) << std::noshowpos;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const CoverageChange &change)
 {
     if (change.data < 0) {
-        os << decor::bold + decor::red_fg;
+        return os << (Highlight("covbad") << change.data << '%');
     } else if (change.data == 0) {
-        os << decor::bold + decor::black_fg;
+        return os << (Highlight("covok") << change.data << '%');
     } else {
-        os << decor::bold + decor::green_fg << '+';
+        return os << (Highlight("covgood") << change.data << '%');
     }
-    return os << change.data << '%' << decor::def;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const Coverage &coverage)
 {
     // XXX: hard-coded coverage thresholds.
+
     if (coverage.data < 70.0f) {
-        os << decor::bold + decor::red_fg;
+        return os << (Highlight("covbad") << coverage.data << '%');
     } else if (coverage.data < 90.0f) {
-        os << decor::bold + decor::yellow_fg;
+        return os << (Highlight("covok") << coverage.data << '%');
     } else {
-        os << decor::bold + decor::green_fg;
+        return os << (Highlight("covgood") << coverage.data << '%');
     }
-    return os << coverage.data << '%' << decor::def;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const Label &label)
 {
-    return os << (decor::bold << label.data);
+    return os << (Highlight("label") << label.data);
 }
 
 std::ostream &
 operator<<(std::ostream &os, const ErrorMsg &errMsg)
 {
-    return os << (decor::red_bg + decor::inv + decor::bold << errMsg.data);
+    return os << (Highlight("error") << errMsg.data);
 }
 
 std::ostream &
 operator<<(std::ostream &os, const TableHeader &th)
 {
-    return os << (decor::white_fg + decor::black_bg + decor::bold + decor::inv
-              << th.data);
+    return os << (Highlight("header") << th.data);
 }
 
 std::ostream &
 operator<<(std::ostream &os, const LineNo &lineNo)
 {
-    return os << (decor::white_bg + decor::black_fg << lineNo.data << ' ');
+    return os << (Highlight("lineno") << lineNo.data << ' ');
 }
 
 std::ostream &
 operator<<(std::ostream &os, const LineAdded &line)
 {
-    return os << (decor::green_fg + decor::bold << '+') << line.data;
+    return os << (Highlight("added") << '+') << line.data;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const LineRemoved &line)
 {
-    return os << (decor::red_fg + decor::bold << '-') << line.data;
+    return os << (Highlight("removed") << '-') << line.data;
 }
 
 std::ostream &
 operator<<(std::ostream &os, const HitsCount &hits)
 {
     if (hits.data == 0) {
-        os << (decor::red_fg + decor::inv + decor::bold << "x0" << ' ');
+        return os << (Highlight("missed") << "x0" << ' ');
     } else if (hits.data > 0) {
-        os << (decor::green_fg + decor::inv + decor::bold
-           << 'x' + std::to_string(hits.data) << ' ');
+        // 'x' and number must be output as a single unit here so that field
+        // width applies correctly.
+        return os << (Highlight("covered")
+                  << 'x' + std::to_string(hits.data) << ' ');
     } else {
-        os << "" << ' ';
+        return os << "" << ' ';
     }
-    return os;
 }
