@@ -37,7 +37,7 @@ static void updateDBSchema(DB &db, int fromVersion);
 /**
  * @brief Current database scheme version.
  */
-const int AppDBVersion = 1;
+const int AppDBVersion = 2;
 
 File::File(std::string path, std::string hash, std::vector<int> coverage)
     : path(std::move(path)), hash(std::move(hash)),
@@ -184,10 +184,11 @@ hashCoverage(const std::vector<int> &vec)
 }
 
 Build::Build(int id, std::string ref, std::string refName,
-             int coveredCount, int uncoveredCount, DataLoader &loader)
+             int coveredCount, int uncoveredCount, int timestamp,
+             DataLoader &loader)
     : id(id), ref(std::move(ref)), refName(std::move(refName)),
       coveredCount(coveredCount), uncoveredCount(uncoveredCount),
-      loader(&loader)
+      timestamp(timestamp), loader(&loader)
 {
 }
 
@@ -207,6 +208,12 @@ const std::string &
 Build::getRefName() const
 {
     return refName;
+}
+
+std::time_t
+Build::getTimestamp() const
+{
+    return timestamp;
 }
 
 int
@@ -331,6 +338,40 @@ updateDBSchema(DB &db, int fromVersion)
             )");
             // Fall through.
         case 1:
+            db.execute(R"(
+                CREATE TABLE builds_new (
+                    buildid INTEGER,
+                    vcsref TEXT NOT NULL,
+                    vcsrefname TEXT NOT NULL,
+                    covered INTEGER NOT NULL,
+                    uncovered INTEGER NOT NULL,
+                    timestamp INTEGER NOT NULL
+                              DEFAULT (CAST(strftime('%s', 'now') AS INT)),
+
+                    PRIMARY KEY (buildid)
+                )
+            )");
+
+            for (std::tuple<int, std::string, std::string, int, int> vals :
+                db.queryAll("SELECT buildid, vcsref, vcsrefname, "
+                                   "covered, uncovered "
+                            "FROM builds")) {
+                db.execute("INSERT INTO builds_new (buildid, vcsref, "
+                                                   "vcsrefname, covered, "
+                                                   "uncovered) "
+                           "VALUES (:buildid, :ref, :refname, :covered, "
+                                   ":uncovered)",
+                           { ":buildid"_b = std::get<0>(vals),
+                             ":ref"_b = std::get<1>(vals),
+                             ":refname"_b = std::get<2>(vals),
+                             ":covered"_b = std::get<3>(vals),
+                             ":uncovered"_b = std::get<4>(vals) });
+            }
+
+            db.execute("DROP TABLE builds");
+            db.execute("ALTER TABLE builds_new RENAME TO builds");
+            // Fall through.
+        case 2:
             break;
     }
 
@@ -372,12 +413,14 @@ BuildHistory::getBuild(int id)
 {
     try {
         DataLoader &loader = *this;
-        std::tuple<std::string, std::string, int, int> vals =
-            db.queryOne("SELECT vcsref, vcsrefname, covered, uncovered "
+        std::tuple<std::string, std::string, int, int, int> vals =
+            db.queryOne("SELECT vcsref, vcsrefname, covered, uncovered, "
+                               "timestamp "
                         "FROM builds WHERE buildid = :buildid",
                         { ":buildid"_b = id } );
         return Build(id, std::get<0>(vals), std::get<1>(vals),
-                     std::get<2>(vals), std::get<3>(vals), loader);
+                     std::get<2>(vals), std::get<3>(vals), std::get<4>(vals),
+                     loader);
     } catch (const std::runtime_error &) {
         return {};
     }
@@ -388,12 +431,13 @@ BuildHistory::getBuilds()
 {
     std::vector<Build> builds;
     DataLoader &loader = *this;
-    for (std::tuple<int, std::string, std::string, int, int> vals :
-         db.queryAll("SELECT buildid, vcsref, vcsrefname, covered, uncovered "
+    for (std::tuple<int, std::string, std::string, int, int, int> vals :
+         db.queryAll("SELECT buildid, vcsref, vcsrefname, covered, uncovered, "
+                            "timestamp "
                      "FROM builds")) {
         builds.emplace_back(std::get<0>(vals), std::get<1>(vals),
                             std::get<2>(vals), std::get<3>(vals),
-                            std::get<4>(vals), loader);
+                            std::get<4>(vals), std::get<5>(vals), loader);
     }
     return builds;
 }

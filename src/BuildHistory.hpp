@@ -20,6 +20,8 @@
 
 #include <boost/optional/optional_fwd.hpp>
 
+#include <ctime>
+
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -126,12 +128,14 @@ class Build
 {
 public:
     Build(int id, std::string ref, std::string refName,
-          int coveredCount, int uncoveredCount, DataLoader &loader);
+          int coveredCount, int uncoveredCount, int timestamp,
+          DataLoader &loader);
 
 public:
     int getId() const;
     const std::string & getRef() const;
     const std::string & getRefName() const;
+    std::time_t getTimestamp() const;
     int getCoveredCount() const;
     int getUncoveredCount() const;
     std::vector<std::string> getPaths() const;
@@ -143,6 +147,7 @@ private:
     std::string refName;
     int coveredCount;
     int uncoveredCount;
+    std::time_t timestamp;
     DataLoader *loader;
     mutable std::map<std::string, int> pathMap;
     mutable std::unordered_map<std::string, File> files;

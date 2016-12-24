@@ -176,7 +176,7 @@ private:
 
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
-              "C/U/R Line Changes", "Branch", "Commit" },
+              "C/U/R Line Changes", "Branch", "Commit", "Time" },
             getTerminalSize().first
         };
 

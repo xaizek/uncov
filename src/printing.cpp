@@ -47,6 +47,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "error",        decor::red_bg + decor::inv + decor::bold },
     { "label",        decor::bold },
     { "revision",     decor::none },
+    { "time",         decor::none },
 };
 
 class Highlight
@@ -214,4 +215,12 @@ std::ostream &
 operator<<(std::ostream &os, const Revision &rev)
 {
     return os << (Highlight("revision") << rev.data);
+}
+
+std::ostream &
+operator<<(std::ostream &os, const Time &t)
+{
+    // XXX: hard-coded time format.
+    return os << (Highlight("time")
+              << std::put_time(std::localtime(&t.data), "%Y-%m-%d %H:%M:%S"));
 }

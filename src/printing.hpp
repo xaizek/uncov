@@ -19,6 +19,7 @@
 #define UNCOVER__PRINTING_HPP__
 
 #include <cstddef>
+#include <ctime>
 
 #include <sstream>
 #include <string>
@@ -139,5 +140,10 @@ using HitsCount = PrintWrapper<int, struct HitsCountTag>;
  * @brief Strong typing of string representing VCS revision.
  */
 using Revision = PrintWrapper<std::string, struct RevisionTag>;
+
+/**
+ * @brief Strong typing of time representing build timestamp.
+ */
+using Time = PrintWrapper<std::time_t, struct TimeTag>;
 
 #endif // UNCOVER__PRINTING_HPP__

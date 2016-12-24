@@ -54,7 +54,8 @@ describeBuild(BuildHistory *bh, const Build &build)
         covChange.formatCoverageRate(),
         covChange.formatLines(" / "),
         build.getRefName(),
-        Revision{build.getRef()}
+        Revision{build.getRef()},
+        Time{build.getTimestamp()}
     };
 }
 
