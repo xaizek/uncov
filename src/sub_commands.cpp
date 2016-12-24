@@ -324,7 +324,6 @@ private:
             std::cout << '\n';
         }
 
-        FilePrinter filePrinter;
         filePrinter.printDiff(std::cout, filePath, oldVersion,
                               oldCov, newVersion, newCov);
     }
@@ -350,6 +349,9 @@ private:
         }
         printLineSeparator();
     }
+
+private:
+    FilePrinter filePrinter;
 };
 
 class DirsCmd : public AutoSubCommand<DirsCmd>
