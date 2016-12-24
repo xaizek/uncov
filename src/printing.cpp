@@ -46,6 +46,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
                       decor::inv },
     { "error",        decor::red_bg + decor::inv + decor::bold },
     { "label",        decor::bold },
+    { "revision",     decor::none },
 };
 
 class Highlight
@@ -207,4 +208,10 @@ operator<<(std::ostream &os, const HitsCount &hits)
     } else {
         return os << "" << ' ';
     }
+}
+
+std::ostream &
+operator<<(std::ostream &os, const Revision &rev)
+{
+    return os << (Highlight("revision") << rev.data);
 }

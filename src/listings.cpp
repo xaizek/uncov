@@ -54,7 +54,7 @@ describeBuild(BuildHistory *bh, const Build &build)
         covChange.formatCoverageRate(),
         covChange.formatLines(" / "),
         build.getRefName(),
-        build.getRef()
+        Revision{build.getRef()}
     };
 }
 
@@ -154,7 +154,7 @@ printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build)
        << '(' << covInfo.formatLines("/") << "), "
        << covChange.formatCoverageRate() << ' '
        << '(' << covChange.formatLines("/") << "), "
-       << build.getRefName() << " at " << build.getRef() << '\n';
+       << build.getRefName() << " at " << Revision{build.getRef()} << '\n';
 }
 
 static CovChange

@@ -20,7 +20,7 @@
 
 #include <cstddef>
 
-#include <iosfwd>
+#include <sstream>
 #include <string>
 
 /**
@@ -54,6 +54,19 @@ public:
      * @param d Data to be initialized with.
      */
     PrintWrapper(const T &data) : data(data) {}
+
+public:
+    /**
+     * @brief Prints data into a string.
+     *
+     * @returns The printed data.
+     */
+    operator std::string() const
+    {
+        std::ostringstream oss;
+        oss << *this;
+        return oss.str();
+    }
 
 private:
     /**
@@ -121,5 +134,10 @@ using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
  * @brief Strong typing of int representing number of hits.
  */
 using HitsCount = PrintWrapper<int, struct HitsCountTag>;
+
+/**
+ * @brief Strong typing of string representing VCS revision.
+ */
+using Revision = PrintWrapper<std::string, struct RevisionTag>;
 
 #endif // UNCOVER__PRINTING_HPP__
