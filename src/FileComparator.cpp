@@ -70,7 +70,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
             diffSequence.emplace(diffSequence.cbegin() + startContext,
                                  DiffLineType::Note,
                                  std::to_string(identicalLines - context) +
-                                 " identical lines folded", -1, -1);
+                                 " lines folded", -1, -1);
         }
         identicalLines = 0;
     };
