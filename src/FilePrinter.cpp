@@ -77,7 +77,7 @@ struct local
 class CoverageColumn
 {
     struct Blank { const CoverageColumn &cc; };
-    struct LineAt { const CoverageColumn &cc; const int lineNo; };
+    struct LineAt { bool active; const CoverageColumn &cc; const int lineNo; };
 
     friend std::ostream & operator<<(std::ostream &os, const Blank &blank)
     {
@@ -87,7 +87,7 @@ class CoverageColumn
 
     friend std::ostream & operator<<(std::ostream &os, const LineAt &lineAt)
     {
-        lineAt.cc.printAt(lineAt.lineNo);
+        lineAt.cc.printAt(lineAt.lineNo, lineAt.active);
         return os;
     }
 
@@ -110,9 +110,14 @@ public:
         return { *this };
     }
 
-    LineAt operator[](int lineNo) const
+    LineAt active(int lineNo) const
     {
-        return { *this, lineNo };
+        return { true, *this, lineNo };
+    }
+
+    LineAt inactive(int lineNo) const
+    {
+        return { false, *this, lineNo };
     }
 
 private:
@@ -121,14 +126,19 @@ private:
         os << std::setw(hitsNumWidth) << "" << ' ';
     }
 
-    void printAt(std::size_t lineNo) const
+    void printAt(std::size_t lineNo, bool active) const
     {
         if (lineNo >= coverage.size()) {
             os << std::setw(hitsNumWidth) << ErrorMsg{"ERROR "};
             return;
         }
 
-        os << std::setw(hitsNumWidth) << HitsCount{coverage[lineNo]};
+        os << std::setw(hitsNumWidth);
+        if (active) {
+            os << HitsCount{coverage[lineNo]};
+        } else {
+            os << SilentHitsCount{coverage[lineNo]};
+        }
     }
 
 private:
@@ -198,7 +208,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     std::size_t lineNo = 0U;
     for (std::string fileLine; std::getline(ss, fileLine); ++lineNo) {
         os << std::setw(lineNoWidth) << LineNo{lineNo + 1}
-           << covCol[lineNo] << ": " << fileLine << '\n';
+           << covCol.active(lineNo) << ": " << fileLine << '\n';
     }
 
     if (lineNo < coverage.size()) {
@@ -267,11 +277,11 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
         switch (line.type) {
             case LineType::Added:
                 os << oldCovCol.blank() << ':'
-                   << newCovCol[line.newLine] << ':'
+                   << newCovCol.active(line.newLine) << ':'
                    << LineAdded{getLine(sss)};
                 break;
             case LineType::Removed:
-                os << oldCovCol[line.oldLine] << ':'
+                os << oldCovCol.active(line.oldLine) << ':'
                    << newCovCol.blank() << ':'
                    << LineRemoved{getLine(fss)};
                 break;
@@ -279,13 +289,13 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
                 os << " <<< " + line.text + " >>>";
                 break;
             case LineType::Common:
-                os << oldCovCol[line.oldLine] << ':'
-                   << newCovCol[line.newLine] << ": "
+                os << oldCovCol.active(line.oldLine) << ':'
+                   << newCovCol.active(line.newLine) << ": "
                    << getLine(fss);
                 break;
             case LineType::Identical:
-                os << oldCovCol.blank() << ':'
-                   << newCovCol.blank() << ": "
+                os << oldCovCol.inactive(line.oldLine) << ':'
+                   << newCovCol.inactive(line.newLine) << ": "
                    << getLine(fss);
                 break;
         }

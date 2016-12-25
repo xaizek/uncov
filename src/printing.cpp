@@ -30,24 +30,26 @@
 namespace {
 
 const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
-    { "linesbad",     decor::bold + decor::red_fg   },
-    { "linesok",      decor::bold + decor::black_fg },
-    { "linesgood",    decor::bold + decor::green_fg },
-    { "lineschanged", decor::yellow_fg },
-    { "covbad",       decor::bold + decor::red_fg },
-    { "covok",        decor::bold + decor::black_fg },
-    { "covgood",      decor::bold + decor::green_fg },
-    { "lineno",       decor::white_bg + decor::black_fg },
-    { "missed",       decor::red_fg + decor::inv + decor::bold },
-    { "covered",      decor::green_fg + decor::inv + decor::bold },
-    { "added",        decor::green_fg + decor::bold },
-    { "removed",      decor::red_fg + decor::bold },
-    { "header",       decor::white_fg + decor::black_bg + decor::bold +
-                      decor::inv },
-    { "error",        decor::red_bg + decor::inv + decor::bold },
-    { "label",        decor::bold },
-    { "revision",     decor::none },
-    { "time",         decor::none },
+    { "linesbad",      decor::bold + decor::red_fg   },
+    { "linesok",       decor::bold + decor::black_fg },
+    { "linesgood",     decor::bold + decor::green_fg },
+    { "lineschanged",  decor::yellow_fg },
+    { "covbad",        decor::bold + decor::red_fg },
+    { "covok",         decor::bold + decor::black_fg },
+    { "covgood",       decor::bold + decor::green_fg },
+    { "lineno",        decor::white_bg + decor::black_fg },
+    { "missed",        decor::red_fg + decor::inv + decor::bold },
+    { "covered",       decor::green_fg + decor::inv + decor::bold },
+    { "silentmissed",  decor::red_fg + decor::bold },
+    { "silentcovered", decor::green_fg + decor::bold },
+    { "added",         decor::green_fg + decor::bold },
+    { "removed",       decor::red_fg + decor::bold },
+    { "header",        decor::white_fg + decor::black_bg + decor::bold +
+                       decor::inv },
+    { "error",         decor::red_bg + decor::inv + decor::bold },
+    { "label",         decor::bold },
+    { "revision",      decor::none },
+    { "time",          decor::none },
 };
 
 class Highlight
@@ -93,6 +95,23 @@ inline std::ostream &
 operator<<(std::ostream &os, const Highlight &hi)
 {
     return hi.decorate(os);
+}
+
+std::ostream &
+printHits(std::ostream &os, int hits, bool silent)
+{
+    std::string prefix = silent ? "silent" : "";
+
+    if (hits == 0) {
+        return os << (Highlight(prefix + "missed") << "x0" << ' ');
+    } else if (hits > 0) {
+        // 'x' and number must be output as a single unit here so that field
+        // width applies correctly.
+        return os << (Highlight(prefix + "covered")
+                  << 'x' + std::to_string(hits) << ' ');
+    } else {
+        return os << "" << ' ';
+    }
 }
 
 }
@@ -199,16 +218,13 @@ operator<<(std::ostream &os, const LineRemoved &line)
 std::ostream &
 operator<<(std::ostream &os, const HitsCount &hits)
 {
-    if (hits.data == 0) {
-        return os << (Highlight("missed") << "x0" << ' ');
-    } else if (hits.data > 0) {
-        // 'x' and number must be output as a single unit here so that field
-        // width applies correctly.
-        return os << (Highlight("covered")
-                  << 'x' + std::to_string(hits.data) << ' ');
-    } else {
-        return os << "" << ' ';
-    }
+    return printHits(os, hits.data, false);
+}
+
+std::ostream &
+operator<<(std::ostream &os, const SilentHitsCount &hits)
+{
+    return printHits(os, hits.data, true);
 }
 
 std::ostream &

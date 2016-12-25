@@ -137,6 +137,11 @@ using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
 using HitsCount = PrintWrapper<int, struct HitsCountTag>;
 
 /**
+ * @brief Int wrapper for number of hits, which shouldn't standout too much.
+ */
+using SilentHitsCount = PrintWrapper<int, struct SilentHitsCountTag>;
+
+/**
  * @brief Strong typing of string representing VCS revision.
  */
 using Revision = PrintWrapper<std::string, struct RevisionTag>;
