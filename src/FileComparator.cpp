@@ -58,13 +58,18 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
 
     std::size_t identicalLines = 0;
 
-    auto foldIdentical = [this, &identicalLines]() {
+    auto foldIdentical = [this, &identicalLines](bool last) {
         if (identicalLines > 4) {
-            diffSequence.erase(diffSequence.cbegin() + 1,
-                               diffSequence.cbegin() + (identicalLines - 1));
-            diffSequence.emplace(diffSequence.cbegin() + 1,
+            int startContext = last ? 0 : 1;
+            int endContext = identicalLines == diffSequence.size() ? 0 : 1;
+            int context = startContext + endContext;
+
+            diffSequence.erase(diffSequence.cbegin() + startContext,
+                               diffSequence.cbegin() +
+                               (identicalLines - endContext));
+            diffSequence.emplace(diffSequence.cbegin() + startContext,
                                  DiffLineType::Note,
-                                 std::to_string(identicalLines - 2) +
+                                 std::to_string(identicalLines - context) +
                                  " identical lines folded", -1, -1);
         }
         identicalLines = 0;
@@ -74,7 +79,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         if (hits == -1) {
             ++identicalLines;
         } else {
-            foldIdentical();
+            foldIdentical(false);
         }
     };
 
@@ -111,7 +116,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
                 diffSequence.emplace_front(DiffLineType::Identical, o[i], i, j);
                 ++identicalLines;
             } else {
-                foldIdentical();
+                foldIdentical(false);
                 diffSequence.emplace_front(DiffLineType::Common, o[i], i, j);
             }
         }
@@ -119,7 +124,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
 
     equal = (identicalLines == diffSequence.size());
 
-    foldIdentical();
+    foldIdentical(true);
 }
 
 bool
