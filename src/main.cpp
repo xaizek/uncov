@@ -40,7 +40,9 @@ main(int argc, char *argv[])
 
         std::unordered_map<std::string, SubCommand *> cmds;
         for (SubCommand *cmd : SubCommand::getAll()) {
-            cmds.emplace(cmd->getName(), cmd);
+            for (const std::string &name : cmd->getNames()) {
+                cmds.emplace(name, cmd);
+            }
         }
 
         auto cmd = cmds.find(invocation.getSubcommandName());
@@ -54,7 +56,8 @@ main(int argc, char *argv[])
         DB db(repo.getGitPath() + "/uncover.sqlite");
         BuildHistory bh(db);
 
-        return cmd->second->exec(bh, repo, invocation.getSubcommandArgs());
+        return cmd->second->exec(bh, repo, invocation.getSubcommandName(),
+                                 invocation.getSubcommandArgs());
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;

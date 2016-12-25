@@ -44,25 +44,26 @@ private:
     static std::vector<std::unique_ptr<SubCommand>> & getAllCmds();
 
 public:
-    SubCommand(std::string name, std::size_t minArgs, std::size_t maxArgs)
-        : name(std::move(name)), minArgs(minArgs), maxArgs(maxArgs)
+    SubCommand(std::vector<std::string> names, std::size_t minArgs,
+               std::size_t maxArgs)
+        : names(std::move(names)), minArgs(minArgs), maxArgs(maxArgs)
     {
     }
 
-    SubCommand(std::string name, std::size_t nArgs = 0U)
-        : SubCommand(std::move(name), nArgs, nArgs)
+    SubCommand(std::vector<std::string> names, std::size_t nArgs = 0U)
+        : SubCommand(std::move(names), nArgs, nArgs)
     {
     }
 
     virtual ~SubCommand() = default;
 
 public:
-    const std::string & getName() const
+    const std::vector<std::string> & getNames() const
     {
-        return name;
+        return names;
     }
 
-    int exec(BuildHistory &bh, Repository &repo,
+    int exec(BuildHistory &bh, Repository &repo, const std::string &alias,
              const std::vector<std::string> &args);
 
 protected:
@@ -81,10 +82,11 @@ private:
     std::string makeExpectedMsg() const;
 
 private:
-    virtual void execImpl(const std::vector<std::string> &args) = 0;
+    virtual void execImpl(const std::string &alias,
+                          const std::vector<std::string> &args) = 0;
 
 private:
-    const std::string name;
+    const std::vector<std::string> names;
     const std::size_t minArgs;
     const std::size_t maxArgs;
 

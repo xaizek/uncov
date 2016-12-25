@@ -197,13 +197,14 @@ class BuildsCmd : public AutoSubCommand<BuildsCmd>
     struct All { static constexpr const char *const text = "all"; };
 
 public:
-    BuildsCmd() : AutoSubCommand("builds", 0U, 1U)
+    BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         // By default limit number of builds to display to 10.
         bool limitBuilds = true;
@@ -240,13 +241,14 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : AutoSubCommand("diff", 0U, 3U)
+    DiffCmd() : AutoSubCommand({ "diff" }, 0U, 3U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         bool findPrev = false;
         bool buildsDiff = false;
@@ -409,13 +411,14 @@ private:
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
-    DirsCmd() : AutoSubCommand("dirs", 0U, 1U)
+    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 1U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         int buildId;
         InRepoPath dirFilter(repo);
@@ -447,13 +450,14 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : AutoSubCommand("files", 0U, 1U)
+    FilesCmd() : AutoSubCommand({ "files" }, 0U, 1U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         int buildId;
         InRepoPath dirFilter(repo);
@@ -485,13 +489,14 @@ private:
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
-    GetCmd() : AutoSubCommand("get", 2U)
+    GetCmd() : AutoSubCommand({ "get" }, 2U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         int buildId;
         InRepoPath filePath(repo);
@@ -515,13 +520,14 @@ private:
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
-    NewCmd() : AutoSubCommand("new")
+    NewCmd() : AutoSubCommand({ "new" })
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &/*args*/) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &/*args*/) override
     {
         std::string ref, refName;
         std::cin >> ref >> refName;
@@ -579,13 +585,14 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
-    ShowCmd() : AutoSubCommand("show", 0U, 2U)
+    ShowCmd() : AutoSubCommand({ "show" }, 0U, 2U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::vector<std::string> &args) override
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
     {
         int buildId;
         InRepoPath path(repo);

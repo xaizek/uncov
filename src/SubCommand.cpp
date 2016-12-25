@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -42,7 +43,7 @@ SubCommand::getAllCmds()
 }
 
 int
-SubCommand::exec(BuildHistory &bh, Repository &repo,
+SubCommand::exec(BuildHistory &bh, Repository &repo, const std::string &alias,
                  const std::vector<std::string> &args)
 {
     hasErrors = false;
@@ -57,11 +58,17 @@ SubCommand::exec(BuildHistory &bh, Repository &repo,
         error();
     }
 
+    // Check that name matches one of aliases.
+    if (std::find(names.cbegin(), names.cend(), alias) == names.cend()) {
+        std::cout << "Unexpected subcommand name: " << alias << '\n';
+        error();
+    }
+
     if (!hasErrors) {
         bhValue = &bh;
         repoValue = &repo;
 
-        execImpl(args);
+        execImpl(alias, args);
     }
 
     return hasErrors ? EXIT_FAILURE : EXIT_SUCCESS;
