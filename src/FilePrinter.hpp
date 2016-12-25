@@ -21,27 +21,11 @@
 #include <srchilite/sourcehighlight.h>
 #include <srchilite/langmap.h>
 
-#include <cstddef>
-
 #include <iosfwd>
-#include <sstream>
 #include <string>
 #include <vector>
 
-class Text
-{
-public:
-    Text(const std::string &text);
-
-public:
-    const std::vector<std::string> & asLines();
-    std::istringstream & asStream();
-    std::size_t size();
-
-private:
-    std::vector<std::string> lines;
-    std::istringstream iss;
-};
+class FileComparator;
 
 class FilePrinter
 {
@@ -66,13 +50,15 @@ public:
      * @param oCov Coverage of old version.
      * @param nText New version of the file.
      * @param nCov Coverage of new version.
+     * @param comparator Object with loaded file diffing results.
      *
      * @note `oText.size() == oCov.size() && nText.size() == nCov.size()` is
      *       assumed.
      */
     void printDiff(std::ostream &os, const std::string &path,
-                   Text &oText, const std::vector<int> &oCov,
-                   Text &nText, const std::vector<int> &nCov);
+                   std::istream &oText, const std::vector<int> &oCov,
+                   std::istream &nText, const std::vector<int> &nCov,
+                   const FileComparator &comparator);
 
 private:
     std::string getLang(const std::string &path);

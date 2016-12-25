@@ -21,6 +21,7 @@
 #include <boost/optional.hpp>
 
 #include <cassert>
+#include <cstddef>
 
 #include <functional>
 #include <iomanip>
@@ -32,6 +33,7 @@
 
 #include "utils/fs.hpp"
 #include "BuildHistory.hpp"
+#include "FileComparator.hpp"
 #include "FilePrinter.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
@@ -40,6 +42,8 @@
 #include "coverage.hpp"
 #include "integration.hpp"
 #include "listings.hpp"
+
+namespace {
 
 /**
  * @brief Type of path in some build.
@@ -140,6 +144,45 @@ private:
     const Repository *repo;
     std::string path;
 };
+
+class Text
+{
+public:
+    Text(const std::string &text) : iss(text)
+    {
+    }
+
+public:
+    const std::vector<std::string> & asLines()
+    {
+        if (lines.empty()) {
+            const std::string &text = iss.str();
+            lines.reserve(std::count(text.cbegin(), text.cend(), '\n') + 1);
+            for (std::string line; std::getline(iss, line); ) {
+                lines.push_back(line);
+            }
+        }
+        return lines;
+    }
+
+    std::istream & asStream()
+    {
+        iss.clear();
+        iss.seekg(0);
+        return iss;
+    }
+
+    std::size_t size()
+    {
+        return asLines().size();
+    }
+
+private:
+    std::vector<std::string> lines;
+    std::istringstream iss;
+};
+
+}
 
 static Build getBuild(BuildHistory *bh, int buildId);
 static File & getFile(const Build &build, const std::string &path);
@@ -312,11 +355,18 @@ private:
         Text newVersion = newFile ? repo->readFile(newBuild.getRef(), filePath)
                                   : std::string();
 
-        if (oldVersion.size() != oldCov.size() ||
-            newVersion.size() != newCov.size()) {
+        FileComparator comparator(oldVersion.asLines(), oldCov,
+                                  newVersion.asLines(), newCov);
+
+        if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath
                       << " is not accurate\n";
             return error();
+        }
+
+        if (comparator.areEqual()) {
+            // Do nothing for files that we don't consider different.
+            return;
         }
 
         if (!standalone) {
@@ -324,8 +374,10 @@ private:
         }
         printInfo(oldBuild, newBuild, filePath, standalone, true);
 
-        filePrinter.printDiff(std::cout, filePath, oldVersion,
-                              oldCov, newVersion, newCov);
+        filePrinter.printDiff(std::cout, filePath,
+                              oldVersion.asStream(), oldCov,
+                              newVersion.asStream(), newCov,
+                              comparator);
     }
 
     void printInfo(const Build &oldBuild, const Build &newBuild,
