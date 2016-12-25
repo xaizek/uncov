@@ -343,28 +343,32 @@ local::computeDiff(const std::vector<std::string> &o,
         identicalLines = 0;
     };
 
+    auto maybeConsiderIdentical = [&identicalLines, &foldIdentical](int hits) {
+        if (hits == -1) {
+            ++identicalLines;
+        } else {
+            foldIdentical();
+        }
+    };
+
     // Compose results with folding of long runs of identical lines (longer
     // than two lines).
     int i = o.size(), j = n.size();
     while (i != 0 || j != 0) {
         if (i == 0) {
-            --j;
-            foldIdentical();
+            maybeConsiderIdentical(nCov[--j]);
             diff.emplace_front(LineType::Added, n[j], -1, j);
         } else if (j == 0) {
-            foldIdentical();
-            --i;
+            maybeConsiderIdentical(oCov[--i]);
             diff.emplace_front(LineType::Removed, o[i], i, -1);
         } else if (d[i][j] == d[i][j - 1] + 1) {
-            foldIdentical();
-            --j;
+            maybeConsiderIdentical(nCov[--j]);
             diff.emplace_front(LineType::Added, n[j], -1, j);
         } else if (d[i][j] == d[i - 1][j] + 1) {
-            foldIdentical();
-            --i;
+            maybeConsiderIdentical(oCov[--i]);
             diff.emplace_front(LineType::Removed, o[i], i, -1);
         } else if (o[--i] == n[--j]) {
-            if (oCov[i] == -1 && nCov[j] == -1) {
+            if (oCov[i] == nCov[j]) {
                 diff.emplace_front(LineType::Identical, o[i], i, j);
                 ++identicalLines;
             } else {
