@@ -56,7 +56,8 @@ public:
     FileComparator(const std::vector<std::string> &o,
                    const std::vector<int> &oCov,
                    const std::vector<std::string> &n,
-                   const std::vector<int> &nCov);
+                   const std::vector<int> &nCov,
+                   bool considerHits);
 
 public:
     bool isValidInput() const;

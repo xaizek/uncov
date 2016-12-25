@@ -28,7 +28,8 @@
 FileComparator::FileComparator(const std::vector<std::string> &o,
                                const std::vector<int> &oCov,
                                const std::vector<std::string> &n,
-                               const std::vector<int> &nCov)
+                               const std::vector<int> &nCov,
+                               bool considerHits)
 {
     valid = (o.size() == oCov.size() && n.size() == nCov.size());
     if (!valid) {
@@ -77,6 +78,16 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         }
     };
 
+    auto sign = [](int i) {
+        if (i < 0) {
+            return -1;
+        } else if (i == 0) {
+            return 0;
+        } else {
+            return +1;
+        }
+    };
+
     // Compose results with folding of long runs of identical lines (longer
     // than two lines).
     int i = o.size(), j = n.size();
@@ -94,7 +105,9 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
             maybeConsiderIdentical(oCov[--i]);
             diffSequence.emplace_front(DiffLineType::Removed, o[i], i, -1);
         } else if (o[--i] == n[--j]) {
-            if (oCov[i] == nCov[j]) {
+            const int oHits = considerHits ? oCov[i] : sign(oCov[i]);
+            const int nHits = considerHits ? nCov[j] : sign(nCov[j]);
+            if (oHits == nHits) {
                 diffSequence.emplace_front(DiffLineType::Identical, o[i], i, j);
                 ++identicalLines;
             } else {

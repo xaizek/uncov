@@ -241,13 +241,13 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : AutoSubCommand({ "diff" }, 0U, 3U)
+    DiffCmd() : AutoSubCommand({ "diff", "diff-hits" }, 0U, 3U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         bool findPrev = false;
@@ -307,16 +307,16 @@ private:
         RedirectToPager redirectToPager;
 
         if (buildsDiff) {
-            diffBuilds(oldBuild, newBuild, path);
+            diffBuilds(oldBuild, newBuild, path, alias == "diff-hits");
         } else {
-            diffFile(oldBuild, newBuild, path, true);
+            diffFile(oldBuild, newBuild, path, true, alias == "diff-hits");
         }
 
         // TODO: maybe print some totals/stats here.
     }
 
     void diffBuilds(const Build &oldBuild, const Build &newBuild,
-                    const std::string &dirFilter)
+                    const std::string &dirFilter, bool considerHits)
     {
         const std::vector<std::string> &oldPaths = oldBuild.getPaths();
         const std::vector<std::string> &newPaths = newBuild.getPaths();
@@ -328,13 +328,14 @@ private:
 
         for (const std::string &path : allFiles) {
             if (pathIsInSubtree(dirFilter, path)) {
-                diffFile(oldBuild, newBuild, path, false);
+                diffFile(oldBuild, newBuild, path, false, considerHits);
             }
         }
     }
 
     void diffFile(const Build &oldBuild, const Build &newBuild,
-                  const std::string &filePath, bool standalone)
+                  const std::string &filePath, bool standalone,
+                  bool considerHits)
     {
         boost::optional<File &> oldFile = oldBuild.getFile(filePath);
         boost::optional<File &> newFile = newBuild.getFile(filePath);
@@ -358,7 +359,8 @@ private:
                                   : std::string();
 
         FileComparator comparator(oldVersion.asLines(), oldCov,
-                                  newVersion.asLines(), newCov);
+                                  newVersion.asLines(), newCov,
+                                  considerHits);
 
         if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath
