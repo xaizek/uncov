@@ -319,10 +319,10 @@ private:
             return error();
         }
 
-        printInfo(oldBuild, newBuild, filePath, standalone, true);
         if (!standalone) {
             std::cout << '\n';
         }
+        printInfo(oldBuild, newBuild, filePath, standalone, true);
 
         filePrinter.printDiff(std::cout, filePath, oldVersion,
                               oldCov, newVersion, newCov);
