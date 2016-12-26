@@ -61,11 +61,13 @@ public:
 
 public:
     bool isValidInput() const;
+    std::string getInputError() const;
     bool areEqual() const;
     const std::deque<DiffLine> & getDiffSequence() const;
 
 private:
     bool valid;
+    std::string inputError;
     bool equal;
     std::deque<DiffLine> diffSequence;
 };

@@ -32,25 +32,29 @@ TEST_CASE("Invalid input is detected", "[FileComparator]")
     SECTION("Invalid old information")
     {
         FileComparator comparator(file5, cov6, file6, cov6, false);
-        REQUIRE(!comparator.isValidInput());
+        CHECK(!comparator.isValidInput());
+        CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Invalid new information")
     {
         FileComparator comparator(file6, cov6, file6, cov5, false);
-        REQUIRE(!comparator.isValidInput());
+        CHECK(!comparator.isValidInput());
+        CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Invalid old and new information")
     {
         FileComparator comparator(file6, cov5, file5, cov6, false);
-        REQUIRE(!comparator.isValidInput());
+        CHECK(!comparator.isValidInput());
+        CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Valid old and new information")
     {
         FileComparator comparator(file6, cov6, file5, cov5, false);
-        REQUIRE(comparator.isValidInput());
+        CHECK(comparator.isValidInput());
+        CHECK(comparator.getInputError().empty());
     }
 }
 

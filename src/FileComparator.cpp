@@ -25,13 +25,19 @@
 #include <string>
 #include <vector>
 
+static bool validate(const std::vector<std::string> &o,
+                     const std::vector<int> &oCov,
+                     const std::vector<std::string> &n,
+                     const std::vector<int> &nCov,
+                     std::string &error);
+
 FileComparator::FileComparator(const std::vector<std::string> &o,
                                const std::vector<int> &oCov,
                                const std::vector<std::string> &n,
                                const std::vector<int> &nCov,
                                bool considerHits)
 {
-    valid = (o.size() == oCov.size() && n.size() == nCov.size());
+    valid = validate(o, oCov, n, nCov, inputError);
     if (!valid) {
         equal = false;
         return;
@@ -127,10 +133,35 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
     foldIdentical(true);
 }
 
+static bool
+validate(const std::vector<std::string> &o, const std::vector<int> &oCov,
+         const std::vector<std::string> &n, const std::vector<int> &nCov,
+         std::string &error)
+{
+    const bool valid = (o.size() == oCov.size() && n.size() == nCov.size());
+    if (o.size() != oCov.size()) {
+        error += "Old state is incorrect (" + std::to_string(o.size()) +
+                 " file lines vs. " + std::to_string(oCov.size()) +
+                 " coverage lines)\n";
+    }
+    if (n.size() != nCov.size()) {
+        error += "New state is incorrect (" + std::to_string(n.size()) +
+                 " file lines vs. " + std::to_string(nCov.size()) +
+                 " coverage lines)\n";
+    }
+    return valid;
+}
+
 bool
 FileComparator::isValidInput() const
 {
     return valid;
+}
+
+std::string
+FileComparator::getInputError() const
+{
+    return inputError;
 }
 
 bool

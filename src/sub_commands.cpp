@@ -364,7 +364,7 @@ private:
 
         if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath
-                      << " is not accurate\n";
+                      << " is not accurate:\n" << comparator.getInputError();
             return error();
         }
 
