@@ -184,6 +184,10 @@ printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                 const std::string &filePath)
 {
     CovInfo covInfo;
+    if (boost::optional<File &> file = build.getFile(filePath)) {
+        covInfo = CovInfo(*file);
+    }
+
     CovChange covChange = getFileCovChange(bh, build, filePath, nullptr,
                                            covInfo);
     printFileHeader(os, filePath, covInfo, covChange);
@@ -214,8 +218,7 @@ getFileCovChange(BuildHistory *bh, const Build &build, const std::string &path,
 
     CovInfo prevCovInfo;
     if (*prevBuildHint) {
-        boost::optional<File &> file = (*prevBuildHint)->getFile(path);
-        if (file) {
+        if (boost::optional<File &> file = (*prevBuildHint)->getFile(path)) {
             prevCovInfo = CovInfo(*file);
         }
     }
