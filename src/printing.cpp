@@ -161,7 +161,9 @@ operator<<(std::ostream &os, const CoverageChange &change)
     } else if (change.data == 0) {
         return os << (Highlight("covok") << change.data << '%');
     } else {
-        return os << (Highlight("covgood") << change.data << '%');
+        return os << std::showpos
+                  << (Highlight("covgood") << change.data << '%')
+                  << std::noshowpos;
     }
 }
 
