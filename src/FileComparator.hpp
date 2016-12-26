@@ -69,7 +69,7 @@ private:
     bool valid;
     std::string inputError;
     bool equal;
-    std::deque<DiffLine> diffSequence;
+    std::deque<DiffLine> diffSeq;
 };
 
 #endif // UNCOVER__FILECOMPARATOR_HPP__

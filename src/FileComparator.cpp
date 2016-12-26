@@ -19,8 +19,6 @@
 
 #include <boost/multi_array.hpp>
 
-#include <cstddef>
-
 #include <deque>
 #include <string>
 #include <vector>
@@ -30,6 +28,7 @@ static bool validate(const std::vector<std::string> &o,
                      const std::vector<std::string> &n,
                      const std::vector<int> &nCov,
                      std::string &error);
+static inline int sign(int i);
 
 FileComparator::FileComparator(const std::vector<std::string> &o,
                                const std::vector<int> &oCov,
@@ -43,42 +42,53 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         return;
     }
 
-    boost::multi_array<int, 2> d(boost::extents[o.size() + 1U][n.size() + 1U]);
+    using size_type = std::vector<std::string>::size_type;
+
+    // Narrow portion of lines that should be compared by throwing away matching
+    // leading and trailing lines.
+    size_type ol = 0U, nl = 0U, ou = o.size(), nu = n.size();
+    while (ol < ou && nl < nu && o[ol] == n[nl]) {
+        ++ol;
+        ++nl;
+    }
+    while (ou > ol && nu > nl && o[ou - 1U] == n[nu - 1U]) {
+        --ou;
+        --nu;
+    }
+
+    boost::multi_array<int, 2> d(boost::extents[ou - ol + 1U][nu - nl + 1U]);
 
     // Modified edit distance finding.
-    using size_type = std::vector<std::string>::size_type;
-    for (size_type i = 0U, nf = o.size(); i <= nf; ++i) {
-        for (size_type j = 0U, ns = n.size(); j <= ns; ++j) {
+    for (size_type i = 0U; i <= ou - ol; ++i) {
+        for (size_type j = 0U; j <= nu - nl; ++j) {
             if (i == 0U) {
                 d[i][j] = j;
             } else if (j == 0U) {
                 d[i][j] = i;
             } else {
                 d[i][j] = std::min(d[i - 1U][j] + 1, d[i][j - 1U] + 1);
-                if (o[i - 1U] == n[j - 1U]) {
+                if (o[ol + i - 1U] == n[nl + j - 1U]) {
                     d[i][j] = std::min(d[i - 1U][j - 1U], d[i][j]);
                 }
             }
         }
     }
 
-    std::size_t identicalLines = 0;
+    size_type identicalLines = 0U;
 
     auto foldIdentical = [this, &identicalLines](bool last) {
         if (identicalLines > 4) {
             int startContext = last ? 0 : 1;
-            int endContext = identicalLines == diffSequence.size() ? 0 : 1;
+            int endContext = identicalLines == diffSeq.size() ? 0 : 1;
             int context = startContext + endContext;
 
-            diffSequence.erase(diffSequence.cbegin() + startContext,
-                               diffSequence.cbegin() +
-                               (identicalLines - endContext));
-            diffSequence.emplace(diffSequence.cbegin() + startContext,
-                                 DiffLineType::Note,
-                                 std::to_string(identicalLines - context) +
-                                 " lines folded", -1, -1);
+            diffSeq.erase(diffSeq.cbegin() + startContext,
+                          diffSeq.cbegin() + (identicalLines - endContext));
+            diffSeq.emplace(diffSeq.cbegin() + startContext, DiffLineType::Note,
+                            std::to_string(identicalLines - context) +
+                            " lines folded", -1, -1);
         }
-        identicalLines = 0;
+        identicalLines = 0U;
     };
 
     auto maybeConsiderIdentical = [&identicalLines, &foldIdentical](int hits) {
@@ -89,46 +99,48 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         }
     };
 
-    auto sign = [](int i) {
-        if (i < 0) {
-            return -1;
-        } else if (i == 0) {
-            return 0;
+    auto handleSameLines = [&](size_type i, size_type j) {
+        const int oHits = considerHits ? oCov[i] : sign(oCov[i]);
+        const int nHits = considerHits ? nCov[j] : sign(nCov[j]);
+        if (oHits == nHits) {
+            diffSeq.emplace_front(DiffLineType::Identical, o[i], i, j);
+            ++identicalLines;
         } else {
-            return +1;
+            foldIdentical(false);
+            diffSeq.emplace_front(DiffLineType::Common, o[i], i, j);
         }
     };
 
+    for (size_type k = o.size(), l = n.size(); k > ou; --k, --l) {
+        handleSameLines(k - 1U, l - 1U);
+    }
+
     // Compose results with folding of long runs of identical lines (longer
     // than two lines).
-    int i = o.size(), j = n.size();
-    while (i != 0 || j != 0) {
+    int i = ou - ol, j = nu - nl;
+    while (i != 0U || j != 0U) {
         if (i == 0) {
-            maybeConsiderIdentical(nCov[--j]);
-            diffSequence.emplace_front(DiffLineType::Added, n[j], -1, j);
+            maybeConsiderIdentical(nCov[nl + --j]);
+            diffSeq.emplace_front(DiffLineType::Added, n[nl + j], -1, nl + j);
         } else if (j == 0) {
-            maybeConsiderIdentical(oCov[--i]);
-            diffSequence.emplace_front(DiffLineType::Removed, o[i], i, -1);
+            maybeConsiderIdentical(oCov[ol + --i]);
+            diffSeq.emplace_front(DiffLineType::Removed, o[ol + i], ol + i, -1);
         } else if (d[i][j] == d[i][j - 1] + 1) {
-            maybeConsiderIdentical(nCov[--j]);
-            diffSequence.emplace_front(DiffLineType::Added, n[j], -1, j);
+            maybeConsiderIdentical(nCov[nl + --j]);
+            diffSeq.emplace_front(DiffLineType::Added, n[nl + j], -1, nl + j);
         } else if (d[i][j] == d[i - 1][j] + 1) {
-            maybeConsiderIdentical(oCov[--i]);
-            diffSequence.emplace_front(DiffLineType::Removed, o[i], i, -1);
-        } else if (o[--i] == n[--j]) {
-            const int oHits = considerHits ? oCov[i] : sign(oCov[i]);
-            const int nHits = considerHits ? nCov[j] : sign(nCov[j]);
-            if (oHits == nHits) {
-                diffSequence.emplace_front(DiffLineType::Identical, o[i], i, j);
-                ++identicalLines;
-            } else {
-                foldIdentical(false);
-                diffSequence.emplace_front(DiffLineType::Common, o[i], i, j);
-            }
+            maybeConsiderIdentical(oCov[ol + --i]);
+            diffSeq.emplace_front(DiffLineType::Removed, o[ol + i], ol + i, -1);
+        } else if (o[ol + --i] == n[nl + --j]) {
+            handleSameLines(ol + i, nl + j);
         }
     }
 
-    equal = (identicalLines == diffSequence.size());
+    for (size_type i = ol; i != 0U; --i) {
+        handleSameLines(i - 1U, i - 1U);
+    }
+
+    equal = (identicalLines == diffSeq.size());
 
     foldIdentical(true);
 }
@@ -152,6 +164,18 @@ validate(const std::vector<std::string> &o, const std::vector<int> &oCov,
     return valid;
 }
 
+static inline int
+sign(int i)
+{
+    if (i < 0) {
+        return -1;
+    } else if (i == 0) {
+        return 0;
+    } else {
+        return +1;
+    }
+}
+
 bool
 FileComparator::isValidInput() const
 {
@@ -173,5 +197,5 @@ FileComparator::areEqual() const
 const std::deque<DiffLine> &
 FileComparator::getDiffSequence() const
 {
-    return diffSequence;
+    return diffSeq;
 }

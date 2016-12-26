@@ -195,3 +195,44 @@ TEST_CASE("Interesting changes are preserved", "[FileComparator]")
     CHECK(diff[2].type == DiffLineType::Identical);
     CHECK(diff[3].type == DiffLineType::Note);
 }
+
+TEST_CASE("Changes in the middle", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { "a", "b", "c", "x", "e", "f" };
+    const std::vector<std::string> fileB = { "a", "b", "c", "d", "e", "f" };
+    const std::vector<int> covA = { -1, -1, -1, 10, -1, -1 };
+    const std::vector<int> covB = { -1, -1, -1, -1, -1, -1 };
+
+    FileComparator comparator(fileA, covA, fileB, covB, false);
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK(!comparator.areEqual());
+    REQUIRE(diff.size() == 7U);
+    CHECK(diff[0].type == DiffLineType::Identical);
+    CHECK(diff[1].type == DiffLineType::Identical);
+    CHECK(diff[2].type == DiffLineType::Identical);
+    CHECK(diff[3].type == DiffLineType::Removed);
+    CHECK(diff[4].type == DiffLineType::Added);
+    CHECK(diff[5].type == DiffLineType::Identical);
+    CHECK(diff[6].type == DiffLineType::Identical);
+}
+
+TEST_CASE("Identical part in the middle", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { "a", "b", "c", "d", "e", "f" };
+    const std::vector<std::string> fileB = { "a", "b", "x", "d", "y", "f" };
+    const std::vector<int> covA = { -1, -1, 1, -1, -1, -1 };
+    const std::vector<int> covB = { -1, -1, 0, -1, 10, -1 };
+
+    FileComparator comparator(fileA, covA, fileB, covB, false);
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK(!comparator.areEqual());
+    REQUIRE(diff.size() == 8U);
+    CHECK(diff[0].type == DiffLineType::Identical);
+    CHECK(diff[1].type == DiffLineType::Identical);
+    CHECK(diff[2].type == DiffLineType::Removed);
+    CHECK(diff[3].type == DiffLineType::Added);
+    CHECK(diff[4].type == DiffLineType::Identical);
+    CHECK(diff[5].type == DiffLineType::Removed);
+    CHECK(diff[6].type == DiffLineType::Added);
+    CHECK(diff[7].type == DiffLineType::Identical);
+}
