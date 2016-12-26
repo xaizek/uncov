@@ -52,10 +52,10 @@ float
 CovInfo::getCoverage() const
 {
     if (getRelevantLines() == 0) {
-        // Return 0 instead of NaN here to make it easier for CovChange.
-        return 0.0f;
+        // Return 100 instead of NaN here to make it easier for CovChange.
+        return 100.0f;
     }
-    return 100*coveredCount/static_cast<float>(getRelevantLines());
+    return (100.0f*coveredCount)/getRelevantLines();
 }
 
 int
