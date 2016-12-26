@@ -329,6 +329,12 @@ private:
         for (const std::string &path : allFiles) {
             if (pathIsInSubtree(dirFilter, path)) {
                 diffFile(oldBuild, newBuild, path, false, considerHits);
+
+                // Flush output stream so that user can start seeing output
+                // faster than output buffer fills up (this is actually
+                // noticeable as composing diffs and highlighting files takes
+                // time).
+                std::cout.flush();
             }
         }
     }
