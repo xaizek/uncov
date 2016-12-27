@@ -111,12 +111,14 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         }
     };
 
+    // Compose results with folding of long runs of identical lines (longer
+    // than two lines).  Mind that we go from last to first element and loops
+    // below process tail, middle and then head parts of the files.
+
     for (size_type k = o.size(), l = n.size(); k > ou; --k, --l) {
         handleSameLines(k - 1U, l - 1U);
     }
 
-    // Compose results with folding of long runs of identical lines (longer
-    // than two lines).
     int i = ou - ol, j = nu - nl;
     while (i != 0U || j != 0U) {
         if (i == 0) {

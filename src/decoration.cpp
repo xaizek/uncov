@@ -108,6 +108,8 @@ std::ostream &
 Decoration::decorate(std::ostream &os) const
 {
     if (decorator != nullptr) {
+        // Reset and preserve width field, so printing escape sequence doesn't
+        // mess up formatting.
         const auto width = os.width({});
         os << decorator;
         static_cast<void>(os.width(width));
