@@ -254,20 +254,23 @@ private:
         bool buildsDiff = false;
         int oldBuildId, newBuildId;
         InRepoPath path(repo);
-        if (auto parsed = tryParse<FilePath>(args)) {
+        if (args.empty()) {
+            findPrev = true;
+            buildsDiff = true;
+            newBuildId = LatestBuildMarker;
+        } else if (auto parsed = tryParse<BuildId>(args)) {
+            buildsDiff = true;
+            newBuildId = LatestBuildMarker;
+            std::tie(oldBuildId) = *parsed;
+        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+            buildsDiff = true;
+            std::tie(oldBuildId, newBuildId) = *parsed;
+        } else if (auto parsed = tryParse<FilePath>(args)) {
             findPrev = true;
             newBuildId = LatestBuildMarker;
             std::tie(path) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
             std::tie(oldBuildId, newBuildId, path) = *parsed;
-        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
-            findPrev = true;
-            buildsDiff = true;
-            std::tie(oldBuildId, newBuildId) = *parsed;
-        } else if (args.empty()) {
-            findPrev = true;
-            buildsDiff = true;
-            newBuildId = LatestBuildMarker;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
