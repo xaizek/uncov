@@ -36,6 +36,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "lineschanged",  decor::yellow_fg },
     { "covbad",        decor::bold + decor::red_fg },
     { "covok",         decor::bold + decor::black_fg },
+    { "covnormal",     decor::bold + decor::yellow_fg },
     { "covgood",       decor::bold + decor::green_fg },
     { "lineno",        decor::white_bg + decor::black_fg },
     { "missed",        decor::red_fg + decor::inv + decor::bold },
@@ -175,7 +176,7 @@ operator<<(std::ostream &os, const Coverage &coverage)
     if (coverage.data < 70.0f) {
         return os << (Highlight("covbad") << coverage.data << '%');
     } else if (coverage.data < 90.0f) {
-        return os << (Highlight("covok") << coverage.data << '%');
+        return os << (Highlight("covnormal") << coverage.data << '%');
     } else {
         return os << (Highlight("covgood") << coverage.data << '%');
     }
