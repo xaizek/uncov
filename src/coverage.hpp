@@ -53,6 +53,7 @@ public:
     CovChange(const CovInfo &oldCov, const CovInfo &newCov);
 
 public:
+    bool isChanged() const;
     std::string formatCoverageRate() const;
     std::string formatLines(const std::string &separator) const;
 

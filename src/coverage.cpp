@@ -72,6 +72,12 @@ CovChange::CovChange(const CovInfo &oldCov, const CovInfo &newCov)
     relevantChange = newCov.getRelevantLines() - oldCov.getRelevantLines();
 }
 
+bool
+CovChange::isChanged() const
+{
+    return coveredChange != 0 || uncoveredChange != 0;
+}
+
 std::string
 CovChange::formatCoverageRate() const
 {

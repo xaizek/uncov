@@ -111,7 +111,7 @@ getDirsCoverage(const Build &build, const std::string &dirFilter)
 
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter)
+                   const std::string &dirFilter, bool changedOnly)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
@@ -131,6 +131,10 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         CovInfo covInfo(*build.getFile(filePath));
         CovChange covChange = getFileCovChange(bh, build, filePath,
                                                &prevBuild, covInfo);
+
+        if (changedOnly && !covChange.isChanged()) {
+            continue;
+        }
 
         rows.push_back({
             filePath,

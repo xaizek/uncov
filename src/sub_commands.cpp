@@ -458,13 +458,13 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : AutoSubCommand({ "files" }, 0U, 1U)
+    FilesCmd() : AutoSubCommand({ "files", "changed" }, 0U, 2U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         int buildId;
@@ -485,7 +485,7 @@ private:
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &fileRow :
-             describeBuildFiles(bh, build, dirFilter)) {
+             describeBuildFiles(bh, build, dirFilter, alias == "changed")) {
             tablePrinter.append(std::move(fileRow));
         }
 

@@ -63,12 +63,13 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
  * @param bh Object maintaining history of all builds.
  * @param build The build we're describing.
  * @param dirFilter Root directory that filters displayed files.  Can be empty.
+ * @param changedOnly Filter out all files which unchanged coverage.
  *
  * @returns Table of strings describing the build.
  */
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter);
+                   const std::string &dirFilter, bool changedOnly);
 
 void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build);
 
