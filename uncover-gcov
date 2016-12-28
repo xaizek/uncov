@@ -90,6 +90,10 @@ def create_args(params):
                         default=None, metavar='FILE')
     parser.add_argument('--follow-symlinks', action='store_true',
                         help='Follow symlinks (default off)')
+    parser.add_argument('-c', '--capture-worktree', action='store_true',
+                        default=False,
+                        help='Make an dangling commit if working directory is '
+                             'dirty')
 
     return parser.parse_args(params)
 
@@ -427,10 +431,11 @@ def collect(args):
         collect_non_report_files(args, discovered_files))
 
     # Use the root directory to get information on the Git repository
-    report['git'] = gitrepo(abs_root)
+    report['git'] = gitrepo(abs_root, args.capture_worktree,
+            map(lambda x: x['name'], report['source_files']))
     return report
 
-def gitrepo(cwd):
+def gitrepo(cwd, capture_worktree, src_files):
     """Return hash of Git data that can be used to display more information to
     users.
 
@@ -457,9 +462,23 @@ def gitrepo(cwd):
     import os
     repo = Repository(cwd)
 
+    if capture_worktree and repo.git('diff', '--quiet')[0] != 0:
+        repo.git('stash', 'save', 'uncover: temporary commit object')
+        repo.git('stash', 'apply', '--index')
+
+        for src_file in src_files:
+            repo.git('add', src_file)
+
+        commit = repo.git('stash', 'create')[1]
+
+        repo.git('reset', '--hard', 'HEAD')
+        repo.git('stash', 'pop', '--index')
+    else:
+        commit = repo.gitlog('%H')
+
     return {
-        'ref': repo.gitlog('%H'),
-        'ref-name': repo.git('rev-parse', '--abbrev-ref', 'HEAD').strip(),
+        'ref': commit,
+        'ref-name': repo.git('rev-parse', '--abbrev-ref', 'HEAD')[1].strip(),
     }
 
 class Repository(object):
@@ -468,7 +487,8 @@ class Repository(object):
         self.cwd = cwd
 
     def gitlog(self, fmt):
-        return self.git('--no-pager', 'log', '-1', '--pretty=format:%s' % fmt)
+        return self.git('--no-pager', 'log', '-1',
+                        '--pretty=format:%s' % fmt)[1]
 
     def git(self, *arguments):
         """Return output from git."""
@@ -476,7 +496,8 @@ class Repository(object):
         process = subprocess.Popen(['git'] + list(arguments),
                                    stdout=subprocess.PIPE,
                                    cwd=self.cwd)
-        return process.communicate()[0].decode('UTF-8')
+        stdout = process.communicate()[0].decode('UTF-8')
+        return (process.returncode, stdout)
 
 def run():
     """Run cpp coverage."""
