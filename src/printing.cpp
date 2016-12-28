@@ -121,6 +121,8 @@ std::ostream &
 operator<<(std::ostream &os, const CLinesChange &change)
 {
     if (change.data < 0) {
+        // XXX: highlight this as "ok" if not covered lines were not changed and
+        //      relevant lines reduced by the same amount?
         return os << (Highlight("linesbad") << change.data);
     } else if (change.data == 0) {
         return os << (Highlight("linesok") << change.data);
