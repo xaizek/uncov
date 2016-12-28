@@ -49,11 +49,11 @@ _SKIP_DIRS = set(['.git', '.hg', '.svn', 'deps'])
 
 
 def create_args(params):
-    parser = argparse.ArgumentParser('coveralls')
+    parser = argparse.ArgumentParser('uncover')
     parser.add_argument('--verbose', action='store_true',
                         help='print verbose messages')
     parser.add_argument('--dryrun', action='store_true',
-                        help='run coveralls without uploading report')
+                        help='run the script without printing report')
     parser.add_argument('--gcov', metavar='FILE', default='gcov',
                         help='set the location of gcov')
     parser.add_argument('--gcov-options', metavar='GCOV_OPTS', default='',
@@ -438,26 +438,7 @@ def collect(args):
 def gitrepo(cwd, capture_worktree, src_files):
     """Return hash of Git data that can be used to display more information to
     users.
-
-    Example:
-        "git": {
-            "head": {
-                "id": "5e837ce92220be64821128a70f6093f836dd2c05",
-                "author_name": "Wil Gieseler",
-                "author_email": "wil@example.com",
-                "committer_name": "Wil Gieseler",
-                "committer_email": "wil@example.com",
-                "message": "depend on simplecov >= 0.7"
-            },
-            "branch": "master",
-            "remotes": [{
-                "name": "origin",
-                "url": "https://github.com/lemurheavy/coveralls-ruby.git"
-            }]
-        }
-
     From https://github.com/coagulant/coveralls-python (with MIT license).
-
     """
     import os
     repo = Repository(cwd)
