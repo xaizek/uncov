@@ -104,7 +104,7 @@ static SubCommand * getCmd(const std::string &name);
 TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncover.sqlite");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -118,7 +118,7 @@ TEST_CASE("Paths to files can be relative inside repository",
           "[subcommands][get-subcommand]")
 {
     Repository repo("tests/test-repo");
-    DB db(repo.getGitPath() + "/uncover.sqlite");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
     BuildHistory bh(db);
 
     Chdir chdirInsideRepoSubdir("tests/test-repo/subdir");
@@ -133,7 +133,7 @@ TEST_CASE("Paths to files can be relative inside repository",
 TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 {
     Repository repo("tests/test-repo/");
-    DB db(repo.getGitPath() + "/uncover.sqlite");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
 
@@ -179,7 +179,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncover.sqlite";
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);

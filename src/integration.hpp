@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__INTEGRATION_HPP__
-#define UNCOVER__INTEGRATION_HPP__
+#ifndef UNCOV__INTEGRATION_HPP__
+#define UNCOV__INTEGRATION_HPP__
 
 #include <sys/types.h>
 
@@ -91,4 +91,4 @@ private:
  */
 std::pair<unsigned int, unsigned int> getTerminalSize();
 
-#endif // UNCOVER__INTEGRATION_HPP__
+#endif // UNCOV__INTEGRATION_HPP__

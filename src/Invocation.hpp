@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__INVOCATION_HPP__
-#define UNCOVER__INVOCATION_HPP__
+#ifndef UNCOV__INVOCATION_HPP__
+#define UNCOV__INVOCATION_HPP__
 
 #include <string>
 #include <vector>
@@ -84,4 +84,4 @@ public:
     std::vector<std::string> subcommandArgs;
 };
 
-#endif // UNCOVER__INVOCATION_HPP__
+#endif // UNCOV__INVOCATION_HPP__

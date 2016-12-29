@@ -32,19 +32,19 @@ TEST_CASE("Invocation errors on too few arguments", "[Invocation]")
 {
     SECTION("Program name only")
     {
-        REQUIRE(Invocation({ "uncover" }).getError() != std::string());
+        REQUIRE(Invocation({ "uncov" }).getError() != std::string());
     }
 
     SECTION("Program name and repository")
     {
-        Invocation invocation({ "uncover", "." });
+        Invocation invocation({ "uncov", "." });
         REQUIRE(invocation.getError() != std::string());
     }
 }
 
 TEST_CASE("Well-formed command-line is parsed correctly", "[Invocation]")
 {
-    Invocation invocation({ "uncover", ".", "show", "arg1", "arg2" });
+    Invocation invocation({ "uncov", ".", "show", "arg1", "arg2" });
     REQUIRE(invocation.getError() == std::string());
     CHECK(invocation.getRepositoryPath() == ".");
     CHECK(invocation.getSubcommandName() == "show");
@@ -55,7 +55,7 @@ TEST_CASE("Repository argument is optional", "[Invocation]")
 {
     SECTION("No repo argument")
     {
-        Invocation invocation({ "uncover", "show", "arg1", "arg2" });
+        Invocation invocation({ "uncov", "show", "arg1", "arg2" });
         REQUIRE(invocation.getError() == std::string());
         CHECK(invocation.getRepositoryPath() == ".");
         CHECK(invocation.getSubcommandName() == "show");
@@ -64,7 +64,7 @@ TEST_CASE("Repository argument is optional", "[Invocation]")
 
     SECTION("Path with slash")
     {
-        Invocation invocation({ "uncover", "a/path", "show", "arg1", "arg2" });
+        Invocation invocation({ "uncov", "a/path", "show", "arg1", "arg2" });
         REQUIRE(invocation.getError() == std::string());
         CHECK(invocation.getRepositoryPath() == "a/path");
         CHECK(invocation.getSubcommandName() == "show");
@@ -73,7 +73,7 @@ TEST_CASE("Repository argument is optional", "[Invocation]")
 
     SECTION("Subcommand without arguments")
     {
-        Invocation invocation({ "uncover", "builds" });
+        Invocation invocation({ "uncov", "builds" });
         REQUIRE(invocation.getError() == std::string());
         CHECK(invocation.getRepositoryPath() == ".");
         CHECK(invocation.getSubcommandName() == "builds");

@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UTT__SUBCOMMAND_HPP__
-#define UTT__SUBCOMMAND_HPP__
+#ifndef UNCOV__SUBCOMMAND_HPP__
+#define UNCOV__SUBCOMMAND_HPP__
 
 #include <cstddef>
 
@@ -128,4 +128,4 @@ const bool AutoSubCommand<C>::invokeRegister = []() {
     return true;
 }();
 
-#endif // UTT__SUBCOMMAND_HPP__
+#endif // UNCOV__SUBCOMMAND_HPP__

@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__LISTINGS_HPP__
-#define UNCOVER__LISTINGS_HPP__
+#ifndef UNCOV__LISTINGS_HPP__
+#define UNCOV__LISTINGS_HPP__
 
 #include <iosfwd>
 #include <string>
@@ -79,4 +79,4 @@ void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const std::string &filePath);
 
-#endif // UNCOVER__LISTINGS_HPP__
+#endif // UNCOV__LISTINGS_HPP__

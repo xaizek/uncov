@@ -28,7 +28,7 @@
 TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
 {
     Repository repo("tests/test-repo/subdir");
-    const std::string dbPath = repo.getGitPath() + "/uncover.sqlite";
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     db.execute("pragma user_version = 99999");
@@ -39,7 +39,7 @@ TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
 TEST_CASE("File is loaded from database", "[Build][File]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncover.sqlite");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
     BuildHistory bh(db);
 
     boost::optional<Build> build = bh.getBuild(1);

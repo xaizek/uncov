@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__PRINTING_HPP__
-#define UNCOVER__PRINTING_HPP__
+#ifndef UNCOV__PRINTING_HPP__
+#define UNCOV__PRINTING_HPP__
 
 #include <cstddef>
 #include <ctime>
@@ -151,4 +151,4 @@ using Revision = PrintWrapper<std::string, struct RevisionTag>;
  */
 using Time = PrintWrapper<std::time_t, struct TimeTag>;
 
-#endif // UNCOVER__PRINTING_HPP__
+#endif // UNCOV__PRINTING_HPP__

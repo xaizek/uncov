@@ -53,7 +53,7 @@ main(int argc, char *argv[])
         }
 
         Repository repo(invocation.getRepositoryPath());
-        DB db(repo.getGitPath() + "/uncover.sqlite");
+        DB db(repo.getGitPath() + "/uncov.sqlite");
         BuildHistory bh(db);
 
         return cmd->second->exec(bh, repo, invocation.getSubcommandName(),

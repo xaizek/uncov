@@ -68,7 +68,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) \
                                         $(filter $(subst *,%,$2),$d))
 
-bin := $(out_dir)/uncover$(bin_suffix)
+bin := $(out_dir)/uncov$(bin_suffix)
 
 bin_sources := $(call rwildcard, src/, *.cpp)
 bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
@@ -94,8 +94,8 @@ sanitize-basic: $(bin)
 
 coverage: check $(bin)
 	find $(out_dir)/ -name '*.o' -exec gcov -p {} +
-	uncover-gcov --root . --build-root . --no-gcov --capture-worktree \
-	             --exclude tests | uncover new
+	uncov-gcov --root . --build-root . --no-gcov --capture-worktree \
+	           --exclude tests | uncov new
 	find . -name '*.gcov' -delete
 
 show-coverage: coverage

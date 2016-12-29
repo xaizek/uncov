@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__REPOSITORY_HPP__
-#define UNCOVER__REPOSITORY_HPP__
+#ifndef UNCOV__REPOSITORY_HPP__
+#define UNCOV__REPOSITORY_HPP__
 
 #include <string>
 #include <unordered_map>
@@ -67,4 +67,4 @@ public:
     const LibGitUser libgitUser;
 };
 
-#endif // UNCOVER__REPOSITORY_HPP__
+#endif // UNCOV__REPOSITORY_HPP__

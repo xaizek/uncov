@@ -27,8 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace
-{
+namespace {
 
 class Binder : public boost::static_visitor<>
 {

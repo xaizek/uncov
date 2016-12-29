@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__UTILS__FS_HPP__
-#define UNCOVER__UTILS__FS_HPP__
+#ifndef UNCOV__UTILS__FS_HPP__
+#define UNCOV__UTILS__FS_HPP__
 
 #include <boost/filesystem/path.hpp>
 
@@ -33,4 +33,4 @@
 bool pathIsInSubtree(const boost::filesystem::path &root,
                      const boost::filesystem::path &path);
 
-#endif // UNCOVER__UTILS__FS_HPP__
+#endif // UNCOV__UTILS__FS_HPP__

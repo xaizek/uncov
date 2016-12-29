@@ -5,5 +5,5 @@
 /sanitize-basic/
 *.d
 *.o
-/uncover
+/uncov
 /tests/tests

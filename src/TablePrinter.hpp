@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__ITEMTABLE_HPP__
-#define UNCOVER__ITEMTABLE_HPP__
+#ifndef UNCOV__ITEMTABLE_HPP__
+#define UNCOV__ITEMTABLE_HPP__
 
 #include <iosfwd>
 #include <string>
@@ -111,4 +111,4 @@ private:
     std::vector<std::vector<std::string>> items;
 };
 
-#endif // UNCOVER__ITEMTABLE_HPP__
+#endif // UNCOV__ITEMTABLE_HPP__

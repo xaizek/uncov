@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__TESTS__TESTUTILS_HPP__
-#define UNCOVER__TESTS__TESTUTILS_HPP__
+#ifndef UNCOV__TESTS__TESTUTILS_HPP__
+#define UNCOV__TESTS__TESTUTILS_HPP__
 
 #include <iosfwd>
 #include <sstream>
@@ -131,4 +131,4 @@ vi(std::vector<int> v)
     return v;
 }
 
-#endif // UNCOVER__TESTS__TESTUTILS_HPP__
+#endif // UNCOV__TESTS__TESTUTILS_HPP__

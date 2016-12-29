@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOVER__MD5_HPP__
-#define UNCOVER__MD5_HPP__
+#ifndef UNCOV__MD5_HPP__
+#define UNCOV__MD5_HPP__
 
 #include <string>
 
 std::string md5(const std::string &str);
 
-#endif // UNCOVER__MD5_HPP__
+#endif // UNCOV__MD5_HPP__
