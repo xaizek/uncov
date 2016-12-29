@@ -27,7 +27,7 @@ void
 CovInfo::add(const CovInfo &rhs)
 {
     coveredCount += rhs.coveredCount;
-    uncoveredCount += rhs.uncoveredCount;
+    missedCount += rhs.missedCount;
 }
 
 std::string
@@ -61,21 +61,21 @@ CovInfo::getCoverage() const
 int
 CovInfo::getRelevantLines() const
 {
-    return coveredCount + uncoveredCount;
+    return coveredCount + missedCount;
 }
 
 CovChange::CovChange(const CovInfo &oldCov, const CovInfo &newCov)
 {
     coverageChange = newCov.getCoverage() - oldCov.getCoverage();
     coveredChange = newCov.coveredCount - oldCov.coveredCount;
-    uncoveredChange = newCov.uncoveredCount - oldCov.uncoveredCount;
+    missedChange = newCov.missedCount - oldCov.missedCount;
     relevantChange = newCov.getRelevantLines() - oldCov.getRelevantLines();
 }
 
 bool
 CovChange::isChanged() const
 {
-    return coveredChange != 0 || uncoveredChange != 0;
+    return coveredChange != 0 || missedChange != 0;
 }
 
 std::string
@@ -94,7 +94,7 @@ CovChange::formatLines(const std::string &separator) const
 
     std::ostringstream oss;
     oss << CLinesChange{coveredChange} << separator << std::setw(width)
-        << ULinesChange{uncoveredChange} << separator << std::setw(width)
+        << MLinesChange{missedChange} << separator << std::setw(width)
         << RLinesChange{relevantChange};
     return oss.str();
 }

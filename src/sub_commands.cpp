@@ -220,7 +220,7 @@ private:
 
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
-              "C/U/R Line Changes", "Branch", "Commit", "Time" },
+              "C/M/R Line Changes", "Branch", "Commit", "Time" },
             getTerminalSize().first
         };
 
@@ -445,7 +445,7 @@ private:
         Build build = getBuild(bh, buildId);
 
         TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines",
-                                    "Cov Change", "C/U/R Line Changes" },
+                                    "Cov Change", "C/M/R Line Changes" },
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &dirRow :
@@ -484,7 +484,7 @@ private:
         Build build = getBuild(bh, buildId);
 
         TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines",
-                                    "Cov Change", "C/U/R Line Changes" },
+                                    "Cov Change", "C/M/R Line Changes" },
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &fileRow :

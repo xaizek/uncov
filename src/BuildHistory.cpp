@@ -37,17 +37,17 @@ static void updateDBSchema(DB &db, int fromVersion);
 /**
  * @brief Current database scheme version.
  */
-const int AppDBVersion = 2;
+const int AppDBVersion = 3;
 
 File::File(std::string path, std::string hash, std::vector<int> coverage)
     : path(std::move(path)), hash(std::move(hash)),
       coverage(std::move(coverage))
 {
     coveredCount = 0;
-    uncoveredCount = 0;
+    missedCount = 0;
     for (int hits : this->coverage) {
         if (hits == 0) {
-            ++uncoveredCount;
+            ++missedCount;
         } else if (hits > 0) {
             ++coveredCount;
         }
@@ -79,9 +79,9 @@ File::getCoveredCount() const
 }
 
 int
-File::getUncoveredCount() const
+File::getMissedCount() const
 {
-    return uncoveredCount;
+    return missedCount;
 }
 
 BuildData::BuildData(std::string ref, std::string refName)
@@ -111,21 +111,21 @@ int
 operator<<(DB &db, const BuildData &bd)
 {
     int coveredCount = 0;
-    int uncoveredCount = 0;
+    int missedCount = 0;
     for (auto entry : bd.files) {
         File &file = entry.second;
         coveredCount += file.getCoveredCount();
-        uncoveredCount += file.getUncoveredCount();
+        missedCount += file.getMissedCount();
     }
 
     Transaction transaction = db.makeTransaction();
 
-    db.execute("INSERT INTO builds (vcsref, vcsrefname, covered, uncovered) "
-               "VALUES (:ref, :refname, :covered, :uncovered)",
+    db.execute("INSERT INTO builds (vcsref, vcsrefname, covered, missed) "
+               "VALUES (:ref, :refname, :covered, :missed)",
                { ":ref"_b = bd.getRef(),
                  ":refname"_b = bd.getRefName(),
                  ":covered"_b = coveredCount,
-                 ":uncovered"_b = uncoveredCount });
+                 ":missed"_b = missedCount });
 
     const int buildid = db.getLastRowId();
 
@@ -184,10 +184,10 @@ hashCoverage(const std::vector<int> &vec)
 }
 
 Build::Build(int id, std::string ref, std::string refName,
-             int coveredCount, int uncoveredCount, int timestamp,
+             int coveredCount, int missedCount, int timestamp,
              DataLoader &loader)
     : id(id), ref(std::move(ref)), refName(std::move(refName)),
-      coveredCount(coveredCount), uncoveredCount(uncoveredCount),
+      coveredCount(coveredCount), missedCount(missedCount),
       timestamp(timestamp), loader(&loader)
 {
 }
@@ -223,9 +223,9 @@ Build::getCoveredCount() const
 }
 
 int
-Build::getUncoveredCount() const
+Build::getMissedCount() const
 {
-    return uncoveredCount;
+    return missedCount;
 }
 
 std::vector<std::string>
@@ -372,6 +372,27 @@ updateDBSchema(DB &db, int fromVersion)
             db.execute("ALTER TABLE builds_new RENAME TO builds");
             // Fall through.
         case 2:
+            db.execute(R"(
+                CREATE TABLE builds_new (
+                    buildid INTEGER,
+                    vcsref TEXT NOT NULL,
+                    vcsrefname TEXT NOT NULL,
+                    covered INTEGER NOT NULL,
+                    missed INTEGER NOT NULL,
+                    timestamp INTEGER NOT NULL
+                              DEFAULT (CAST(strftime('%s', 'now') AS INT)),
+
+                    PRIMARY KEY (buildid)
+                )
+            )");
+            db.execute("INSERT INTO builds_new (buildid, vcsref, vcsrefname, "
+                                               "covered, missed) "
+                       "SELECT buildid, vcsref, vcsrefname, covered, uncovered "
+                       "FROM builds");
+            db.execute("DROP TABLE builds");
+            db.execute("ALTER TABLE builds_new RENAME TO builds");
+            // Fall through.
+        case AppDBVersion:
             break;
     }
 
@@ -414,8 +435,7 @@ BuildHistory::getBuild(int id)
     try {
         DataLoader &loader = *this;
         std::tuple<std::string, std::string, int, int, int> vals =
-            db.queryOne("SELECT vcsref, vcsrefname, covered, uncovered, "
-                               "timestamp "
+            db.queryOne("SELECT vcsref, vcsrefname, covered, missed, timestamp "
                         "FROM builds WHERE buildid = :buildid",
                         { ":buildid"_b = id } );
         return Build(id, std::get<0>(vals), std::get<1>(vals),
@@ -432,7 +452,7 @@ BuildHistory::getBuilds()
     std::vector<Build> builds;
     DataLoader &loader = *this;
     for (std::tuple<int, std::string, std::string, int, int, int> vals :
-         db.queryAll("SELECT buildid, vcsref, vcsrefname, covered, uncovered, "
+         db.queryAll("SELECT buildid, vcsref, vcsrefname, covered, missed, "
                             "timestamp "
                      "FROM builds")) {
         builds.emplace_back(std::get<0>(vals), std::get<1>(vals),

@@ -82,9 +82,9 @@ private:
 using CLinesChange = PrintWrapper<int, struct CLinesChangeTag>;
 
 /**
- * @brief Strong typing of integer meaning uncovered lines change.
+ * @brief Strong typing of integer meaning missed lines change.
  */
-using ULinesChange = PrintWrapper<int, struct ULinesChangeTag>;
+using MLinesChange = PrintWrapper<int, struct MLinesChangeTag>;
 
 /**
  * @brief Strong typing of integer meaning relevant lines change.

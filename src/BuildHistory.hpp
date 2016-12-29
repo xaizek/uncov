@@ -96,14 +96,14 @@ public:
     const std::string & getHash() const;
     const std::vector<int> & getCoverage() const;
     int getCoveredCount() const;
-    int getUncoveredCount() const;
+    int getMissedCount() const;
 
 private:
     const std::string path;
     const std::string hash;
     const std::vector<int> coverage;
     int coveredCount;
-    int uncoveredCount;
+    int missedCount;
 };
 
 class BuildData
@@ -128,8 +128,7 @@ class Build
 {
 public:
     Build(int id, std::string ref, std::string refName,
-          int coveredCount, int uncoveredCount, int timestamp,
-          DataLoader &loader);
+          int coveredCount, int missedCount, int timestamp, DataLoader &loader);
 
 public:
     int getId() const;
@@ -137,7 +136,7 @@ public:
     const std::string & getRefName() const;
     std::time_t getTimestamp() const;
     int getCoveredCount() const;
-    int getUncoveredCount() const;
+    int getMissedCount() const;
     std::vector<std::string> getPaths() const;
     boost::optional<File &> getFile(const std::string &path) const;
 
@@ -146,7 +145,7 @@ private:
     std::string ref;
     std::string refName;
     int coveredCount;
-    int uncoveredCount;
+    int missedCount;
     std::time_t timestamp;
     DataLoader *loader;
     mutable std::map<std::string, int> pathMap;

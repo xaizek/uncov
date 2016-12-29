@@ -29,7 +29,7 @@ public:
     template <typename T>
     explicit CovInfo(const T &coverable)
         : coveredCount(coverable.getCoveredCount()),
-          uncoveredCount(coverable.getUncoveredCount())
+          missedCount(coverable.getMissedCount())
     {
     }
 
@@ -44,7 +44,7 @@ private:
 
 private:
     int coveredCount = 0;
-    int uncoveredCount = 0;
+    int missedCount = 0;
 };
 
 class CovChange
@@ -60,7 +60,7 @@ public:
 private:
     float coverageChange;
     int coveredChange;
-    int uncoveredChange;
+    int missedChange;
     int relevantChange;
 };
 

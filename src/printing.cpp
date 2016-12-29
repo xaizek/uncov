@@ -134,7 +134,7 @@ operator<<(std::ostream &os, const CLinesChange &change)
 }
 
 std::ostream &
-operator<<(std::ostream &os, const ULinesChange &change)
+operator<<(std::ostream &os, const MLinesChange &change)
 {
     if (change.data > 0) {
         return os << std::showpos

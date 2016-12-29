@@ -37,7 +37,7 @@ std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build);
  *  * Coverage
  *  * C/R Lines
  *  * Cov Change
- *  * C/U/R Line Changes
+ *  * C/M/R Line Changes
  *
  * @param bh Object maintaining history of all builds.
  * @param build The build we're describing.
@@ -58,7 +58,7 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
  *  * Coverage
  *  * C/R Lines
  *  * Cov Change
- *  * C/U/R Line Changes
+ *  * C/M/R Line Changes
  *
  * @param bh Object maintaining history of all builds.
  * @param build The build we're describing.
