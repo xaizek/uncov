@@ -156,6 +156,6 @@ $(out_dirs) $(out_dir)/docs:
 clean:
 	-$(RM) -r coverage/ debug/ release/
 	-$(RM) $(bin_objects) $(bin_depends) $(tests_objects) $(tests_depends) \
-           $(bin) $(out_dir)/tests/tests
+	       $(bin) $(out_dir)/tests/tests
 
 include $(wildcard $(bin_depends) $(tests_depends))
