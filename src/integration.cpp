@@ -18,10 +18,12 @@
 #include "integration.hpp"
 
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <termios.h>
 
 #include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/scope_exit.hpp>
 
 #include <cstdlib>
@@ -30,13 +32,82 @@
 #include <string>
 #include <utility>
 
-RedirectToPager::ScreenPageBuffer::ScreenPageBuffer(unsigned int screenHeight,
-                                       stream_buffer<file_descriptor_sink> *out)
+namespace io = boost::iostreams;
+
+class RedirectToPager::Impl
+{
+public:
+    /**
+     * @brief Custom stream buffer that spawns pager for large outputs only.
+     *
+     * Collect up to <terminal height> lines.  If buffer is closed with this
+     * limit not reached, it prints lines on std::cout.  If we hit the limit in
+     * the process of output, it opens a pager and feeds it all collected output
+     * and everything that comes next.
+     */
+    class ScreenPageBuffer
+    {
+    public:
+        using char_type = char;
+        using category = boost::iostreams::sink_tag;
+
+    public:
+        ScreenPageBuffer(unsigned int screenHeight,
+                         io::stream_buffer<io::file_descriptor_sink> *out);
+        ~ScreenPageBuffer();
+
+    public:
+        std::streamsize write(const char s[], std::streamsize n);
+
+    private:
+        bool put(char c);
+        void openPager();
+
+    private:
+        bool redirectToPager = false;
+        unsigned int nLines = 0U;
+        unsigned int screenHeight;
+        std::string buffer;
+
+        /**
+         * @brief Pointer to buffer stored in RedirectToPager.
+         *
+         * This is not by value, because ScreenPageBuffer needs to be copyable.
+         */
+        io::stream_buffer<io::file_descriptor_sink> *out;
+        pid_t pid;
+    };
+
+public:
+    Impl() : screenPageBuffer(getTerminalSize().second, &out)
+    {
+        rdbuf = std::cout.rdbuf(&screenPageBuffer);
+    }
+
+    ~Impl()
+    {
+        // Flush the stream to make sure that we put all contents we want through
+        // the custom stream buffer.
+        std::cout.flush();
+
+        std::cout.rdbuf(rdbuf);
+    }
+
+private:
+    io::stream_buffer<io::file_descriptor_sink> out;
+    io::stream_buffer<ScreenPageBuffer> screenPageBuffer;
+    std::streambuf *rdbuf;
+};
+
+using ScreenPageBuffer = RedirectToPager::Impl::ScreenPageBuffer;
+
+ScreenPageBuffer::ScreenPageBuffer(unsigned int screenHeight,
+                               io::stream_buffer<io::file_descriptor_sink> *out)
     : screenHeight(screenHeight), out(out)
 {
 }
 
-RedirectToPager::ScreenPageBuffer::~ScreenPageBuffer()
+ScreenPageBuffer::~ScreenPageBuffer()
 {
     if (redirectToPager) {
         out->close();
@@ -48,7 +119,7 @@ RedirectToPager::ScreenPageBuffer::~ScreenPageBuffer()
 }
 
 std::streamsize
-RedirectToPager::ScreenPageBuffer::write(const char s[], std::streamsize n)
+ScreenPageBuffer::write(const char s[], std::streamsize n)
 {
     for (std::streamsize i = 0U; i < n; ++i) {
         if (!put(s[i])) {
@@ -59,7 +130,7 @@ RedirectToPager::ScreenPageBuffer::write(const char s[], std::streamsize n)
 }
 
 bool
-RedirectToPager::ScreenPageBuffer::put(char c)
+ScreenPageBuffer::put(char c)
 {
     if (redirectToPager) {
         return boost::iostreams::put(*out, c);
@@ -85,7 +156,7 @@ RedirectToPager::ScreenPageBuffer::put(char c)
 }
 
 void
-RedirectToPager::ScreenPageBuffer::openPager()
+ScreenPageBuffer::openPager()
 {
     int pipePair[2];
     if (pipe(pipePair) != 0) {
@@ -109,24 +180,18 @@ RedirectToPager::ScreenPageBuffer::openPager()
         _Exit(127);
     }
 
-    out->open(file_descriptor_sink(pipePair[1],
-                                   boost::iostreams::close_handle));
+    out->open(io::file_descriptor_sink(pipePair[1],
+                                       boost::iostreams::close_handle));
 }
 
 RedirectToPager::RedirectToPager()
-    : screenPageBuffer(getTerminalSize().second, &out)
 {
-    rdbuf = std::cout.rdbuf(&screenPageBuffer);
-
+    impl.reset(new Impl());
 }
 
 RedirectToPager::~RedirectToPager()
 {
-    // Flush the stream to make sure that we put all contents we want through
-    // the custom stream buffer.
-    std::cout.flush();
-
-    std::cout.rdbuf(rdbuf);
+    // Destroy impl with complete type.
 }
 
 std::pair<unsigned int, unsigned int>
