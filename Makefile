@@ -101,6 +101,20 @@ coverage: check $(bin)
 show-coverage: coverage
 	$$BROWSER coverage/data/index.html
 
+man: $(out_dir)/docs/uncov.1
+# the next target doesn't depend on $(wildcard docs/*.md) to make pandoc
+# optional
+$(out_dir)/docs/uncov.1: force | $(out_dir)/docs
+	pandoc -V title=uncov \
+	       -V section=1 \
+	       -V app=uncov \
+	       -V date="$$(date +'%B %d, %Y')" \
+	       -V author='xaizek <xaizek@openmailbox.org>' \
+	       -s -o $@ $(sort $(wildcard docs/*.md))
+
+# target that doesn't exist and used to force rebuild
+force:
+
 reset-coverage:
 ifeq ($(with_cov),1)
 	find $(out_dir)/ -name '*.gcda' -delete
@@ -122,7 +136,7 @@ $(out_dir)/tests/tests: $(tests_objects) tests/. | $(out_dirs)
 $(out_dir)/%.o: %.cpp | $(out_dirs)
 	$(CXX) -o $@ -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) $<
 
-$(out_dirs):
+$(out_dirs) $(out_dir)/docs:
 	mkdir -p $@
 
 clean:
