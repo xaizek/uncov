@@ -3,6 +3,8 @@ CXXFLAGS += -Wno-non-template-friend
 LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_system
 
+INSTALL := install -D
+
 ifneq ($(OS),Windows_NT)
     bin_suffix :=
 else
@@ -23,6 +25,9 @@ pos = $(strip $(eval T := ) \
 # or "release"/"debug" for corresponding targets
 is_release := 0
 ifneq ($(call pos,release,$(MAKECMDGOALS)),-1)
+    is_release := 1
+endif
+ifneq ($(call pos,install,$(MAKECMDGOALS)),-1)
     is_release := 1
 endif
 ifneq ($(is_release),0)
@@ -68,7 +73,8 @@ endif
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) \
                                         $(filter $(subst *,%,$2),$d))
 
-bin := $(out_dir)/uncov$(bin_suffix)
+bin_name := uncov$(bin_suffix)
+bin := $(out_dir)/$(bin_name)
 
 bin_sources := $(call rwildcard, src/, *.cpp)
 bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
@@ -84,7 +90,7 @@ tests_depends := $(tests_sources:%.cpp=$(out_dir)/%.d)
 out_dirs := $(sort $(dir $(bin_objects) $(tests_objects)))
 
 .PHONY: check clean coverage man show-coverage reset-coverage debug release all
-.PHONY: sanitize-basic
+.PHONY: sanitize-basic install uninstall
 
 all: $(bin)
 
@@ -127,6 +133,14 @@ $(bin): $(bin_objects)
 
 check: $(target) $(out_dir)/tests/tests reset-coverage
 	@$(out_dir)/tests/tests
+
+install: release
+	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) uncov-gcov
+	$(INSTALL) -m 644 $(out_dir)/docs/uncov.1 \
+	                  $(DESTDIR)/usr/share/man/man1/uncov.1
+
+uninstall:
+	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/share/man/man1/uncov.1
 
 # work around parenthesis warning in tests somehow caused by ccache
 $(out_dir)/tests/tests: EXTRA_CXXFLAGS += -Wno-error=parentheses -Itests/
