@@ -21,11 +21,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <termios.h>
+#include <unistd.h>
 
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/scope_exit.hpp>
 
+#include <cstdio>
 #include <cstdlib>
 
 #include <iostream>
@@ -35,6 +37,12 @@
 namespace io = boost::iostreams;
 
 class RedirectToPager::Impl
+{
+public:
+    virtual ~Impl() = default;
+};
+
+class PagerRedirect : public RedirectToPager::Impl
 {
 public:
     /**
@@ -79,12 +87,12 @@ public:
     };
 
 public:
-    Impl() : screenPageBuffer(getTerminalSize().second, &out)
+    PagerRedirect() : screenPageBuffer(getTerminalSize().second, &out)
     {
         rdbuf = std::cout.rdbuf(&screenPageBuffer);
     }
 
-    ~Impl()
+    ~PagerRedirect()
     {
         // Flush the stream to make sure that we put all contents we want through
         // the custom stream buffer.
@@ -99,7 +107,7 @@ private:
     std::streambuf *rdbuf;
 };
 
-using ScreenPageBuffer = RedirectToPager::Impl::ScreenPageBuffer;
+using ScreenPageBuffer = PagerRedirect::ScreenPageBuffer;
 
 ScreenPageBuffer::ScreenPageBuffer(unsigned int screenHeight,
                                io::stream_buffer<io::file_descriptor_sink> *out)
@@ -185,13 +193,19 @@ ScreenPageBuffer::openPager()
 }
 
 RedirectToPager::RedirectToPager()
+    : impl(isOutputToTerminal() ? std::make_unique<PagerRedirect>() : nullptr)
 {
-    impl.reset(new Impl());
 }
 
 RedirectToPager::~RedirectToPager()
 {
     // Destroy impl with complete type.
+}
+
+bool
+isOutputToTerminal()
+{
+    return isatty(fileno(stdout));
 }
 
 std::pair<unsigned int, unsigned int>

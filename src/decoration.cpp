@@ -17,11 +17,9 @@
 
 #include "decoration.hpp"
 
-#include <unistd.h>
-
-#include <cstdio>
-
 #include <ostream>
+
+#include "integration.hpp"
 
 namespace {
 
@@ -53,7 +51,7 @@ public:
     const char * white_bg   () { return isAscii ? "\033[47m" : ""; }
 
 private:
-    bool isAscii = isatty(fileno(stdout));
+    bool isAscii = isOutputToTerminal();
 } C;
 
 }
