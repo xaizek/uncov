@@ -422,7 +422,7 @@ private:
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
-    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 1U)
+    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 2U)
     {
     }
 
