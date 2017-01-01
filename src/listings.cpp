@@ -42,7 +42,7 @@ static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
                                   const CovInfo &covInfo);
 
 std::vector<std::string>
-describeBuild(BuildHistory *bh, const Build &build)
+describeBuild(BuildHistory *bh, const Build &build, bool extraAlign)
 {
     CovInfo covInfo(build);
     CovChange covChange = getBuildCovChange(bh, build, covInfo);
@@ -52,7 +52,7 @@ describeBuild(BuildHistory *bh, const Build &build)
         covInfo.formatCoverageRate(),
         covInfo.formatLines(" / "),
         covChange.formatCoverageRate(),
-        covChange.formatLines(" / ", 4),
+        covChange.formatLines(" / ", extraAlign ? 4 : 0),
         build.getRefName(),
         Revision{build.getRef()},
         Time{build.getTimestamp()}

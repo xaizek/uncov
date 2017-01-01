@@ -230,7 +230,7 @@ private:
         }
 
         for (Build &build : builds) {
-            tablePrinter.append(describeBuild(bh, build));
+            tablePrinter.append(describeBuild(bh, build, true));
         }
 
         RedirectToPager redirectToPager;

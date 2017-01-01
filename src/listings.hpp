@@ -26,7 +26,8 @@ class Build;
 class BuildHistory;
 class File;
 
-std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build);
+std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build,
+                                       bool extraAlign);
 
 /**
  * @brief Formats information about directories within the build as a table.
