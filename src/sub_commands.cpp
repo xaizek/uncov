@@ -261,7 +261,7 @@ private:
 
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
-              "C/M/R Line Changes", "Ref", "Commit", "Time" },
+              "C/M/R Line Changes", "Ref" },
             getTerminalSize().first
         };
 
@@ -271,7 +271,10 @@ private:
         }
 
         for (Build &build : builds) {
-            tablePrinter.append(describeBuild(bh, build, true));
+            const std::vector<std::string> descr = describeBuild(bh, build,
+                                                                 true);
+            tablePrinter.append({ descr[0], descr[1], descr[2], descr[3],
+                                  descr[4], descr[5] });
         }
 
         RedirectToPager redirectToPager;
