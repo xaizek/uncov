@@ -82,6 +82,9 @@ covered (with number of hits being greater than \f[C]0\f[]).
 .PP
 Coverage rate is defined simply as number of covered lines divided by
 number of relevant lines.
+If file consists solely of not relevant lines (which is also the case
+for files that don\[aq]t exist in one of builds being compared),
+it\[aq]s assumed to have 100% coverage.
 We also have number of lines covered, missed and total number of
 relevant lines (sum of previous two) and can calculate their changes.
 .PP
