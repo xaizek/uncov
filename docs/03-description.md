@@ -25,7 +25,7 @@ The largest entity `uncov` operates within repository is a build.  A build has
 the following properties:
 
  * number identifying the build (greater than `0`);
- * name of branch of repository;
+ * name of reference within repository (branch usually);
  * commit object that corresponds to the build;
  * date and time at which it was imported;
  * finally, set of files with their coverage that constitute a build.
@@ -100,6 +100,7 @@ Notations
 For the sake of brevity interface uses several intuitive abbreviations:
 
  * Cov - coverage;
+ * Ref - reference (of VCS);
  * C - covered;
  * M - missed;
  * R - relevant.

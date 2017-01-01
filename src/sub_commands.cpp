@@ -220,7 +220,7 @@ private:
 
         TablePrinter tablePrinter {
             { "Build", "Coverage", "C/R Lines", "Cov Change",
-              "C/M/R Line Changes", "Branch", "Commit", "Time" },
+              "C/M/R Line Changes", "Ref", "Commit", "Time" },
             getTerminalSize().first
         };
 
