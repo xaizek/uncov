@@ -25,7 +25,7 @@ The largest entity `uncov` operates within repository is a build.  A build has
 the following properties:
 
  * number identifying the build (greater than `0`);
- * name of branch of repository;
+ * name of reference within repository (branch usually);
  * commit object that corresponds to the build;
  * date and time at which it was imported;
  * finally, set of files with their coverage that constitute a build.
@@ -67,8 +67,11 @@ be in one of three states:
  * covered (with number of hits being greater than `0`).
 
 Coverage rate is defined simply as number of covered lines divided by number of
-relevant lines.  We also have number of lines covered, missed and total number
-of relevant lines (sum of previous two) and can calculate their changes.
+relevant lines.  If file consists solely of not relevant lines (which is also
+the case for files that don't exist in one of builds being compared), it's
+assumed to have 100% coverage.  We also have number of lines covered, missed and
+total number of relevant lines (sum of previous two) and can calculate their
+changes.
 
 It is these statistics that are displayed by subcommands alongside builds,
 directories and files.  Data describing changes is calculated from state of
@@ -100,6 +103,7 @@ Notations
 For the sake of brevity interface uses several intuitive abbreviations:
 
  * Cov - coverage;
+ * Ref - reference (of VCS);
  * C - covered;
  * M - missed;
  * R - relevant.

@@ -55,7 +55,7 @@ public:
 public:
     bool isChanged() const;
     std::string formatCoverageRate() const;
-    std::string formatLines(const std::string &separator) const;
+    std::string formatLines(const std::string &separator, int width = 0) const;
 
 private:
     float coverageChange;

@@ -123,3 +123,39 @@ TEST_CASE("Escape sequences are truncated properly", "[TablePrinter][sizing]")
                                  "id  \033[34mt\033[1m\033[0m...\n";
     REQUIRE(oss.str() == expected);
 }
+
+TEST_CASE("Header can be hidden", "[TablePrinter][header]")
+{
+    TablePrinter table({ "-name", "value" }, 8, true);
+
+    SECTION("Nothing but header is printed")
+    {
+        table.append({ "id", "10" });
+
+        std::ostringstream oss;
+        table.print(oss);
+
+        REQUIRE(oss.str() == "id  10\n");
+    }
+
+    SECTION("Headers don't affect sizing")
+    {
+        table.append({ "id", "10" });
+
+        std::ostringstream oss;
+        table.print(oss);
+
+        REQUIRE(oss.str() == "id  10\n");
+    }
+
+    SECTION("Alignment is still considered")
+    {
+        table.append({ "id", "100" });
+        table.append({ "id2", "10" });
+
+        std::ostringstream oss;
+        table.print(oss);
+
+        REQUIRE(oss.str() == "id   100\n" "id2   10\n");
+    }
+}

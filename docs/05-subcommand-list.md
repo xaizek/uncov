@@ -1,6 +1,19 @@
 LIST OF SUBCOMMANDS
 ===================
 
+build
+-----
+
+Displays information about one build.
+
+**Usage: build**
+
+Describes the last build.
+
+**Usage: build \<build\>**
+
+Describes **\<build\>**.
+
 builds
 ------
 

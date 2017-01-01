@@ -37,9 +37,10 @@ public:
      *
      * @param fmt Format specification: <field>,<field>...
      * @param maxWidth Maximum allowed table width.
+     * @param hiddenHeader Do not print table header.
      */
     TablePrinter(const std::vector<std::string> &headings,
-                 unsigned int maxWidth);
+                 unsigned int maxWidth, bool hiddenHeader = false);
     /**
      * @brief To emit destructing code in corresponding source file.
      */
@@ -101,6 +102,10 @@ private:
      * @brief Maximum allowed table width.
      */
     const unsigned int maxWidth;
+    /**
+     * @brief Whether header should be omitted in output.
+     */
+    bool hiddenHeader;
     /**
      * @brief List of columns of the table.
      */

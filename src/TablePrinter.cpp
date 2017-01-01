@@ -49,10 +49,11 @@ public:
      *
      * @param idx Index of the column.
      * @param heading Key of the column.
+     * @param hiddenHeader Do not print column header.
      */
-    Column(int idx, std::string heading, bool alignLeft)
+    Column(int idx, std::string heading, bool alignLeft, bool hiddenHeader)
         : idx(idx), alignLeft(alignLeft), heading(std::move(heading)),
-          width(this->heading.size())
+          width(hiddenHeader ? 0U : this->heading.size())
     {
     }
 
@@ -182,7 +183,8 @@ private:
 static const std::string gap = "  ";
 
 TablePrinter::TablePrinter(const std::vector<std::string> &headings,
-                           unsigned int maxWidth) : maxWidth(maxWidth)
+                           unsigned int maxWidth, bool hiddenHeader)
+    : maxWidth(maxWidth), hiddenHeader(hiddenHeader)
 {
     for (unsigned int i = 0U; i < headings.size(); ++i) {
         std::string heading = headings[i];
@@ -194,7 +196,7 @@ TablePrinter::TablePrinter(const std::vector<std::string> &headings,
         }
 
         boost::algorithm::to_upper(heading);
-        cols.emplace_back(i, std::move(heading), left);
+        cols.emplace_back(i, std::move(heading), left, hiddenHeader);
     }
 }
 
@@ -305,6 +307,10 @@ TablePrinter::adjustColumnsWidths()
 void
 TablePrinter::printTableHeader(std::ostream &os)
 {
+    if (hiddenHeader) {
+        return;
+    }
+
     for (Column &col : cols) {
         os << TableHeader{alignCell(col.getHeading(), col)};
 

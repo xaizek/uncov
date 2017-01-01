@@ -88,10 +88,8 @@ CovChange::formatCoverageRate() const
 }
 
 std::string
-CovChange::formatLines(const std::string &separator) const
+CovChange::formatLines(const std::string &separator, int width) const
 {
-    const int width = (separator.substr(0, 1) == " ") ? 4 : 0;
-
     std::ostringstream oss;
     oss << CLinesChange{coveredChange} << separator << std::setw(width)
         << MLinesChange{missedChange} << separator << std::setw(width)
