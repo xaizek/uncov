@@ -192,6 +192,47 @@ static void printFile(BuildHistory *bh, const Repository *repo,
 static void printLineSeparator();
 static PathCategory classifyPath(const Build &build, const std::string &path);
 
+class BuildCmd : public AutoSubCommand<BuildCmd>
+{
+public:
+    BuildCmd() : AutoSubCommand({ "build" }, 0U, 1U)
+    {
+    }
+
+private:
+    virtual void
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
+    {
+        int buildId;
+        if (auto parsed = tryParse<BuildId>(args)) {
+            std::tie(buildId) = *parsed;
+        } else {
+            std::cerr << "Invalid arguments for subcommand.\n";
+            return error();
+        }
+
+        TablePrinter tablePrinter {
+            { "-Name", "-Value" }, getTerminalSize().first, true
+        };
+
+        Build build = getBuild(bh, buildId);
+
+        const std::vector<std::string> descr = describeBuild(bh, build, false);
+        tablePrinter.append({ "Id:", descr[0] });
+        tablePrinter.append({ "Coverage:", descr[1] });
+        tablePrinter.append({ "C/R Lines:", descr[2] });
+        tablePrinter.append({ "Cov Change:", descr[3] });
+        tablePrinter.append({ "C/M/R Line Changes:", descr[4] });
+        tablePrinter.append({ "Ref:", descr[5] });
+        tablePrinter.append({ "Commit:", descr[6] });
+        tablePrinter.append({ "Time:", descr[7] });
+
+        RedirectToPager redirectToPager;
+        tablePrinter.print(std::cout);
+    }
+};
+
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
     struct All { static constexpr const char *const text = "all"; };
