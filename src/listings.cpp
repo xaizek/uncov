@@ -52,7 +52,7 @@ describeBuild(BuildHistory *bh, const Build &build)
         covInfo.formatCoverageRate(),
         covInfo.formatLines(" / "),
         covChange.formatCoverageRate(),
-        covChange.formatLines(" / "),
+        covChange.formatLines(" / ", 4),
         build.getRefName(),
         Revision{build.getRef()},
         Time{build.getTimestamp()}
@@ -82,7 +82,7 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
             covInfo.formatCoverageRate(),
             covInfo.formatLines(" / "),
             covChange.formatCoverageRate(),
-            covChange.formatLines(" / ")
+            covChange.formatLines(" / ", 4)
         });
     }
 
@@ -141,7 +141,7 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
             covInfo.formatCoverageRate(),
             covInfo.formatLines(" / "),
             covChange.formatCoverageRate(),
-            covChange.formatLines(" / "),
+            covChange.formatLines(" / ", 4),
         });
     }
 
