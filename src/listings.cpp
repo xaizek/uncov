@@ -159,7 +159,7 @@ printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build)
        << '(' << covInfo.formatLines("/") << "), "
        << covChange.formatCoverageRate() << ' '
        << '(' << covChange.formatLines("/") << "), "
-       << build.getRefName() << " at " << Revision{build.getRef()} << '\n';
+       << build.getRefName() << '\n';
 }
 
 static CovChange
