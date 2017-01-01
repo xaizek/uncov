@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "FileComparator.hpp"
+#include "integration.hpp"
 #include "printing.hpp"
 
 namespace {
@@ -120,7 +121,8 @@ private:
 
 }
 
-FilePrinter::FilePrinter() : sourceHighlight("esc256.outlang"),
+FilePrinter::FilePrinter() : colorizeOutput(isOutputToTerminal()),
+                             sourceHighlight("esc256.outlang"),
                              langMap("lang.map")
 {
     sourceHighlight.setStyleFile("esc256.style");
@@ -136,9 +138,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     const int MinLineNoWidth = 5;
 
     std::istringstream iss(contents);
-    std::stringstream ss;
-    sourceHighlight.setLineRanges(nullptr);
-    sourceHighlight.highlight(iss, ss, getLang(path));
+    std::stringstream ss = highlight(iss, getLang(path));
 
     const int nLines = coverage.size();
     const int lineNoWidth = std::max(MinLineNoWidth, countWidth(nLines));
@@ -184,11 +184,8 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
     }
 
     const std::string &lang = getLang(path);
-    std::stringstream fss, sss;
-    sourceHighlight.setLineRanges(&fLines);
-    sourceHighlight.highlight(oText, fss, lang);
-    sourceHighlight.setLineRanges(&sLines);
-    sourceHighlight.highlight(nText, sss, lang);
+    std::stringstream fss = highlight(oText, lang, &fLines);
+    std::stringstream sss = highlight(nText, lang, &sLines);
 
     auto getLine = [](std::stringstream &ss) {
         std::string line;
@@ -235,4 +232,20 @@ FilePrinter::getLang(const std::string &path)
         lang = "cpp.lang";
     }
     return lang;
+}
+
+std::stringstream
+FilePrinter::highlight(std::istream &text, const std::string &lang,
+                       srchilite::LineRanges *ranges)
+{
+    std::stringstream ss;
+
+    if (colorizeOutput) {
+        sourceHighlight.setLineRanges(ranges);
+        sourceHighlight.highlight(text, ss, lang);
+    } else {
+        ss << text.rdbuf();
+    }
+
+    return ss;
 }

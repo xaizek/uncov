@@ -62,8 +62,11 @@ public:
 
 private:
     std::string getLang(const std::string &path);
+    std::stringstream highlight(std::istream &text, const std::string &lang,
+                                srchilite::LineRanges *ranges = nullptr);
 
 private:
+    bool colorizeOutput;
     srchilite::SourceHighlight sourceHighlight;
     srchilite::LangMap langMap;
 };
