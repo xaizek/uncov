@@ -92,3 +92,19 @@ TEST_CASE("File diffing works", "[FilePrinter]")
 
     REQUIRE(oss.str() == expected);
 }
+
+TEST_CASE("Can leave only missed lines", "[FilePrinter]")
+{
+    std::ostringstream oss;
+
+    FilePrinter printer(true);
+    printer.print(oss, "path",
+                  "line1\nline2\nline3\nline4\nline5\nline6\nline7\n",
+                  { 0, 0, -1, -1, -1, -1, -1 }, true);
+
+    const std::string expected = "    1    x0 : line1\n"
+                                 "    2    x0 : line2\n"
+                                 "    3       : line3\n"
+                                 " <<< 4 lines folded >>>\n";
+    REQUIRE(oss.str() == expected);
+}

@@ -134,21 +134,82 @@ FilePrinter::FilePrinter(bool allowColors)
 void
 FilePrinter::print(std::ostream &os, const std::string &path,
                    const std::string &contents,
-                   const std::vector<int> &coverage)
+                   const std::vector<int> &coverage, bool leaveMissedOnly)
 {
     const int MinLineNoWidth = 5;
-
-    std::istringstream iss(contents);
-    std::stringstream ss = highlight(iss, getLang(path));
 
     const int nLines = coverage.size();
     const int lineNoWidth = std::max(MinLineNoWidth, countWidth(nLines));
 
-    CoverageColumn covCol(os, coverage);
+    std::vector<int> lines;
+    unsigned int uninterestingLines = 0U;
+    auto foldUninteresting = [&lines, &uninterestingLines](bool last) {
+        if (uninterestingLines > 4) {
+            int startContext = (uninterestingLines == lines.size() ? 0 : 1);
+            int endContext = last ? 0 : 1;
+            int context = startContext + endContext;
 
+            lines.erase(lines.cend() - (uninterestingLines - startContext),
+                        lines.cend() - endContext);
+            lines.insert(lines.cend() - endContext,
+                         -(uninterestingLines - context));
+        }
+        uninterestingLines = 0U;
+    };
+
+    for (unsigned int i = 0U; i < coverage.size(); ++i) {
+        if (leaveMissedOnly) {
+            if (coverage[i] == 0) {
+                foldUninteresting(false);
+            } else {
+                ++uninterestingLines;
+            }
+        }
+        lines.push_back(i);
+    }
+    foldUninteresting(true);
+
+    srchilite::LineRanges ranges;
+    if (leaveMissedOnly) {
+        std::size_t lineNo = 0U;
+        for (int line : lines) {
+            if (line < 0) {
+                lineNo += -line;
+            } else {
+                ranges.addRange(std::to_string(line + 1));
+                ++lineNo;
+            }
+        }
+        ranges.addRange(std::to_string(lineNo + 1) + '-');
+    }
+
+    std::istringstream iss(contents);
+    std::stringstream ss = highlight(iss, getLang(path),
+                                     leaveMissedOnly ? &ranges : nullptr);
+
+    CoverageColumn covCol(os, coverage);
     std::size_t lineNo = 0U;
+
+    for (int line : lines) {
+        if (line < 0) {
+            os << " <<< " << -line << " lines folded >>>\n";
+            lineNo += -line;
+        } else {
+            std::string fileLine;
+            if (!std::getline(ss, fileLine)) {
+                // Not enough lines in the file.
+                break;
+            }
+
+            os << std::setw(lineNoWidth) << LineNo{lineNo + 1U}
+               << covCol.active(lineNo) << ": " << fileLine << '\n';
+            ++lineNo;
+        }
+    }
+
+    // Print extra file lines (with unknown coverage).
     for (std::string fileLine; std::getline(ss, fileLine); ++lineNo) {
-        os << std::setw(lineNoWidth) << LineNo{lineNo + 1}
+        os << std::setw(lineNoWidth) << LineNo{lineNo + 1U}
            << covCol.active(lineNo) << ": " << fileLine << '\n';
     }
 

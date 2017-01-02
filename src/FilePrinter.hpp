@@ -34,7 +34,8 @@ public:
 
 public:
     void print(std::ostream &os, const std::string &path,
-               const std::string &contents, const std::vector<int> &coverage);
+               const std::string &contents, const std::vector<int> &coverage,
+               bool leaveMissedOnly = false);
 
     /**
      * @brief Finds and prints differences between two versions of a file.
