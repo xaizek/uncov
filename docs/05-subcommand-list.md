@@ -126,6 +126,14 @@ Prints information about the file in this form:
 
 See description of **new** subcommand below for meaning of integer values.
 
+missed
+------
+
+Same as **show** subcommand, but folds not relevant and covered lines and
+thus displays only parts of files that lack coverage.
+
+See description of **show** subcommand below for syntax.
+
 new
 ---
 
