@@ -30,11 +30,12 @@ class FileComparator;
 class FilePrinter
 {
 public:
-    FilePrinter();
+    explicit FilePrinter(bool allowColors = true);
 
 public:
     void print(std::ostream &os, const std::string &path,
-               const std::string &contents, const std::vector<int> &coverage);
+               const std::string &contents, const std::vector<int> &coverage,
+               bool leaveMissedOnly = false);
 
     /**
      * @brief Finds and prints differences between two versions of a file.
@@ -66,7 +67,7 @@ private:
                                 srchilite::LineRanges *ranges = nullptr);
 
 private:
-    bool colorizeOutput;
+    const bool colorizeOutput;
     srchilite::SourceHighlight sourceHighlight;
     srchilite::LangMap langMap;
 };

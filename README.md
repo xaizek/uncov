@@ -1,7 +1,7 @@
 _uncov_
-_2016_
+_2016 - 2017_
 
-**This file updated**: 31 December, 2016
+**This file updated**: 02 January, 2017
 
 ### Brief Description ###
 
@@ -33,6 +33,7 @@ languages can be added by converting other similar tools.
 
 * Code highlighting.
 * Comparison of coverage.
+* Displaying parts of files that need attention with regard to coverage.
 
 ### Status ###
 

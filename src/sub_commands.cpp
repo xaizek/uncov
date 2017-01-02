@@ -23,6 +23,7 @@
 #include <cassert>
 #include <cstddef>
 
+#include <algorithm>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -31,6 +32,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/Text.hpp"
 #include "utils/fs.hpp"
 #include "BuildHistory.hpp"
 #include "FileComparator.hpp"
@@ -145,50 +147,13 @@ private:
     std::string path;
 };
 
-class Text
-{
-public:
-    Text(const std::string &text) : iss(text)
-    {
-    }
-
-public:
-    const std::vector<std::string> & asLines()
-    {
-        if (lines.empty()) {
-            const std::string &text = iss.str();
-            lines.reserve(std::count(text.cbegin(), text.cend(), '\n') + 1);
-            for (std::string line; std::getline(iss, line); ) {
-                lines.push_back(line);
-            }
-        }
-        return lines;
-    }
-
-    std::istream & asStream()
-    {
-        iss.clear();
-        iss.seekg(0);
-        return iss;
-    }
-
-    std::size_t size()
-    {
-        return asLines().size();
-    }
-
-private:
-    std::vector<std::string> lines;
-    std::istringstream iss;
-};
-
 }
 
 static Build getBuild(BuildHistory *bh, int buildId);
 static File & getFile(const Build &build, const std::string &path);
 static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
-                      FilePrinter &printer);
+                      FilePrinter &printer, bool leaveMissedOnly);
 static void printLineSeparator();
 static PathCategory classifyPath(const Build &build, const std::string &path);
 
@@ -640,13 +605,13 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
-    ShowCmd() : AutoSubCommand({ "show" }, 0U, 2U)
+    ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)
     {
     }
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         int buildId;
@@ -679,19 +644,23 @@ private:
         RedirectToPager redirectToPager;
         printBuildHeader(std::cout, bh, build);
 
+        const bool leaveMissedOnly = (alias == "missed");
+
         if (printWholeBuild) {
             for (const std::string &path : build.getPaths()) {
-                printFile(bh, repo, build, *build.getFile(path), printer);
+                printFile(bh, repo, build, *build.getFile(path), printer,
+                          leaveMissedOnly);
             }
         } else if (fileType == PathCategory::Directory) {
             for (const std::string &filePath : build.getPaths()) {
                 if (pathIsInSubtree(path.str(), filePath)) {
                     printFile(bh, repo, build, *build.getFile(filePath),
-                              printer);
+                              printer, leaveMissedOnly);
                 }
             }
         } else {
-            printFile(bh, repo, build, *build.getFile(path), printer);
+            printFile(bh, repo, build, *build.getFile(path), printer,
+                      leaveMissedOnly);
         }
     }
 };
@@ -730,16 +699,24 @@ getFile(const Build &build, const std::string &path)
 
 static void
 printFile(BuildHistory *bh, const Repository *repo, const Build &build,
-          const File &file, FilePrinter &printer)
+          const File &file, FilePrinter &printer, bool leaveMissedOnly)
 {
+    const std::vector<int> &coverage = file.getCoverage();
+
+    if (leaveMissedOnly && std::none_of(coverage.cbegin(), coverage.cend(),
+                                        [](int x) { return x == 0; })) {
+        // Do nothing for files that don't have any missed lines.
+        return;
+    }
+
     printLineSeparator();
     printFileHeader(std::cout, bh, build, file);
     printLineSeparator();
 
     const std::string &path = file.getPath();
     const std::string &ref = build.getRef();
-    printer.print(std::cout, path, repo->readFile(ref, path),
-                  file.getCoverage());
+    printer.print(std::cout, path, repo->readFile(ref, path), coverage,
+                  leaveMissedOnly);
 }
 
 static void
