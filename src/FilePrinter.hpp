@@ -30,7 +30,7 @@ class FileComparator;
 class FilePrinter
 {
 public:
-    FilePrinter();
+    explicit FilePrinter(bool allowColors = true);
 
 public:
     void print(std::ostream &os, const std::string &path,
@@ -66,7 +66,7 @@ private:
                                 srchilite::LineRanges *ranges = nullptr);
 
 private:
-    bool colorizeOutput;
+    const bool colorizeOutput;
     srchilite::SourceHighlight sourceHighlight;
     srchilite::LangMap langMap;
 };

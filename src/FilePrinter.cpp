@@ -121,9 +121,10 @@ private:
 
 }
 
-FilePrinter::FilePrinter() : colorizeOutput(isOutputToTerminal()),
-                             sourceHighlight("esc256.outlang"),
-                             langMap("lang.map")
+FilePrinter::FilePrinter(bool allowColors)
+    : colorizeOutput(allowColors && isOutputToTerminal()),
+      sourceHighlight("esc256.outlang"),
+      langMap("lang.map")
 {
     sourceHighlight.setStyleFile("esc256.style");
     // XXX: hard-coded value of 4 spaces per tabulation.
