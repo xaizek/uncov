@@ -435,25 +435,31 @@ def collect(args):
             map(lambda x: x['name'], report['source_files']))
     return report
 
-def gitrepo(cwd, capture_worktree, src_files):
+def gitrepo(abs_repo_root, capture_worktree, src_files):
     """Return hash of Git data that can be used to display more information to
     users.
     From https://github.com/coagulant/coveralls-python (with MIT license).
     """
     import os
-    repo = Repository(cwd)
+    repo = Repository(abs_repo_root)
 
     if capture_worktree and repo.git('diff', '--quiet')[0] != 0:
         repo.git('stash', 'save', 'uncov: temporary commit object')
         repo.git('stash', 'apply', '--index')
 
         for src_file in src_files:
-            repo.git('add', src_file)
+            repo.git('add', path.join(abs_repo_root, src_file))
 
-        commit = repo.git('stash', 'create')[1]
+        commit = repo.git('stash', 'create')[1].strip()
 
         repo.git('reset', '--hard', 'HEAD')
         repo.git('stash', 'pop', '--index')
+
+        for src_file in src_files:
+            abs_src_file = path.join(abs_repo_root, src_file)
+            if not path.exists(abs_src_file):
+                with io.open(abs_src_file, mode='wb') as fobj:
+                    fobj.write(repo.git('show', commit + ':' + src_file)[1])
     else:
         commit = repo.gitlog('%H')
 
