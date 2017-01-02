@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/Text.hpp"
 #include "utils/fs.hpp"
 #include "BuildHistory.hpp"
 #include "FileComparator.hpp"
@@ -143,43 +144,6 @@ private:
 private:
     const Repository *repo;
     std::string path;
-};
-
-class Text
-{
-public:
-    Text(const std::string &text) : iss(text)
-    {
-    }
-
-public:
-    const std::vector<std::string> & asLines()
-    {
-        if (lines.empty()) {
-            const std::string &text = iss.str();
-            lines.reserve(std::count(text.cbegin(), text.cend(), '\n') + 1);
-            for (std::string line; std::getline(iss, line); ) {
-                lines.push_back(line);
-            }
-        }
-        return lines;
-    }
-
-    std::istream & asStream()
-    {
-        iss.clear();
-        iss.seekg(0);
-        return iss;
-    }
-
-    std::size_t size()
-    {
-        return asLines().size();
-    }
-
-private:
-    std::vector<std::string> lines;
-    std::istringstream iss;
 };
 
 }
