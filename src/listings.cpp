@@ -33,13 +33,15 @@
 static std::map<std::string, CovInfo>
 getDirsCoverage(const Build &build, const std::string &dirFilter);
 static CovChange getBuildCovChange(BuildHistory *bh, const Build &build,
-                                   const CovInfo &covInfo);
+                                   const CovInfo &covInfo,
+                                   const Build *prevBuild = nullptr);
 static void printFileHeader(std::ostream &os, const std::string &filePath,
                             const CovInfo &covInfo, const CovChange &covChange);
 static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
                                   const std::string &path,
                                   boost::optional<Build> *prevBuildHint,
-                                  const CovInfo &covInfo);
+                                  const CovInfo &covInfo,
+                                  const Build *prevBuild = nullptr);
 
 std::vector<std::string>
 describeBuild(BuildHistory *bh, const Build &build, bool extraAlign)
@@ -149,10 +151,11 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
 }
 
 void
-printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build)
+printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
+                 const Build *prevBuild)
 {
     CovInfo covInfo(build);
-    CovChange covChange = getBuildCovChange(bh, build, covInfo);
+    CovChange covChange = getBuildCovChange(bh, build, covInfo, prevBuild);
 
     os << Label{"Build"} << ": #" << build.getId() << ", "
        << covInfo.formatCoverageRate() << ' '
@@ -163,10 +166,13 @@ printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build)
 }
 
 static CovChange
-getBuildCovChange(BuildHistory *bh, const Build &build, const CovInfo &covInfo)
+getBuildCovChange(BuildHistory *bh, const Build &build, const CovInfo &covInfo,
+                  const Build *prevBuild)
 {
     CovInfo prevCovInfo;
-    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+    if (prevBuild != nullptr) {
+        prevCovInfo = CovInfo(*prevBuild);
+    } else if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
         prevCovInfo = CovInfo(*bh->getBuild(prevBuildId));
     }
 
@@ -185,7 +191,7 @@ printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
 
 void
 printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
-                const std::string &filePath)
+                const std::string &filePath, const Build *prevBuild)
 {
     CovInfo covInfo;
     if (boost::optional<File &> file = build.getFile(filePath)) {
@@ -193,7 +199,7 @@ printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
     }
 
     CovChange covChange = getFileCovChange(bh, build, filePath, nullptr,
-                                           covInfo);
+                                           covInfo, prevBuild);
     printFileHeader(os, filePath, covInfo, covChange);
 }
 
@@ -210,14 +216,17 @@ printFileHeader(std::ostream &os, const std::string &filePath,
 
 static CovChange
 getFileCovChange(BuildHistory *bh, const Build &build, const std::string &path,
-                 boost::optional<Build> *prevBuildHint, const CovInfo &covInfo)
+                 boost::optional<Build> *prevBuildHint, const CovInfo &covInfo,
+                 const Build *prevBuild)
 {
-    boost::optional<Build> prevBuild;
+    boost::optional<Build> prevBuildStorage;
     if (prevBuildHint == nullptr) {
-        if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
-            prevBuild = bh->getBuild(prevBuildId);
+        if (prevBuild != nullptr) {
+            prevBuildStorage = *prevBuild;
+        } else if (int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+            prevBuildStorage = bh->getBuild(prevBuildId);
         }
-        prevBuildHint = &prevBuild;
+        prevBuildHint = &prevBuildStorage;
     }
 
     CovInfo prevCovInfo;

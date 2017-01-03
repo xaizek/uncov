@@ -72,12 +72,14 @@ std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
                    const std::string &dirFilter, bool changedOnly);
 
-void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build);
+void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
+                      const Build *prevBuild = nullptr);
 
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const File &file);
 
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
-                     const std::string &filePath);
+                     const std::string &filePath,
+                     const Build *prevBuild = nullptr);
 
 #endif // UNCOV__LISTINGS_HPP__

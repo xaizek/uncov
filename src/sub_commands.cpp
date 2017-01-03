@@ -416,10 +416,10 @@ private:
         }
         printLineSeparator();
         if (buildInfo) {
-            printBuildHeader(std::cout, bh, newBuild);
+            printBuildHeader(std::cout, bh, newBuild, &oldBuild);
         }
         if (fileInfo) {
-            printFileHeader(std::cout, bh, newBuild, filePath);
+            printFileHeader(std::cout, bh, newBuild, filePath, &oldBuild);
         }
         printLineSeparator();
     }
