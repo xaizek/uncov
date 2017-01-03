@@ -1,7 +1,7 @@
 _uncov_
 _2016 - 2017_
 
-**This file updated**: 02 January, 2017
+**This file updated**: 03 January, 2017
 
 ### Brief Description ###
 
@@ -34,6 +34,7 @@ languages can be added by converting other similar tools.
 * Code highlighting.
 * Comparison of coverage.
 * Displaying parts of files that need attention with regard to coverage.
+* Can be used from Vim via the plugin provided.
 
 ### Status ###
 
@@ -51,15 +52,15 @@ Expected to work in \*nix like environments.
 
 ### Prerequisites ###
 
-* [GNU Make][make];
+* [GNU Make][make].
 * C++14 compatible compiler (C++14 is used for several library routines and
-  thus requirement might be lowered to C++11 in future; GCC 4.9 works fine);
-* [Boost][boost], tested with 1.55 and 1.59, but older versions might work;
-* [libgit2][libgit2];
-* [libsqlite3][sqlite];
-* libsource-highlight from [GNU Source-highlight][srchilite];
-* [zlib][zlib];
-* (optional) [pandoc][pandoc] for regenerating man page;
+  thus requirement might be lowered to C++11 in future; GCC 4.9 works fine).
+* [Boost][boost], tested with 1.55 and 1.59, but older versions might work.
+* [libgit2][libgit2].
+* [libsqlite3][sqlite].
+* libsource-highlight from [GNU Source-highlight][srchilite].
+* [zlib][zlib].
+* (optional) [pandoc][pandoc] for regenerating man page.
 * (optional) [python][python] for collecting coverage for C and C++ (would be
   nice to get rid of this weird dependency, probably by rewriting the tool).
 
@@ -87,6 +88,8 @@ recording coverage information is shown in example below:
   inspiration.
 * [COVERALLS][coveralls] service is second project which significantly shaped
   this tool.
+* [gcov-marker.vim][vim-gcov-marker] was source of idea of filling location list
+  with uncovered lines in the plugin.
 
 ### License ###
 
