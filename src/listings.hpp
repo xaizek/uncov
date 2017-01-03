@@ -26,6 +26,26 @@ class Build;
 class BuildHistory;
 class File;
 
+/**
+ * @brief Formats information about specified build as a table row.
+ *
+ * Returned row consists of the following columns:
+ *
+ *  * Build Id
+ *  * Coverage
+ *  * C/R Lines
+ *  * Cov Change
+ *  * C/M/R Line Changes
+ *  * Ref
+ *  * Commit
+ *  * Time
+ *
+ * @param bh Object maintaining history of all builds.
+ * @param build The build we're describing.
+ * @param extraAlign Whether alignment should look nice in a table.
+ *
+ * @returns Row with information about the build.
+ */
 std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build,
                                        bool extraAlign);
 
@@ -72,12 +92,37 @@ std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
                    const std::string &dirFilter, bool changedOnly);
 
+/**
+ * @brief Prints build header which is a one line description of it.
+ *
+ * @param os Stream to print the information onto.
+ * @param bh Object maintaining history of all builds.
+ * @param build The build we're describing.
+ * @param prevBuild Build to compute coverage change against.
+ */
 void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                       const Build *prevBuild = nullptr);
 
+/**
+ * @brief Prints file header which is a one line description of it.
+ *
+ * @param os Stream to print the information onto.
+ * @param bh Object maintaining history of all builds.
+ * @param build Build of the file.
+ * @param file File we're describing.
+ */
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const File &file);
 
+/**
+ * @brief Prints file header which is a one line description of it.
+ *
+ * @param os Stream to print the information onto.
+ * @param bh Object maintaining history of all builds.
+ * @param build Build of the file.
+ * @param filePath Path of file to describe.
+ * @param prevBuild Build to compute coverage change against.
+ */
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const std::string &filePath,
                      const Build *prevBuild = nullptr);
