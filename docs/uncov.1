@@ -280,10 +280,11 @@ Lists all files of \f[B]<new build>\f[] comparing them against files in
 Lists files of \f[B]<build>\f[] (or last build) located under
 \f[B]<directory path>\f[].
 .PP
-\f[B]Usage: files [<old build>] [<new build>] <directory path>\f[]
+\f[B]Usage: files [<old build>] [<new build>] <path>\f[]
 .PP
 See forms above for information about first two arguments.
-Lists files located under \f[B]<directory path>\f[].
+Lists files located under \f[B]<path>\f[] (if it\[aq]s a directory) or
+one file that exactly matches the path.
 .SS get
 .PP
 Dumps coverage information of a file.

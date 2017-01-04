@@ -123,10 +123,11 @@ Lists all files of **\<new build\>** comparing them against files in
 Lists files of **\<build\>** (or last build) located under
 **\<directory path\>**.
 
-**Usage: files [\<old build\>] [\<new build\>] \<directory path\>**
+**Usage: files [\<old build\>] [\<new build\>] \<path\>**
 
 See forms above for information about first two arguments.  Lists files located
-under **\<directory path\>**.
+under **\<path\>** (if it's a directory) or one file that exactly matches the
+path.
 
 get
 ---

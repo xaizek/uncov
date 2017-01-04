@@ -440,8 +440,6 @@ private:
     execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
-        // TODO: we should error on wrong directory path
-
         int buildId;
         InRepoPath dirFilter(repo);
         boost::optional<Build> prevBuild;
@@ -462,6 +460,20 @@ private:
         }
 
         Build build = getBuild(bh, buildId);
+
+        if (!dirFilter.empty()) {
+            if (alias == "dirs") {
+                if (classifyPath(build, dirFilter) != PathCategory::Directory) {
+                    std::cerr << "Specified path wasn't found in the build.\n";
+                    return error();
+                }
+            } else {
+                if (classifyPath(build, dirFilter) == PathCategory::None) {
+                    std::cerr << "Specified path wasn't found in the build.\n";
+                    return error();
+                }
+            }
+        }
 
         const std::string firstCol = (alias == "dirs") ? "-Directory" : "-File";
         TablePrinter tablePrinter({ firstCol, "Coverage", "C/R Lines",
