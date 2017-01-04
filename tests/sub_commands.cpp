@@ -239,6 +239,32 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
     CHECK(coutCapture.get() != std::string());
 }
 
+TEST_CASE("Dirs fails on unknown dir path", "[subcommands][dirs-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("dirs")->exec(bh, repo, "dirs",
+                               { "no-such-path" }) == EXIT_FAILURE);
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() != std::string());
+}
+
+TEST_CASE("Files fails on unknown dir path", "[subcommands][files-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("files")->exec(bh, repo, "files",
+                                { "no-such-path" }) == EXIT_FAILURE);
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() != std::string());
+}
+
 static SubCommand *
 getCmd(const std::string &name)
 {

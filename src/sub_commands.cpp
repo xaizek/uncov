@@ -428,49 +428,10 @@ private:
     FilePrinter filePrinter;
 };
 
-class DirsCmd : public AutoSubCommand<DirsCmd>
-{
-public:
-    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 2U)
-    {
-    }
-
-private:
-    virtual void
-    execImpl(const std::string &/*alias*/,
-             const std::vector<std::string> &args) override
-    {
-        int buildId;
-        InRepoPath dirFilter(repo);
-        if (auto parsed = tryParse<BuildId>(args)) {
-            buildId = std::get<0>(*parsed);
-        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
-            std::tie(buildId, dirFilter) = *parsed;
-        } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
-        }
-
-        Build build = getBuild(bh, buildId);
-
-        TablePrinter tablePrinter({ "-Directory", "Coverage", "C/R Lines",
-                                    "Cov Change", "C/M/R Line Changes" },
-                                  getTerminalSize().first);
-
-        for (std::vector<std::string> &dirRow :
-             describeBuildDirs(bh, build, dirFilter)) {
-            tablePrinter.append(std::move(dirRow));
-        }
-
-        RedirectToPager redirectToPager;
-        tablePrinter.print(std::cout);
-    }
-};
-
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : AutoSubCommand({ "files", "changed" }, 0U, 2U)
+    FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
     {
     }
 
@@ -481,8 +442,16 @@ private:
     {
         int buildId;
         InRepoPath dirFilter(repo);
+        boost::optional<Build> prevBuild;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+            prevBuild = bh->getBuild(std::get<0>(*parsed));
+            buildId = std::get<1>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+            int prevBuildId;
+            std::tie(prevBuildId, buildId, dirFilter) = *parsed;
+            prevBuild = bh->getBuild(prevBuildId);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildId, dirFilter) = *parsed;
         } else {
@@ -492,13 +461,37 @@ private:
 
         Build build = getBuild(bh, buildId);
 
-        TablePrinter tablePrinter({ "-File", "Coverage", "C/R Lines",
+        if (!dirFilter.empty()) {
+            if (alias == "dirs") {
+                if (classifyPath(build, dirFilter) != PathCategory::Directory) {
+                    std::cerr << "Specified path wasn't found in the build.\n";
+                    return error();
+                }
+            } else {
+                if (classifyPath(build, dirFilter) == PathCategory::None) {
+                    std::cerr << "Specified path wasn't found in the build.\n";
+                    return error();
+                }
+            }
+        }
+
+        const std::string firstCol = (alias == "dirs") ? "-Directory" : "-File";
+        TablePrinter tablePrinter({ firstCol, "Coverage", "C/R Lines",
                                     "Cov Change", "C/M/R Line Changes" },
                                   getTerminalSize().first);
 
-        for (std::vector<std::string> &fileRow :
-             describeBuildFiles(bh, build, dirFilter, alias == "changed")) {
-            tablePrinter.append(std::move(fileRow));
+        std::vector<std::vector<std::string>> table;
+        Build *prev = (prevBuild ? &*prevBuild : nullptr);
+
+        if (alias == "dirs") {
+            table = describeBuildDirs(bh, build, dirFilter, prev);
+        } else {
+            const bool changedOnly = (alias == "changed");
+            table = describeBuildFiles(bh, build, dirFilter, changedOnly, prev);
+        }
+
+        for (std::vector<std::string> &row : table) {
+            tablePrinter.append(std::move(row));
         }
 
         RedirectToPager redirectToPager;
