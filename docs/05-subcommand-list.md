@@ -60,7 +60,7 @@ Compares **\<new build\>** with **\<old build\>**.
 
 **Usage: diff [\<old build\>] [\<new build\>] \<path\>**
 
-See forms above for information about two first arguments.  If **\<path\>**
+See forms above for information about first two arguments.  If **\<path\>**
 specifies directory in either of two builds, only files under it and below are
 compared.  If **\<path\>** specifies file, only that file is compared.
 
@@ -85,10 +85,20 @@ Lists all directories of the last build.
 
 Lists all directories of **\<build\>**.
 
+**Usage: dirs \<old build\> \<new build\>**
+
+Lists all directories of **\<new build\>** comparing them against directories in
+**\<old build\>**.
+
 **Usage: dirs [\<build\>] \<directory path\>**
 
 Lists directories of **\<build\>** (or last build) located under
 **\<directory path\>**.
+
+**Usage: dirs [\<old build\>] [\<new build\>] \<directory path\>**
+
+See forms above for information about first two arguments.  Lists directories
+located under **\<directory path\>**.
 
 files
 -----
@@ -103,10 +113,20 @@ Lists all files of the last build.
 
 Lists all files of **\<build\>**.
 
+**Usage: files \<old build\> \<new build\>**
+
+Lists all files of **\<new build\>** comparing them against files in
+**\<old build\>**.
+
 **Usage: files [\<build\>] \<directory path\>**
 
 Lists files of **\<build\>** (or last build) located under
 **\<directory path\>**.
+
+**Usage: files [\<old build\>] [\<new build\>] \<directory path\>**
+
+See forms above for information about first two arguments.  Lists files located
+under **\<directory path\>**.
 
 get
 ---

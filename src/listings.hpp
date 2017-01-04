@@ -63,12 +63,14 @@ std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build,
  * @param bh Object maintaining history of all builds.
  * @param build The build we're describing.
  * @param dirFilter Root directory that filters displayed dirs.  Can be empty.
+ * @param prevBuild Build to compute coverage change against.
  *
  * @returns Table of strings describing the build.
  */
 std::vector<std::vector<std::string>>
 describeBuildDirs(BuildHistory *bh, const Build &build,
-                  const std::string &dirFilter);
+                  const std::string &dirFilter,
+                  const Build *prevBuild = nullptr);
 
 /**
  * @brief Formats information about files within the build as a table.
@@ -85,12 +87,14 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
  * @param build The build we're describing.
  * @param dirFilter Root directory that filters displayed files.  Can be empty.
  * @param changedOnly Filter out all files which unchanged coverage.
+ * @param prevBuild Build to compute coverage change against.
  *
  * @returns Table of strings describing the build.
  */
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter, bool changedOnly);
+                   const std::string &dirFilter, bool changedOnly,
+                   const Build *prevBuild = nullptr);
 
 /**
  * @brief Prints build header which is a one line description of it.

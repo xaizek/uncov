@@ -431,7 +431,7 @@ private:
 class DirsCmd : public AutoSubCommand<DirsCmd>
 {
 public:
-    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 2U)
+    DirsCmd() : AutoSubCommand({ "dirs" }, 0U, 3U)
     {
     }
 
@@ -440,10 +440,20 @@ private:
     execImpl(const std::string &/*alias*/,
              const std::vector<std::string> &args) override
     {
+        // TODO: we should error on wrong directory path
+
         int buildId;
         InRepoPath dirFilter(repo);
+        boost::optional<Build> prevBuild;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+            prevBuild = bh->getBuild(std::get<0>(*parsed));
+            buildId = std::get<1>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+            int prevBuildId;
+            std::tie(prevBuildId, buildId, dirFilter) = *parsed;
+            prevBuild = bh->getBuild(prevBuildId);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildId, dirFilter) = *parsed;
         } else {
@@ -458,7 +468,8 @@ private:
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &dirRow :
-             describeBuildDirs(bh, build, dirFilter)) {
+             describeBuildDirs(bh, build, dirFilter,
+                               prevBuild ? &*prevBuild : nullptr)) {
             tablePrinter.append(std::move(dirRow));
         }
 
@@ -470,7 +481,7 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
-    FilesCmd() : AutoSubCommand({ "files", "changed" }, 0U, 2U)
+    FilesCmd() : AutoSubCommand({ "files", "changed" }, 0U, 3U)
     {
     }
 
@@ -479,10 +490,20 @@ private:
     execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
+        // TODO: we should error on wrong directory path
+
         int buildId;
         InRepoPath dirFilter(repo);
+        boost::optional<Build> prevBuild;
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+            prevBuild = bh->getBuild(std::get<0>(*parsed));
+            buildId = std::get<1>(*parsed);
+        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+            int prevBuildId;
+            std::tie(prevBuildId, buildId, dirFilter) = *parsed;
+            prevBuild = bh->getBuild(prevBuildId);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildId, dirFilter) = *parsed;
         } else {
@@ -497,7 +518,8 @@ private:
                                   getTerminalSize().first);
 
         for (std::vector<std::string> &fileRow :
-             describeBuildFiles(bh, build, dirFilter, alias == "changed")) {
+             describeBuildFiles(bh, build, dirFilter, alias == "changed",
+                                prevBuild ? &*prevBuild : nullptr)) {
             tablePrinter.append(std::move(fileRow));
         }
 

@@ -63,12 +63,14 @@ describeBuild(BuildHistory *bh, const Build &build, bool extraAlign)
 
 std::vector<std::vector<std::string>>
 describeBuildDirs(BuildHistory *bh, const Build &build,
-                  const std::string &dirFilter)
+                  const std::string &dirFilter, const Build *prevBuild)
 {
     std::map<std::string, CovInfo> newDirs = getDirsCoverage(build, dirFilter);
 
     std::map<std::string, CovInfo> prevDirs;
-    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+    if (prevBuild != nullptr) {
+        prevDirs = getDirsCoverage(*prevBuild, dirFilter);
+    } else if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
         prevDirs = getDirsCoverage(*bh->getBuild(prevBuildId), dirFilter);
     }
 
@@ -113,16 +115,19 @@ getDirsCoverage(const Build &build, const std::string &dirFilter)
 
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter, bool changedOnly)
+                   const std::string &dirFilter, bool changedOnly,
+                   const Build *prevBuild)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
     std::vector<std::vector<std::string>> rows;
     rows.reserve(paths.size());
 
-    boost::optional<Build> prevBuild;
-    if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
-        prevBuild = bh->getBuild(prevBuildId);
+    boost::optional<Build> prev;
+    if (prevBuild != nullptr) {
+        prev = *prevBuild;
+    } else if (const int prevBuildId = bh->getPreviousBuildId(build.getId())) {
+        prev = bh->getBuild(prevBuildId);
     }
 
     for (const std::string &filePath : paths) {
@@ -131,8 +136,8 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         }
 
         CovInfo covInfo(*build.getFile(filePath));
-        CovChange covChange = getFileCovChange(bh, build, filePath,
-                                               &prevBuild, covInfo);
+        CovChange covChange = getFileCovChange(bh, build, filePath, &prev,
+                                               covInfo);
 
         if (changedOnly && !covChange.isChanged()) {
             continue;
