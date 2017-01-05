@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "utils/time.hpp"
 #include "decoration.hpp"
 
 namespace {
@@ -243,5 +244,5 @@ operator<<(std::ostream &os, const Time &t)
 {
     // XXX: hard-coded time format.
     return os << (Highlight("time")
-              << std::put_time(std::localtime(&t.data), "%Y-%m-%d %H:%M:%S"));
+              << put_time(std::localtime(&t.data), "%Y-%m-%d %H:%M:%S"));
 }
