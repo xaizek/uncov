@@ -239,6 +239,171 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
     CHECK(coutCapture.get() != std::string());
 }
 
+TEST_CASE("New-json handles input gracefully",
+          "[subcommands][new-json-subcommand]")
+{
+    Repository repo("tests/test-repo/");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+
+    SECTION("Missing hashsum")
+    {
+        StreamSubstitute cinSubst(std::cin, R"({
+                "source_files": [
+                    {
+                        "name": "test-file1.cpp",
+                        "coverage": [null, 1, null, 1, null]
+                    }
+                ],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+
+        CHECK_THROWS_AS(getCmd("new-json")->exec(bh, repo, "new-json", {}),
+                        std::exception);
+        CHECK(cerrCapture.get() == std::string());
+    }
+
+    SECTION("Incorrect hashsum")
+    {
+        StreamSubstitute cinSubst(std::cin, R"({
+                "source_files": [
+                    {
+                        "source_digest": "",
+                        "name": "test-file1.cpp",
+                        "coverage": [null, 1, null, 1, null]
+                    }
+                ],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+
+        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
+              EXIT_FAILURE);
+        CHECK(cerrCapture.get() != std::string());
+    }
+
+    CHECK(coutCapture.get() == std::string());
+}
+
+TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+
+    SECTION("File missing from commit is just skipped")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin, R"({
+                "source_files": [
+                    {
+                        "source_digest":
+                            "8e354da4df664b71e06c764feb29a20d64351a01",
+                        "name": "not-a-file1.cpp",
+                        "coverage": [null, 1, null, 1, null]
+                    }
+                ],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
+              EXIT_SUCCESS);
+        CHECK(cerrCapture.get() != std::string());
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
+    }
+
+    SECTION("JSON can be preceded by other data")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin, R"(something unrelated{
+                "source_files": [],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
+              EXIT_SUCCESS);
+        CHECK(cerrCapture.get() == std::string());
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
+    }
+
+    SECTION("Hash is computed")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin, R"({
+                "source_files": [
+                    {
+                        "source":
+                 "int\nmain(int argc, char *argv[])\n{\n        return 0;\n}\n",
+                        "name": "test-file1.cpp",
+                        "coverage": [null, 1, null, 1, null]
+                    }
+                ],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
+              EXIT_SUCCESS);
+        CHECK(cerrCapture.get() == std::string());
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
+    }
+
+    SECTION("Newline is appended to contents")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin, R"({
+                "source_files": [
+                    {
+                        "source":
+                   "int\nmain(int argc, char *argv[])\n{\n        return 0;\n}",
+                        "name": "test-file1.cpp",
+                        "coverage": [null, 1, null, 1, null]
+                    }
+                ],
+                "git": {
+                    "head": {
+                        "id": "8e354da4df664b71e06c764feb29a20d64351a01"
+                    },
+                    "branch": "master"
+                }
+            })");
+        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
+              EXIT_SUCCESS);
+        CHECK(cerrCapture.get() == std::string());
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
+    }
+
+    CHECK(coutCapture.get() != std::string());
+}
+
 TEST_CASE("Dirs fails on unknown dir path", "[subcommands][dirs-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");

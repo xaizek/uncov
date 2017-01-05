@@ -18,6 +18,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/optional.hpp>
 
 #include <cassert>
@@ -44,6 +46,7 @@
 #include "coverage.hpp"
 #include "integration.hpp"
 #include "listings.hpp"
+#include "md5.hpp"
 
 namespace {
 
@@ -586,6 +589,93 @@ private:
                 bd.addFile(File(std::move(path), std::move(hash),
                                 std::move(coverage)));
             }
+        }
+
+        if (!isFailed()) {
+            Build build = bh->addBuild(bd);
+            printBuildHeader(std::cout, bh, build);
+        }
+    }
+};
+
+class NewJsonCmd : public AutoSubCommand<NewJsonCmd>
+{
+public:
+    NewJsonCmd() : AutoSubCommand({ "new-json" })
+    {
+    }
+
+private:
+    virtual void
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &/*args*/) override
+    {
+        namespace pt = boost::property_tree;
+
+        if (std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '{')) {
+            std::cin.putback('{');
+        }
+
+        pt::ptree props;
+        pt::read_json(std::cin, props);
+
+        std::string ref = props.get<std::string>("git.head.id");
+        std::string refName = props.get<std::string>("git.branch");
+
+        const std::unordered_map<std::string, std::string> files =
+            repo->listFiles(ref);
+
+        BuildData bd(std::move(ref), refName);
+
+        for (auto &s : props.get_child("source_files")) {
+            // Normalize path in place (via temporary object).
+            const std::string path =
+                (InRepoPath(repo) = s.second.get<std::string>("name"));
+
+            std::string hash;
+            bool computedHash = false;
+            if (auto d = s.second.get_optional<std::string>("source_digest")) {
+                hash = *d;
+            } else {
+                auto contents = s.second.get<std::string>("source");
+                hash = md5(contents);
+                computedHash = true;
+            }
+
+            const auto file = files.find(path);
+            if (file == files.cend()) {
+                std::cerr << "Skipping file missing in " << refName << ": "
+                          << path << '\n';
+                continue;
+            } else if (!boost::iequals(file->second, hash)) {
+                if (computedHash) {
+                    auto contents = s.second.get<std::string>("source");
+                    hash = md5(contents + '\n');
+                }
+
+                if (!boost::iequals(file->second, hash)) {
+                    std::cerr << path << " file at " << refName
+                              << " doesn't match reported contents\n";
+                    error();
+                    continue;
+                }
+            }
+
+            auto cov = s.second.get_child("coverage");
+
+            std::vector<int> coverage;
+            coverage.reserve(cov.size());
+
+            for (auto &hits : cov) {
+                if (auto val = hits.second.get_value_optional<int>()) {
+                    coverage.push_back(*val);
+                } else {
+                    coverage.push_back(-1);
+                }
+            }
+
+            bd.addFile(File(std::move(path), std::move(hash),
+                            std::move(coverage)));
         }
 
         if (!isFailed()) {

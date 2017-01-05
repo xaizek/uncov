@@ -1,7 +1,7 @@
 _uncov_
 _2016 - 2017_
 
-**This file updated**: 03 January, 2017
+**This file updated**: 05 January, 2017
 
 ### Brief Description ###
 
@@ -26,8 +26,15 @@ complementary tools to fetch and transform coverage data from language specific
 coverage tools.
 
 Importer of coverage for C and C++ languages that collects data from gcov is
-provided (code is based on [cpp-coveralls][cpp-coveralls]).  Support for other
-languages can be added by converting other similar tools.
+provided.
+
+#### Adding support for a language ####
+
+Support for other languages can be added by converting existing coverage tools
+or even using them as is.  The `new-json` subcommand accepts JSON that's used by
+[coveralls.io][[coveralls] API, all that's needed is to extract this JSON and
+pipe it to `uncov new-json` (some tools might already have a command-line option
+like `--dump`, others could be extended by adding it).
 
 ### Features ###
 
@@ -86,8 +93,9 @@ recording coverage information is shown in example below:
 
 * [LCOV][lcov] project is the source of useful ideas and primary source of
   inspiration.
-* [COVERALLS][coveralls] service is second project which significantly shaped
+* [coveralls.io][coveralls] service is second project which significantly shaped
   this tool.
+* Code of `uncov-gcov` is based on [cpp-coveralls][cpp-coveralls].
 * [gcov-marker.vim][vim-gcov-marker] was source of idea of filling location list
   with uncovered lines in the plugin.
 

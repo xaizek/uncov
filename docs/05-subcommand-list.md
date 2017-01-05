@@ -165,7 +165,7 @@ Imports new build from standard input.
 Reads coverage information from standard input in the following format:
 ```
 <commit>
-<branch name>
+<ref name>
 <file name relative to repository root>
 <MD5 hash of file contents>
 <number of lines of coverage>
@@ -178,6 +178,37 @@ Integers have the following meaning:
  * when less than zero (specifically `-1`) -- line is not relevant;
  * when equal to zero -- line is not covered (missed);
  * when greater than zero -- line is covered and was hit that many times.
+
+new-json
+--------
+
+Imports new build in JSON format from standard input.
+
+**Usage: new-json**
+
+Reads coverage information from standard input in the following format:
+```
+<prefix that doesn't contain { character>
+{
+    "source_files": [
+        {
+            "source_digest": "<MD5 hash>",
+            "source": "<source, which can be used instead of source_digest>",
+            "name": "file name relative to repository root",
+            "coverage": [null for not relevant lines, int for number of hits]
+        }
+        ...
+    ],
+    "git": {
+        "head": {
+            "id": "<commit>"
+        },
+        "branch": "<branch>"
+    }
+}
+```
+
+Any other elements are ignored.
 
 show
 ----
