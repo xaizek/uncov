@@ -184,8 +184,8 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     }
 
     std::istringstream iss(contents);
-    std::stringstream ss = highlight(iss, getLang(path),
-                                     leaveMissedOnly ? &ranges : nullptr);
+    std::stringstream ss;
+    highlight(ss, iss, getLang(path), leaveMissedOnly ? &ranges : nullptr);
 
     CoverageColumn covCol(os, coverage);
     std::size_t lineNo = 0U;
@@ -246,8 +246,9 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
     }
 
     const std::string &lang = getLang(path);
-    std::stringstream fss = highlight(oText, lang, &fLines);
-    std::stringstream sss = highlight(nText, lang, &sLines);
+    std::stringstream fss, sss;
+    highlight(fss, oText, lang, &fLines);
+    highlight(sss, nText, lang, &sLines);
 
     auto getLine = [](std::stringstream &ss) {
         std::string line;
@@ -296,18 +297,14 @@ FilePrinter::getLang(const std::string &path)
     return lang;
 }
 
-std::stringstream
-FilePrinter::highlight(std::istream &text, const std::string &lang,
-                       srchilite::LineRanges *ranges)
+void
+FilePrinter::highlight(std::stringstream &ss, std::istream &text,
+                       const std::string &lang, srchilite::LineRanges *ranges)
 {
-    std::stringstream ss;
-
     if (colorizeOutput) {
         sourceHighlight.setLineRanges(ranges);
         sourceHighlight.highlight(text, ss, lang);
     } else {
         ss << text.rdbuf();
     }
-
-    return ss;
 }
