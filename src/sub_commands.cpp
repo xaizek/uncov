@@ -374,10 +374,10 @@ private:
             return;
         }
 
-        Text oldVersion = oldFile ? repo->readFile(oldBuild.getRef(), filePath)
-                                  : std::string();
-        Text newVersion = newFile ? repo->readFile(newBuild.getRef(), filePath)
-                                  : std::string();
+        Text oldVersion(oldFile ? repo->readFile(oldBuild.getRef(), filePath)
+                                : std::string());
+        Text newVersion(newFile ? repo->readFile(newBuild.getRef(), filePath)
+                                : std::string());
 
         FileComparator comparator(oldVersion.asLines(), oldCov,
                                   newVersion.asLines(), newCov,
