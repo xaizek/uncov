@@ -57,11 +57,10 @@ function! s:ShowCoverage() abort
     let l:originalTab = tabpagenr()
     tabedit
     let b:uncovOriginalTab = l:originalTab
-    let l:bufnr = bufnr('%')
 
     let l:coverage = l:coverageInfo[1:]
     let [l:loclist, b:uncovCovered, b:uncoRelevant] =
-                \ s:ParseCoverage(l:coverage)
+                \ s:ParseCoverage(l:coverage, l:fileLines)
 
     " XXX: insert buildid here?
     execute 'silent!' 'file' escape('uncov:'.l:relFilePath, ' \%')
@@ -83,8 +82,9 @@ function! s:ShowCoverage() abort
     UncovInfo
 endfunction
 
-function! s:ParseCoverage(coverage) abort
+function! s:ParseCoverage(coverage, fileLines) abort
     let l:loclist = []
+    let l:bufnr = bufnr('%')
 
     let l:lineNo = 1
     let l:relevant = 0
@@ -101,7 +101,7 @@ function! s:ParseCoverage(coverage) abort
                 let l:loclist += [{
                     \ 'bufnr': l:bufnr,
                     \ 'lnum': l:lineNo,
-                    \ 'text': '(not covered) '.l:fileLines[l:lineNo - 1] }]
+                    \ 'text': '(not covered) '.a:fileLines[l:lineNo - 1] }]
             else
                 let l:covered += 1
             endif
