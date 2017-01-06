@@ -64,8 +64,7 @@ Expected to work in Unix-like environments.
 ### Prerequisites ###
 
 * [GNU Make][make].
-* C++14 compatible compiler (C++14 is used for several library routines and
-  thus requirement might be lowered to C++11 in future; GCC 4.9 works fine).
+* C++11 compatible compiler (GCC 4.9 works fine).
 * [Boost][boost], tested with 1.55 and 1.59, but older versions might work.
 * [libgit2][libgit2].
 * [libsqlite3][sqlite].

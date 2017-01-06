@@ -1,4 +1,4 @@
-CXXFLAGS += -std=c++14 -Wall -Wextra -Werror -MMD -I$(abspath src)
+CXXFLAGS += -std=c++11 -Wall -Wextra -Werror -MMD -I$(abspath src)
 CXXFLAGS += -Wno-non-template-friend
 LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_system
