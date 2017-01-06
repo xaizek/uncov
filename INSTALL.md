@@ -6,35 +6,44 @@ By default debug version is build right in the source tree.
 
 #### Targets ####
 
-* `debug`
+**`debug`**
+
 Builds debug version in `debug/`.
 
-* `release`
+**`release`**
+
 Builds release version in `release/`.
 
-* `sanitize-basic`
+**`sanitize-basic`**
+
 Builds debug version with undefined and address sanitizers enabled in
 `sanitize-basic/`.
 
-* `man`
+**`man`**
+
 Rebuilds manual page in `<out>/docs/uncov.1`, requires `pandoc`.
 
-* `coverage`
+**`coverage`**
+
 Builds coverage in `coverage/` and commits it using `uncov` itself (which should
 be installed).
 
-* `check`
+**`check`**
+
 Builds and runs tests.  Combine with `debug`, `release` or `sanitize-basic` to
 build and run tests in that configuration.
 
-* `clean`
+**`clean`**
+
 Removes build artifacts for all configurations.
 
-* `install`
+**`install`**
+
 Builds the application in release mode (`release` target) and installs it.
 `DESTDIR` can be set to point to root of the installation directory.
 
-* `uninstall`
+**`uninstall`**
+
 Removes executable and man page.  Do specify `DESTDIR` if it was specified on
 installation.
 
