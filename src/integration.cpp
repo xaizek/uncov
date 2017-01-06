@@ -34,6 +34,8 @@
 #include <string>
 #include <utility>
 
+#include "utils/memory.hpp"
+
 namespace io = boost::iostreams;
 
 class RedirectToPager::Impl
@@ -193,7 +195,7 @@ ScreenPageBuffer::openPager()
 }
 
 RedirectToPager::RedirectToPager()
-    : impl(isOutputToTerminal() ? std::make_unique<PagerRedirect>() : nullptr)
+    : impl(isOutputToTerminal() ? make_unique<PagerRedirect>() : nullptr)
 {
 }
 
