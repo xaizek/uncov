@@ -52,7 +52,7 @@ else
             ifneq ($(call pos,coverage,$(MAKECMDGOALS)),-1)
                 with_cov := 1
             endif
-            ifneq ($(call pos,show-coverage,$(MAKECMDGOALS)),-1)
+            ifneq ($(call pos,self-coverage,$(MAKECMDGOALS)),-1)
                 with_cov := 1
             endif
 
@@ -89,8 +89,8 @@ tests_depends := $(tests_sources:%.cpp=$(out_dir)/%.d)
 
 out_dirs := $(sort $(dir $(bin_objects) $(tests_objects)))
 
-.PHONY: check clean coverage man show-coverage reset-coverage debug release all
-.PHONY: sanitize-basic install uninstall
+.PHONY: all check clean debug release sanitize-basic man install uninstall
+.PHONY: coverage self-coverage reset-coverage
 
 all: $(bin)
 
@@ -100,12 +100,14 @@ sanitize-basic: $(bin)
 
 coverage: check $(bin)
 	find $(out_dir)/ -name '*.o' -exec gcov -p {} +
-	uncov-gcov --root . --build-root . --no-gcov --capture-worktree \
-	           --exclude tests | uncov new
+	$(GCOV_PREFIX)uncov-gcov --root . --build-root . --no-gcov \
+	                         --capture-worktree --exclude tests \
+	| $(UNCOV_PREFIX)uncov new
 	find . -name '*.gcov' -delete
 
-show-coverage: coverage
-	$$BROWSER coverage/data/index.html
+self-coverage: UNCOV_PREFIX := $(out_dir)/
+self-coverage: GCOV_PREFIX := ./
+self-coverage: coverage
 
 man: $(out_dir)/docs/uncov.1
 # the next target doesn't depend on $(wildcard docs/*.md) to make pandoc

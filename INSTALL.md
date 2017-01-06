@@ -28,6 +28,10 @@ Rebuilds manual page in `<out>/docs/uncov.1`, requires `pandoc`.
 Builds coverage in `coverage/` and commits it using `uncov` itself (which should
 be installed).
 
+**`self-coverage`**
+
+Builds coverage in `coverage/` and commits it using just built `uncov`.
+
 **`check`**
 
 Builds and runs tests.  Combine with `debug`, `release` or `sanitize-basic` to
