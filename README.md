@@ -1,11 +1,10 @@
-_uncov_
-_2016 - 2017_
+**uncov**, _2016 – 2017_
 
-**This file updated**: 05 January, 2017
+_This file last updated on 06 January, 2017_
 
 ### Brief Description ###
 
-**uncov** is a tool that collect and processes coverage reports.
+`uncov` is a tool that collect and processes coverage reports.
 
 By storing history of coverage reports it allows one to view how code coverage
 changes over time, compare changes that happened and view current state of the
@@ -23,16 +22,16 @@ helps to avoid switching to a browser to verify code coverage.
 
 Storage management tool itself is language independent and is relying on
 complementary tools to fetch and transform coverage data from language specific
-coverage tools.
+coverage harness.
 
-Importer of coverage for C and C++ languages that collects data from gcov is
+Importer of coverage for C and C++ languages that collects data from `gcov` is
 provided.
 
 #### Adding support for a language ####
 
 Support for other languages can be added by converting existing coverage tools
 or even using them as is.  The `new-json` subcommand accepts JSON that's used by
-[coveralls.io][[coveralls] API, all that's needed is to extract this JSON and
+[coveralls.io][coveralls] API, all what's needed is to extract this JSON and
 pipe it to `uncov new-json` (some tools might already have a command-line option
 like `--dump`, others could be extended by adding it).
 
@@ -45,17 +44,22 @@ like `--dump`, others could be extended by adding it).
 
 ### Status ###
 
-Most of the things are expected to remain as is, however they aren't finalized
-and changes for the sake of improvement are possible.  Databases will be
-migrated if schema changes, so previously collected data won't be lost.
+Overall structure and basic elements are expected to remain in place, however
+they aren't finalized and changes for the sake of improvement are possible.
+Databases will be migrated if schema changes, so previously collected data won't
+be lost.
 
 #### What's missing ####
 
  * Configuration.  Currently values that could be configurable are hard-coded.
+ * Tuning behaviour with command-line parameters (actually `--help` and
+   `--version` are missing too).
+ * Web-UI to put this on a CI server.  It exists, but code isn't ready to be
+   published yet.
 
 ### Supported Environment ###
 
-Expected to work in \*nix like environments.
+Expected to work in Unix-like environments.
 
 ### Prerequisites ###
 
@@ -74,8 +78,9 @@ Expected to work in \*nix like environments.
 ### Usage ###
 
 `uncov-gcov` can be used to generate coverage, but it seems to not play well
-with out-of-tree builds (some coverage is missing), so the recommended way of
-recording coverage information is shown in example below:
+with out-of-tree builds (some coverage is missing, this issue is inherited from
+its origin), so the recommended way of recording coverage information is shown
+in example below:
 
     # reset coverage counters from previous runs
     find . -name '*.gcda' -delete
@@ -83,7 +88,7 @@ recording coverage information is shown in example below:
     # generage coverage for every object file found (change "." to build root)
     find . -name '*.o' -exec gcov -p {} +
     # generage and combine coverage reports (--capture-worktree automatically
-    # makes stray commit if it's dirty)
+    # makes stray commit if repository is dirty)
     uncov-gcov --root . --build-root . --no-gcov --capture-worktree \
                --exclude tests | uncov new
     # remove coverage reports
@@ -96,8 +101,8 @@ recording coverage information is shown in example below:
 * [coveralls.io][coveralls] service is second project which significantly shaped
   this tool.
 * Code of `uncov-gcov` is based on [cpp-coveralls][cpp-coveralls].
-* [gcov-marker.vim][vim-gcov-marker] was source of idea of filling location list
-  with uncovered lines in the plugin.
+* [gcov-marker.vim][vim-gcov-marker] was the source of idea of filling location
+  list with not covered lines in the plugin.
 
 ### License ###
 
@@ -115,3 +120,4 @@ GNU Affero General Public License, version 3 or later.
 [zlib]: http://zlib.net/
 [pandoc]: http://pandoc.org/
 [python]: https://www.python.org/
+[vim-gcov-marker]: https://github.com/m42e/vim-gcov-marker
