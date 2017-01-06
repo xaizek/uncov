@@ -94,6 +94,46 @@ in example below:
     # remove coverage reports
     find . -name '*.gcov' -delete
 
+### Example ###
+
+The easiest way of checking out `uncov` is by using it on itself (assuming that
+you have just built it or just happen to have all the necessary development
+dependencies).
+
+In root of the project run `make self-coverage` and then do
+`coverage/uncov build` to see something similar to:
+
+![build](data/screenshots/example/build.png)
+
+`coverage/uncov dirs` shows coverage per directory:
+
+![dirs](data/screenshots/example/dirs.png)
+
+`coverage/uncov changed` shows files which have their coverage changed:
+
+![changed](data/screenshots/example/changed.png)
+
+`coverage/uncov show src/SubCommand.cpp` shows annotated `src/SubCommand.cpp`
+file:
+
+![show](data/screenshots/example/show.png)
+
+When most of a file is covered, one probably wants to see just what's not yet
+covered, this can be done with `coverage/uncov missed` command:
+
+![missed](data/screenshots/example/missed.png)
+
+### More Screenshots ###
+
+Not everything can be demonstrated by self-coverage example above, so here are
+some other interesting things.  List of latest builds (`uncov builds`):
+
+![builds](data/screenshots/builds.png)
+
+Results of comparison (`uncov diff`):
+
+![diff](data/screenshots/diff.png)
+
 ### Credits ###
 
 * [LCOV][lcov] project is the source of useful ideas and primary source of
