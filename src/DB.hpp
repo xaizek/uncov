@@ -29,6 +29,8 @@
 #include <utility>
 #include <vector>
 
+#include "utils/integer_seq.hpp"
+
 struct sqlite3;
 struct sqlite3_stmt;
 
@@ -91,12 +93,12 @@ public:
             };
         }
 
-        return makeTuple<Types...>(std::index_sequence_for<Types...>());
+        return makeTuple<Types...>(index_sequence_for<Types...>());
     }
 
 private:
     template <typename... Types, std::size_t... Is>
-    std::tuple<Types...> makeTuple(std::index_sequence<Is...>)
+    std::tuple<Types...> makeTuple(integer_sequence<Is...>)
     {
         return std::make_tuple(makeTupleItem(Is, Marker<Types>())...);
     }

@@ -63,8 +63,9 @@ public:
 
 private:
     std::string getLang(const std::string &path);
-    std::stringstream highlight(std::istream &text, const std::string &lang,
-                                srchilite::LineRanges *ranges = nullptr);
+    void highlight(std::stringstream &ss, std::istream &text,
+                   const std::string &lang,
+                   srchilite::LineRanges *ranges = nullptr);
 
 private:
     const bool colorizeOutput;
