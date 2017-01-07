@@ -83,7 +83,8 @@ Lists all directories of the last build.
 
 **Usage: dirs \<build\>**
 
-Lists all directories of **\<build\>**.
+Lists all directories of **\<build\>** comparing them against directories in its
+predecessor.
 
 **Usage: dirs \<old build\> \<new build\>**
 
@@ -111,7 +112,8 @@ Lists all files of the last build.
 
 **Usage: files \<build\>**
 
-Lists all files of **\<build\>**.
+Lists all files of **\<build\>** comparing them against files in its
+predecessor.
 
 **Usage: files \<old build\> \<new build\>**
 
