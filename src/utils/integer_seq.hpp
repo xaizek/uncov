@@ -38,7 +38,7 @@ struct Extend;
 template <std::size_t... Is>
 struct Extend<integer_sequence<Is...>>
 {
-    using type = integer_sequence<0U, (Is + 1U)...>;
+    using type = integer_sequence<Is..., sizeof...(Is)>;
 };
 
 template <typename T, typename... Ts>
