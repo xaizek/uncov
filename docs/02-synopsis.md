@@ -5,4 +5,4 @@ SYNOPSIS
 
 **uncov** -v|--version
 
-**uncov** [\<repo-path\>] \<subcommand\> [subcommand args...]
+**uncov** [\<repo-path\>] \<subcommand\> [\<subcommand args\>...]
