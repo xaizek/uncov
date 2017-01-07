@@ -34,8 +34,19 @@ main(int argc, char *argv[])
         Invocation invocation({ &argv[0], &argv[argc] });
 
         if (!invocation.getError().empty()) {
-            std::cerr << "Usage error: " << invocation.getError() << '\n';
+            std::cerr << "Usage error: " << invocation.getError() << "\n\n"
+                      << invocation.getUsage() << '\n';
             return EXIT_FAILURE;
+        }
+
+        if (invocation.shouldPrintHelp()) {
+            std::cout << invocation.getUsage() << '\n';
+            return EXIT_SUCCESS;
+        }
+
+        if (invocation.shouldPrintVersion()) {
+            std::cout << "uncov\n";
+            return EXIT_SUCCESS;
         }
 
         std::unordered_map<std::string, SubCommand *> cmds;

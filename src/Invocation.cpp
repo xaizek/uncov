@@ -17,43 +17,67 @@
 
 #include "Invocation.hpp"
 
+#include <boost/program_options.hpp>
+
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
+namespace po = boost::program_options;
+
+static po::variables_map parseOptions(const std::vector<std::string> &args);
+static std::vector<po::option>
+stopAtFirstPositional(std::vector<std::string> &args);
+
 Invocation::Invocation(std::vector<std::string> args)
 {
-    auto usageError = [this](const std::string &programName) {
-        error = "Usage: " + programName + " [repo] command [args...]";
-    };
-
     if (args.empty()) {
         throw std::invalid_argument("Broken argument list.");
     }
 
     // Extract program name.
-    const std::string programName = args[0];
+    programName = args[0];
     args.erase(args.cbegin());
 
     if (args.empty()) {
-        usageError(programName);
+        error = "No arguments.";
         return;
     }
 
-    // Extract path to repository.
-    auto isPath = [](const std::string &s) {
-        return s.substr(0, 1) == "." || s.find('/') != std::string::npos;
-    };
-    if (isPath(args.front())) {
-        repositoryPath = args.front();
-        args.erase(args.cbegin());
-    } else {
-        repositoryPath = ".";
+    po::variables_map varMap;
+    try {
+        varMap = parseOptions(args);
+    } catch (const std::exception &e) {
+        error = e.what();
+        return;
+    }
+
+    printHelp = varMap.count("help");
+    printVersion = varMap.count("version");
+    args = varMap["positional"].as<std::vector<std::string>>();
+
+    if (printHelp || printVersion) {
+        return;
+    }
+
+    if (!args.empty()) {
+        auto isPath = [](const std::string &s) {
+            return s.substr(0, 1) == "." || s.find('/') != std::string::npos;
+        };
+
+        // Extract path to repository.
+        if (isPath(args.front())) {
+            repositoryPath = args.front();
+            args.erase(args.cbegin());
+        } else {
+            repositoryPath = ".";
+        }
     }
 
     if (args.empty()) {
-        usageError(programName);
+        error = "No subcommand specified.";
         return;
     }
 
@@ -61,6 +85,82 @@ Invocation::Invocation(std::vector<std::string> args)
     subcommandName = args.front();
     args.erase(args.cbegin());
     subcommandArgs = std::move(args);
+}
+
+/**
+ * @brief Parses command line-options.
+ *
+ * Positional arguments are returned in "positional" entry, which exists even
+ * when there is no positional arguments.
+ *
+ * @param args Command-line arguments.
+ *
+ * @returns Variables map of option values.
+ */
+static po::variables_map
+parseOptions(const std::vector<std::string> &args)
+{
+    po::options_description hiddenOpts;
+    hiddenOpts.add_options()
+        ("positional", po::value<std::vector<std::string>>()
+                       ->default_value({}, ""),
+         "positional args");
+
+    po::positional_options_description positional_options;
+    positional_options.add("positional", -1);
+
+    po::options_description cmdline_options;
+
+    cmdline_options.add_options()
+        ("help,h", "display help message")
+        ("version,v", "display version");
+
+    po::options_description all_options;
+    all_options.add(cmdline_options).add(hiddenOpts);
+
+    auto parsed_from_cmdline =
+        po::command_line_parser(args)
+        .options(all_options)
+        .positional(positional_options)
+        .extra_style_parser(&stopAtFirstPositional)
+        .run();
+
+    po::variables_map varMap;
+    po::store(parsed_from_cmdline, varMap);
+    return varMap;
+}
+
+/**
+ * @brief Command-line option parser that captures as positional argument any
+ *        element starting from the first positional argument.
+ *
+ * @param args Arguments.
+ *
+ * @returns Parsed arguments.
+ */
+static std::vector<po::option>
+stopAtFirstPositional(std::vector<std::string> &args)
+{
+    std::vector<po::option> result;
+    const std::string &tok = args[0];
+    if (!tok.empty() && tok.front() != '-') {
+        for (unsigned int i = 0U; i < args.size(); ++i) {
+            po::option opt;
+            opt.value.push_back(args[i]);
+            opt.original_tokens.push_back(args[i]);
+            opt.position_key = std::numeric_limits<int>::max();
+            result.push_back(opt);
+        }
+        args.clear();
+    }
+    return result;
+}
+
+std::string
+Invocation::getUsage() const
+{
+    return "Usage: "
+         + programName + " [--help|-h] [--version|-v] [repo] command [args...]";
 }
 
 const std::string &
@@ -85,4 +185,16 @@ const std::vector<std::string> &
 Invocation::getSubcommandArgs() const
 {
     return subcommandArgs;
+}
+
+bool
+Invocation::shouldPrintHelp() const
+{
+    return printHelp;
+}
+
+bool
+Invocation::shouldPrintVersion() const
+{
+    return printVersion;
 }

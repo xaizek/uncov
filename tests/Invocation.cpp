@@ -17,6 +17,8 @@
 
 #include "Catch/catch.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <stdexcept>
 
 #include "Invocation.hpp"
@@ -79,4 +81,36 @@ TEST_CASE("Repository argument is optional", "[Invocation]")
         CHECK(invocation.getSubcommandName() == "builds");
         CHECK(invocation.getSubcommandArgs() == vs({}));
     }
+}
+
+TEST_CASE("Options are parsed", "[Invocation]")
+{
+    SECTION("Without repository name")
+    {
+        Invocation invocation({ "uncov", "--help", "--version" });
+        REQUIRE(invocation.getError() == std::string());
+        CHECK(invocation.shouldPrintHelp());
+        CHECK(invocation.shouldPrintVersion());
+    }
+
+    SECTION("With repository name")
+    {
+        Invocation invocation({ "uncov", "--help", "." });
+        REQUIRE(invocation.getError() == std::string());
+        CHECK(invocation.shouldPrintHelp());
+    }
+}
+
+TEST_CASE("Usage message includes program name", "[Invocation]")
+{
+    Invocation invocation({ "asdf", "subcommand" });
+
+    CHECK(boost::contains(invocation.getUsage(), "asdf"));
+}
+
+TEST_CASE("Wrong option causes an error", "[Invocation]")
+{
+    Invocation invocation({ "uncov", "--no-such-option" });
+
+    CHECK(invocation.getError() != std::string());
 }

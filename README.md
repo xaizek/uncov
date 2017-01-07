@@ -1,6 +1,6 @@
 **uncov**, _2016 – 2017_
 
-_This file last updated on 06 January, 2017_
+_This file last updated on 07 January, 2017_
 
 ### Brief Description ###
 
@@ -52,10 +52,7 @@ be lost.
 #### What's missing ####
 
  * Configuration.  Currently values that could be configurable are hard-coded.
- * Tuning behaviour with command-line parameters (actually `--help` and
-   `--version` are missing too).
- * Web-UI to put this on a CI server.  It exists, but code isn't ready to be
-   published yet.
+ * Tuning behaviour with command-line parameters.
 
 ### Supported Environment ###
 

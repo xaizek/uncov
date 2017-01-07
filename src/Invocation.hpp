@@ -38,6 +38,13 @@ public:
 
 public:
     /**
+     * @brief Retrieves usage message.
+     *
+     * @returns The message.
+     */
+    std::string getUsage() const;
+
+    /**
      * @brief Retrieves error message, if any.
      *
      * @returns Empty string if there is no error, otherwise error message.
@@ -65,7 +72,25 @@ public:
      */
     const std::vector<std::string> & getSubcommandArgs() const;
 
-public:
+    /**
+     * @brief Checks whether usage information printing was requested.
+     *
+     * @returns @c true if so, @c false otherwise.
+     */
+    bool shouldPrintHelp() const;
+
+    /**
+     * @brief Checks whether version information printing was requested.
+     *
+     * @returns @c true if so, @c false otherwise.
+     */
+    bool shouldPrintVersion() const;
+
+private:
+    /**
+     * @brief Name of the program.
+     */
+    std::string programName;
     /**
      * @brief Error message or empty string.
      */
@@ -82,6 +107,14 @@ public:
      * @brief Arguments for subcommand.
      */
     std::vector<std::string> subcommandArgs;
+    /**
+     * @brief Whether usage information printing was requested.
+     */
+    bool printHelp = false;
+    /**
+     * @brief Whether version information printing was requested.
+     */
+    bool printVersion = false;
 };
 
 #endif // UNCOV__INVOCATION_HPP__
