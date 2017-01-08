@@ -1,0 +1,112 @@
+#!/bin/bash
+#
+# Hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+
+# This hook:
+#  * checks for whitespace errors
+#  * checks for bad characters
+#  * runs tests on changes that are about to be committed
+
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+    against=HEAD
+else
+    # Initial commit: diff against an empty tree object
+    against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+# If you want to allow non-ascii filenames set this variable to true.
+allownonascii=$(git config hooks.allownonascii)
+
+# Cross platform projects tend to avoid non-ascii filenames; prevent
+# them from being added to the repository. We exploit the fact that the
+# printable range starts at the space character and ends with tilde.
+if [ "$allownonascii" != "true" ] &&
+    # Note that the use of brackets around a tr range is ok here, (it's
+    # even required, for portability to Solaris 10's /usr/bin/tr), since
+    # the square bracket bytes happen to fall in the designated range.
+    test "$(git diff --cached --name-only --diff-filter=A -z $against |
+      LC_ALL=C tr -d '[ -~]\0')"
+then
+    echo "Error: Attempt to add a non-ascii file name."
+    echo
+    echo "This can cause problems if you want to work"
+    echo "with people on other platforms."
+    echo
+    echo "To be portable it is advisable to rename the file ..."
+    echo
+    echo "If you know what you are doing you can disable this"
+    echo "check using:"
+    echo
+    echo "  git config hooks.allownonascii true"
+    echo
+    exit 1
+fi
+
+function pop_stashed()
+{
+    # pop stashed changes if working directory wasn't clean
+    if [ -z "$DIRTY" ]; then
+        return
+    fi
+
+    git reset --hard HEAD
+    local skipped="$(git ls-files -t | grep ^S | cut -d' ' -f2-)"
+    if ! git stash pop --quiet --index; then
+        return 1
+    fi
+
+    while read file; do
+        git update-index --skip-worktree "$file"
+    done <<< "$skipped"
+}
+
+function check_odd_whitespace()
+{
+    # check for odd whitespace
+    git diff-index --check --color $1 $against --
+    local check_exit_code="$?"
+    if [ "$check_exit_code" -ne "0" ]; then
+        echo -e "\e[1;31m""Your changes introduce whitespace errors" "\e[7;0m"
+        if [[ -z "$ALLOW_WHITESPACE_ERRORS" ]]; then
+            exit $check_exit_code
+        fi
+    fi
+}
+
+# check for odd whitespace before build
+check_odd_whitespace --cached
+
+# determine working tree status
+if ! git diff --quiet || \
+    [ "$(git status --short | tail -1 | cut -f1 -d' ')" = '??' ]; then
+    DIRTY=1
+fi
+
+# stash not staged for commit changes
+if [ -n "$DIRTY" ]; then
+    if ! git stash save --include-untracked --keep-index; then
+        return 1
+    fi
+    trap pop_stashed EXIT
+fi
+
+if ! git diff --quiet HEAD; then
+    # run build using staged changes only
+    # use release build as with its optimization level compiler is able to issue
+    # more warnings
+    nice ionice make --jobs 6 check release
+    RESULT="$?"
+else
+    RESULT="0"
+fi
+
+# check for odd whitespace after build
+check_odd_whitespace
+
+# stashed changes (if any) are automatically restored by EXIT trap handler
+
+# return result of build
+exit $RESULT
