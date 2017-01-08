@@ -28,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-#include "md5.hpp"
+#include "utils/md5.hpp"
 
 template <typename T>
 class Repository::GitObjPtr

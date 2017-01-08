@@ -36,6 +36,7 @@
 
 #include "utils/Text.hpp"
 #include "utils/fs.hpp"
+#include "utils/md5.hpp"
 #include "BuildHistory.hpp"
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
@@ -46,7 +47,6 @@
 #include "coverage.hpp"
 #include "integration.hpp"
 #include "listings.hpp"
-#include "md5.hpp"
 
 namespace {
 

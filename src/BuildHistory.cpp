@@ -28,8 +28,8 @@
 #include <vector>
 #include <map>
 
+#include "utils/md5.hpp"
 #include "DB.hpp"
-#include "md5.hpp"
 
 static std::string hashCoverage(const std::vector<int> &vec);
 static void updateDBSchema(DB &db, int fromVersion);
