@@ -17,12 +17,23 @@
 
 #include "SubCommand.hpp"
 
+#include <cassert>
 #include <cstdlib>
 
 #include <algorithm>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+SubCommand::~SubCommand()
+{
+    for (const std::string &alias : names) {
+        if (descriptions[alias].empty()) {
+            assert(false && "An alias lacks description.");
+        }
+    }
+}
 
 std::vector<SubCommand *>
 SubCommand::getAll()
@@ -58,8 +69,7 @@ SubCommand::exec(BuildHistory &bh, Repository &repo, const std::string &alias,
         error();
     }
 
-    // Check that name matches one of aliases.
-    if (std::find(names.cbegin(), names.cend(), alias) == names.cend()) {
+    if (!isAlias(alias)) {
         std::cout << "Unexpected subcommand name: " << alias << '\n';
         error();
     }
@@ -75,9 +85,29 @@ SubCommand::exec(BuildHistory &bh, Repository &repo, const std::string &alias,
 }
 
 void
+SubCommand::describe(const std::string &alias, const std::string &descr)
+{
+    if (!isAlias(alias)) {
+        throw std::logic_error("Unexpected subcommand name: " + alias);
+    }
+    if (descriptions.find(alias) != descriptions.end()) {
+        throw std::logic_error("Alias described twice: " + alias);
+    }
+
+    descriptions.emplace(alias, descr);
+}
+
+void
 SubCommand::error()
 {
     hasErrors = true;
+}
+
+bool
+SubCommand::isAlias(const std::string &alias) const
+{
+    // Check that name matches one of aliases.
+    return (std::find(names.cbegin(), names.cend(), alias) != names.cend());
 }
 
 std::string

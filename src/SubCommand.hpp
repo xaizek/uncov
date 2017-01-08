@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -44,8 +45,8 @@ private:
     static std::vector<std::unique_ptr<SubCommand>> & getAllCmds();
 
 public:
-    SubCommand(std::vector<std::string> names, std::size_t minArgs,
-               std::size_t maxArgs)
+    SubCommand(std::vector<std::string> names,
+               std::size_t minArgs, std::size_t maxArgs)
         : names(std::move(names)), minArgs(minArgs), maxArgs(maxArgs)
     {
     }
@@ -55,7 +56,7 @@ public:
     {
     }
 
-    virtual ~SubCommand() = default;
+    virtual ~SubCommand();
 
 public:
     const std::vector<std::string> & getNames() const
@@ -63,10 +64,17 @@ public:
         return names;
     }
 
+    const std::string & getDescription(const std::string &alias) const
+    {
+        return descriptions.at(alias);
+    }
+
     int exec(BuildHistory &bh, Repository &repo, const std::string &alias,
              const std::vector<std::string> &args);
 
 protected:
+    void describe(const std::string &alias, const std::string &descr);
+
     void error();
 
     bool isFailed() const
@@ -80,6 +88,7 @@ protected:
 
 private:
     std::string makeExpectedMsg() const;
+    bool isAlias(const std::string &alias) const;
 
 private:
     virtual void execImpl(const std::string &alias,
@@ -91,6 +100,7 @@ private:
     const std::size_t maxArgs;
 
     int hasErrors = false;
+    std::unordered_map<std::string, std::string> descriptions;
     BuildHistory *bhValue;
     Repository *repoValue;
 };

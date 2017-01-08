@@ -4,7 +4,7 @@ LIST OF SUBCOMMANDS
 build
 -----
 
-Displays information about one build.
+Displays information about single build.
 
 **Usage: build**
 
@@ -104,7 +104,7 @@ located under **\<directory path\>**.
 files
 -----
 
-Lists statistics of files.
+Lists statistics about files.
 
 **Usage: files**
 
@@ -128,7 +128,7 @@ Lists files of **\<build\>** (or last build) located under
 **Usage: files [\<old build\>] [\<new build\>] \<path\>**
 
 See forms above for information about first two arguments.  Lists files located
-under **\<path\>** (if it's a directory) or one file that exactly matches the
+under **\<path\>** (if it's a directory) or single file that exactly matches the
 path.
 
 get

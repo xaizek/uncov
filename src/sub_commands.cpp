@@ -165,6 +165,7 @@ class BuildCmd : public AutoSubCommand<BuildCmd>
 public:
     BuildCmd() : AutoSubCommand({ "build" }, 0U, 1U)
     {
+        describe("build", "Displays information about single build");
     }
 
 private:
@@ -208,6 +209,7 @@ class BuildsCmd : public AutoSubCommand<BuildsCmd>
 public:
     BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
     {
+        describe("builds", "Lists builds");
     }
 
 private:
@@ -255,6 +257,8 @@ class DiffCmd : public AutoSubCommand<DiffCmd>
 public:
     DiffCmd() : AutoSubCommand({ "diff", "diff-hits" }, 0U, 3U)
     {
+        describe("diff", "Compares builds, directories or files");
+        describe("diff-hits", "Compares builds, directories or files by hits");
     }
 
 private:
@@ -436,6 +440,9 @@ class FilesCmd : public AutoSubCommand<FilesCmd>
 public:
     FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
     {
+        describe("files", "Lists statistics about files");
+        describe("changed", "Lists statistics about changed files");
+        describe("dirs", "Lists statistics about directories");
     }
 
 private:
@@ -507,6 +514,7 @@ class GetCmd : public AutoSubCommand<GetCmd>
 public:
     GetCmd() : AutoSubCommand({ "get" }, 2U)
     {
+        describe("get", "Dumps coverage information of a file");
     }
 
 private:
@@ -538,6 +546,7 @@ class NewCmd : public AutoSubCommand<NewCmd>
 public:
     NewCmd() : AutoSubCommand({ "new" })
     {
+        describe("new", "Imports new build from stdin");
     }
 
 private:
@@ -603,6 +612,7 @@ class NewJsonCmd : public AutoSubCommand<NewJsonCmd>
 public:
     NewJsonCmd() : AutoSubCommand({ "new-json" })
     {
+        describe("new-json", "Imports new build in JSON format from stdin");
     }
 
 private:
@@ -690,6 +700,8 @@ class ShowCmd : public AutoSubCommand<ShowCmd>
 public:
     ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)
     {
+        describe("missed", "Displays missed in a build, directory or file");
+        describe("show", "Displays a build, directory or file");
     }
 
 private:

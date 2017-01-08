@@ -18,14 +18,18 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <map>
 #include <stdexcept>
-#include <unordered_map>
 
 #include "BuildHistory.hpp"
 #include "DB.hpp"
 #include "Invocation.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
+#include "TablePrinter.hpp"
+#include "integration.hpp"
+
+static void describeCommands(const std::map<std::string, SubCommand *> &cmds);
 
 int
 main(int argc, char *argv[])
@@ -39,21 +43,22 @@ main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
+        std::map<std::string, SubCommand *> cmds;
+        for (SubCommand *cmd : SubCommand::getAll()) {
+            for (const std::string &name : cmd->getNames()) {
+                cmds.emplace(name, cmd);
+            }
+        }
+
         if (invocation.shouldPrintHelp()) {
-            std::cout << invocation.getUsage() << '\n';
+            std::cout << invocation.getUsage() << "\n\n";
+            describeCommands(cmds);
             return EXIT_SUCCESS;
         }
 
         if (invocation.shouldPrintVersion()) {
             std::cout << "uncov\n";
             return EXIT_SUCCESS;
-        }
-
-        std::unordered_map<std::string, SubCommand *> cmds;
-        for (SubCommand *cmd : SubCommand::getAll()) {
-            for (const std::string &name : cmd->getNames()) {
-                cmds.emplace(name, cmd);
-            }
         }
 
         auto cmd = cmds.find(invocation.getSubcommandName());
@@ -73,4 +78,22 @@ main(int argc, char *argv[])
         std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
+}
+
+static void
+describeCommands(const std::map<std::string, SubCommand *> &cmds)
+{
+    std::cout << "Subcommands\n";
+
+    TablePrinter tablePrinter {
+        { "-Name", "-Description" }, getTerminalSize().first, true
+    };
+
+    for (const auto &entry : cmds) {
+        tablePrinter.append({ "   " + entry.first,
+                              entry.second->getDescription(entry.first) });
+    }
+
+    RedirectToPager redirectToPager;
+    tablePrinter.print(std::cout);
 }

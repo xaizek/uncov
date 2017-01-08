@@ -159,8 +159,8 @@ stopAtFirstPositional(std::vector<std::string> &args)
 std::string
 Invocation::getUsage() const
 {
-    return "Usage: "
-         + programName + " [--help|-h] [--version|-v] [repo] command [args...]";
+    return "Usage: " + programName
+         + " [--help|-h] [--version|-v] [repo] subcommand [args...]";
 }
 
 const std::string &
