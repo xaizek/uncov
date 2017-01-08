@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# Hook script to collect coverage information for uncov.
+#
+# Define SKIP_POST_HOOK to skip coverage collection, e.g., on amend of README:
+#
+#     SKIP_POST_HOOK=1 git commit --amend
+
+if [ -n "$SKIP_POST_HOOK" ]; then
+    exit 0
+fi
+
+function pop_stashed()
+{
+    # pop stashed changes if working directory wasn't clean
+    if [ -z "$DIRTY" ]; then
+        return
+    fi
+
+    git reset --hard HEAD
+    local skipped="$(git ls-files -t | grep ^S | cut -d' ' -f2-)"
+    git stash pop --quiet --index
+
+    while read file; do
+        git update-index --skip-worktree "$file"
+    done <<< "$skipped"
+}
+
+# determine working tree status
+if ! git diff --quiet || \
+    [ "$(git status --short | tail -1 | cut -f1 -d' ')" = '??' ]; then
+    DIRTY=1
+fi
+
+# stash not staged for commit changes
+if [ -n "$DIRTY" ]; then
+    if ! git stash save --include-untracked --keep-index; then
+        exit 1
+    fi
+    trap pop_stashed EXIT
+fi
+
+nice ionice make --jobs 6 coverage
+RESULT="$?"
+
+# stashed changes (if any) are automatically restored by EXIT trap handler
