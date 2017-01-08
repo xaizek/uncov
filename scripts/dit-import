@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# This script updates reduced in-tree dump of TODO.md file by importing its
+# contents from dit and applying necessary formatting.
+
+function process_item()
+{
+    if [ "$first" == 0 ]; then
+        echo
+    fi
+
+    echo "## ${data[title]} ##"
+
+    echo
+    column -x -t -o ' | ' -s '|' <<-EOF | sed -e 's/^/| /' -e 's/|[^|]\+$/|/' \
+                                              -e '1{h;s/[^|]/-/g;x;G}'
+	ID | Status | Type | dummy
+	${data[_id]} | ${data[status]} | ${data[type]} | dummy
+	EOF
+
+    if [ "${data[status]}" = partial ]; then
+        echo '(partially done)'
+    fi
+
+    if [ -n "${data[comment]}" ]; then
+        echo
+        echo "${data[comment]}"
+    fi
+
+    first=0
+}
+
+function process_items()
+{
+    declare -A data
+    first=1
+    while read -rd $'\0' line; do
+        if [ -z "$line" ]; then
+            process_item
+            unset data
+            declare -A data
+            continue
+        fi
+
+        key="${line%%=*}"
+        value="${line#*=}"
+
+        data[$key]="$value"
+    done
+}
+
+function list_component()
+{
+    local title="$1"
+    shift
+
+    local out="$(dit .uncov export - \
+                     status!=done status!=dismissed status!=fixed "$@" |
+                 process_items)"
+    if [ -n "$out" ]; then
+        echo
+        echo "# $title #"
+        echo
+        echo "$out"
+    fi
+}
+
+function make_todo()
+{
+    list_component 'Core' component==
+    list_component 'Vim Plugin' component==vim-plugin
+}
+
+dir="$(readlink -f "$(dirname "$0")")"
+
+make_todo | tail +2 > "$dir/../TODO.md"

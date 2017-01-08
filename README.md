@@ -1,6 +1,6 @@
 **uncov**, _2016 – 2017_
 
-_This file last updated on 08 January, 2017_
+_This file last updated on 09 January, 2017_
 
 ### Brief Description ###
 
@@ -49,7 +49,7 @@ they aren't finalized and changes for the sake of improvement are possible.
 Databases will be migrated if schema changes, so previously collected data won't
 be lost.
 
-#### What's missing ####
+#### Main things missing ####
 
  * Configuration.  Currently values that could be configurable are hard-coded.
  * Tuning behaviour with command-line parameters.
