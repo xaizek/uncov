@@ -1,6 +1,6 @@
 **uncov**, _2016 – 2017_
 
-_This file last updated on 07 January, 2017_
+_This file last updated on 08 January, 2017_
 
 ### Brief Description ###
 
@@ -141,6 +141,8 @@ Results of comparison (`uncov diff`):
   list with not covered lines in the plugin.
 
 ### License ###
+
+![AGPLv3+](data/agplv3.png)
 
 GNU Affero General Public License, version 3 or later.
 
