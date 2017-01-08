@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@openmailbox.org>
-" Last Change: 2017 January 03
+" Last Change: 2017 January 08
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -17,13 +17,6 @@ augroup Uncov
                 \ highlight UncovCovered ctermbg=darkgreen guibg=darkgreen
     autocmd ColorScheme *
                 \ highlight UncovMissed ctermbg=darkred guibg=darkred
-    " when closing the buffer, return to original tab
-    autocmd BufWinLeave *
-            \ if tabpagewinnr(tabpagenr(), '$') == 1 &&
-            \   getbufvar(expand('<afile>'), 'uncovOriginalTab', -1) > 0 |
-            \     execute 'normal' getbufvar(expand('<afile>'),
-            \                                'uncovOriginalTab').'gt' |
-            \ endif
 augroup end
 doautocmd Uncov ColorScheme
 
@@ -54,9 +47,7 @@ function! s:ShowCoverage() abort
 
     let l:cursPos = getcurpos()
 
-    let l:originalTab = tabpagenr()
     tabedit
-    let b:uncovOriginalTab = l:originalTab
 
     let l:coverage = l:coverageInfo[1:]
     let [l:loclist, b:uncovCovered, b:uncoRelevant] =
