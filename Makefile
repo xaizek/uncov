@@ -117,6 +117,7 @@ docs/uncov.1: force | $(out_dir)/docs
 	pandoc -V title=uncov \
 	       -V section=1 \
 	       -V app=uncov \
+	       -V footer="uncov v0.1" \
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@openmailbox.org>' \
 	       -s -o $@ $(sort $(wildcard docs/*.md))
