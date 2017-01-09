@@ -37,7 +37,7 @@ static void updateDBSchema(DB &db, int fromVersion);
 /**
  * @brief Current database scheme version.
  */
-const int AppDBVersion = 3;
+const int AppDBVersion = 1;
 
 File::File(std::string path, std::string hash, std::vector<int> coverage)
     : path(std::move(path)), hash(std::move(hash)),
@@ -310,8 +310,10 @@ updateDBSchema(DB &db, int fromVersion)
                     buildid INTEGER,
                     vcsref TEXT NOT NULL,
                     vcsrefname TEXT NOT NULL,
-                    covered INTEGER,
-                    uncovered INTEGER,
+                    covered INTEGER NOT NULL,
+                    missed INTEGER NOT NULL,
+                    timestamp INTEGER NOT NULL
+                              DEFAULT (CAST(strftime('%s', 'now') AS INT)),
 
                     PRIMARY KEY (buildid)
                 )
@@ -336,61 +338,6 @@ updateDBSchema(DB &db, int fromVersion)
                     FOREIGN KEY (fileid) REFERENCES files(fileid)
                 )
             )");
-            // Fall through.
-        case 1:
-            db.execute(R"(
-                CREATE TABLE builds_new (
-                    buildid INTEGER,
-                    vcsref TEXT NOT NULL,
-                    vcsrefname TEXT NOT NULL,
-                    covered INTEGER NOT NULL,
-                    uncovered INTEGER NOT NULL,
-                    timestamp INTEGER NOT NULL
-                              DEFAULT (CAST(strftime('%s', 'now') AS INT)),
-
-                    PRIMARY KEY (buildid)
-                )
-            )");
-
-            for (std::tuple<int, std::string, std::string, int, int> vals :
-                db.queryAll("SELECT buildid, vcsref, vcsrefname, "
-                                   "covered, uncovered "
-                            "FROM builds")) {
-                db.execute("INSERT INTO builds_new (buildid, vcsref, "
-                                                   "vcsrefname, covered, "
-                                                   "uncovered) "
-                           "VALUES (:buildid, :ref, :refname, :covered, "
-                                   ":uncovered)",
-                           { ":buildid"_b = std::get<0>(vals),
-                             ":ref"_b = std::get<1>(vals),
-                             ":refname"_b = std::get<2>(vals),
-                             ":covered"_b = std::get<3>(vals),
-                             ":uncovered"_b = std::get<4>(vals) });
-            }
-
-            db.execute("DROP TABLE builds");
-            db.execute("ALTER TABLE builds_new RENAME TO builds");
-            // Fall through.
-        case 2:
-            db.execute(R"(
-                CREATE TABLE builds_new (
-                    buildid INTEGER,
-                    vcsref TEXT NOT NULL,
-                    vcsrefname TEXT NOT NULL,
-                    covered INTEGER NOT NULL,
-                    missed INTEGER NOT NULL,
-                    timestamp INTEGER NOT NULL
-                              DEFAULT (CAST(strftime('%s', 'now') AS INT)),
-
-                    PRIMARY KEY (buildid)
-                )
-            )");
-            db.execute("INSERT INTO builds_new (buildid, vcsref, vcsrefname, "
-                                               "covered, missed) "
-                       "SELECT buildid, vcsref, vcsrefname, covered, uncovered "
-                       "FROM builds");
-            db.execute("DROP TABLE builds");
-            db.execute("ALTER TABLE builds_new RENAME TO builds");
             // Fall through.
         case AppDBVersion:
             break;
