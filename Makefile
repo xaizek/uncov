@@ -142,7 +142,8 @@ install: release
 	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
 
 uninstall:
-	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/bin/uncov-gcov \
+	      $(DESTDIR)/usr/share/man/man1/uncov.1
 
 # work around parenthesis warning in tests somehow caused by ccache
 $(out_dir)/tests/tests: EXTRA_CXXFLAGS += -Wno-error=parentheses -Itests/
