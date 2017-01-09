@@ -49,7 +49,9 @@ _SKIP_DIRS = set(['.git', '.hg', '.svn', 'deps'])
 
 
 def create_args(params):
-    parser = argparse.ArgumentParser('uncov')
+    parser = argparse.ArgumentParser('uncov-gcov')
+    parser.add_argument('-v', '--version', action='store_true',
+                        help='print version information')
     parser.add_argument('--verbose', action='store_true',
                         help='print verbose messages')
     parser.add_argument('--dryrun', action='store_true',
@@ -493,6 +495,10 @@ def run():
     import sys
 
     args = create_args(sys.argv[1:])
+
+    if args.version:
+        print('uncov-gcov v0.1')
+        exit(0)
 
     if args.verbose:
         print('encodings: {}'.format(args.encodings))

@@ -49,6 +49,14 @@ Functions to use:
  - `git_commit_parent_id()`
  - `git_commit_parentcount()`
 
+## Consider different path sorting. ##
+
+| ID   |  Status     |  Type    |
+|------|-------------|----------|
+| BSY  |  undecided  |  change  |
+
+The one which puts contents of child above contents of current one.
+
 ## @branch notation to lookup the latest build on that branch. ##
 
 | ID   |  Status     |  Type      |
@@ -160,6 +168,16 @@ Could use git config file in repos (or shouldn't?).
 Another suitable place is separate table in the database.
 
 And might need a global one at some point too.
+
+Implementation could be:
+
+1. Abstract `*Settings` class per unit that needs settings (`FileComparator`,
+   `FilePrinter`, etc.).
+2. A way to set pointer (wrapped in `std::shared<>`) for each such unit (a
+   static member of that abstract class, separate function or could be a
+   parameter).
+3. One `Settings` class (in `main.cpp` probably) that implements all those
+   interfaces and is then set used by all units.
 
 ## Maybe introduce range syntax to specify two builds. ##
 
