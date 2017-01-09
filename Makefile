@@ -110,10 +110,10 @@ self-coverage: UNCOV_PREFIX := $(out_dir)/
 self-coverage: GCOV_PREFIX := ./
 self-coverage: coverage
 
-man: $(out_dir)/docs/uncov.1
+man: docs/uncov.1
 # the next target doesn't depend on $(wildcard docs/*.md) to make pandoc
 # optional
-$(out_dir)/docs/uncov.1: force | $(out_dir)/docs
+docs/uncov.1: force | $(out_dir)/docs
 	pandoc -V title=uncov \
 	       -V section=1 \
 	       -V app=uncov \
@@ -139,8 +139,7 @@ check: $(target) $(out_dir)/tests/tests reset-coverage
 
 install: release
 	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) uncov-gcov
-	$(INSTALL) -m 644 $(out_dir)/docs/uncov.1 \
-	                  $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
 
 uninstall:
 	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/share/man/man1/uncov.1
