@@ -77,7 +77,7 @@ private:
 class TempDirCopy
 {
 public:
-    TempDirCopy(const std::string &from, const std::string &to);
+    TempDirCopy(const std::string &from, const std::string &to, bool force);
 
     TempDirCopy(const TempDirCopy &) = delete;
     TempDirCopy & operator=(const TempDirCopy &) = delete;

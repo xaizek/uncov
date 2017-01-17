@@ -9,7 +9,10 @@ int
 main(int argc, const char *argv[])
 {
     decor::disableDecorations();
-    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git");
+
+    // Remove destination directory if it exists to account for crashes.
+    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git",
+                            true);
 
     return Catch::Session().run(argc, argv);
 }

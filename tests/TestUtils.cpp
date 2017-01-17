@@ -23,9 +23,13 @@ namespace fs = boost::filesystem;
 
 static void copyDir(const fs::path &src, const fs::path &dst);
 
-TempDirCopy::TempDirCopy(const std::string &from, const std::string &to)
+TempDirCopy::TempDirCopy(const std::string &from, const std::string &to,
+                         bool force)
     : to(to)
 {
+    if (force) {
+        fs::remove_all(to);
+    }
     copyDir(from, to);
 }
 
