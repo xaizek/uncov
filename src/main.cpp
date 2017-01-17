@@ -19,12 +19,14 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stdexcept>
 
 #include "BuildHistory.hpp"
 #include "DB.hpp"
 #include "Invocation.hpp"
 #include "Repository.hpp"
+#include "Settings.hpp"
 #include "SubCommand.hpp"
 #include "TablePrinter.hpp"
 #include "integration.hpp"
@@ -34,6 +36,9 @@ static void describeCommands(const std::map<std::string, SubCommand *> &cmds);
 int
 main(int argc, char *argv[])
 {
+    auto settings = std::make_shared<Settings>();
+    PrintingSettings::set(settings);
+
     try {
         Invocation invocation({ &argv[0], &argv[argc] });
 

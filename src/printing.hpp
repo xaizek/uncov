@@ -21,8 +21,55 @@
 #include <cstddef>
 #include <ctime>
 
+#include <memory>
 #include <sstream>
 #include <string>
+
+/**
+ * @brief Unit-specific settings.
+ */
+class PrintingSettings
+{
+public:
+    /**
+     * @brief Enable polymorphic destruction.
+     */
+    virtual ~PrintingSettings() = default;
+
+public:
+    /**
+     * @brief Retrieves time format string for @c Time printer.
+     *
+     * @returns The format string.
+     */
+    virtual std::string getTimeFormat() const = 0;
+
+    /**
+     * @brief Retrieves medium limit for @c Coverage printer.
+     *
+     * Should be between 0.0 and HiLimit.
+     *
+     * @returns The limit.
+     */
+    virtual float getMedLimit() const = 0;
+
+    /**
+     * @brief Retrieves high limit for @c Coverage printer.
+     *
+     * Should be greater than or equal to MedLimit.
+     *
+     * @returns The limit.
+     */
+    virtual float getHiLimit() const = 0;
+
+public:
+    /**
+     * @brief Sets settings for the unit.
+     *
+     * @param settings Pointer to object implementing the settings.
+     */
+    static void set(std::shared_ptr<PrintingSettings> settings);
+};
 
 /**
  * @brief Wrapper to enable multiple overloads for the same type of data.

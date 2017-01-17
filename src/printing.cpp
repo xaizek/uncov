@@ -20,6 +20,7 @@
 #include <cstddef>
 
 #include <iomanip>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -29,6 +30,11 @@
 #include "decoration.hpp"
 
 namespace {
+
+/**
+ * @brief Settings for this unit.  Must be set before using the unit.
+ */
+std::shared_ptr<PrintingSettings> settings;
 
 const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "linesbad",      decor::bold + decor::red_fg   },
@@ -118,6 +124,12 @@ printHits(std::ostream &os, int hits, bool silent)
 
 }
 
+void
+PrintingSettings::set(std::shared_ptr<PrintingSettings> settings)
+{
+    ::settings = std::move(settings);
+}
+
 std::ostream &
 operator<<(std::ostream &os, const CLinesChange &change)
 {
@@ -174,11 +186,9 @@ operator<<(std::ostream &os, const CoverageChange &change)
 std::ostream &
 operator<<(std::ostream &os, const Coverage &coverage)
 {
-    // XXX: hard-coded coverage thresholds.
-
-    if (coverage.data < 70.0f) {
+    if (coverage.data < settings->getMedLimit()) {
         return os << (Highlight("covbad") << coverage.data << '%');
-    } else if (coverage.data < 90.0f) {
+    } else if (coverage.data < settings->getHiLimit()) {
         return os << (Highlight("covnormal") << coverage.data << '%');
     } else {
         return os << (Highlight("covgood") << coverage.data << '%');
@@ -242,7 +252,7 @@ operator<<(std::ostream &os, const Revision &rev)
 std::ostream &
 operator<<(std::ostream &os, const Time &t)
 {
-    // XXX: hard-coded time format.
     return os << (Highlight("time")
-              << put_time(std::localtime(&t.data), "%Y-%m-%d %H:%M:%S"));
+              << put_time(std::localtime(&t.data),
+                          settings->getTimeFormat().c_str()));
 }
