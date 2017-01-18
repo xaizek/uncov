@@ -20,13 +20,14 @@
 
 #include <string>
 
+#include "FilePrinter.hpp"
 #include "printing.hpp"
 
-class Settings : public PrintingSettings
+class Settings : public PrintingSettings, public FilePrinterSettings
 {
     // XXX: hard-coded values.
 
-public:
+public: // PrintingSettings
     virtual std::string getTimeFormat() const override
     {
         return "%Y-%m-%d %H:%M:%S";
@@ -40,6 +41,12 @@ public:
     virtual float getHiLimit() const override
     {
         return 90.0f;
+    }
+
+public: // FilePrinterSettings
+    virtual int getTabSize() const override
+    {
+        return 4;
     }
 };
 
