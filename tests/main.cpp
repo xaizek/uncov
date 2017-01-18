@@ -12,8 +12,7 @@
 int
 main(int argc, const char *argv[])
 {
-    auto settings = std::make_shared<Settings>();
-    PrintingSettings::set(settings);
+    PrintingSettings::set(getSettings());
 
     decor::disableDecorations();
 
