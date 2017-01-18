@@ -109,13 +109,11 @@ TEST_CASE("Files are compared by hits", "[FileComparator]")
     CHECK(!comparator.areEqual());
 
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
-    REQUIRE(diff.size() == 6U);
+    REQUIRE(diff.size() == 4U);
     CHECK(diff[0].type == DiffLineType::Identical);
     CHECK(diff[1].type == DiffLineType::Common);
     CHECK(diff[2].type == DiffLineType::Identical);
-    CHECK(diff[3].type == DiffLineType::Identical);
-    CHECK(diff[4].type == DiffLineType::Identical);
-    CHECK(diff[5].type == DiffLineType::Identical);
+    CHECK(diff[3].type == DiffLineType::Note);
 }
 
 TEST_CASE("Files identical by state are detected", "[FileComparator]")

@@ -77,11 +77,11 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
     size_type identicalLines = 0U;
 
     auto foldIdentical = [this, &identicalLines](bool last) {
-        if (identicalLines > 4) {
-            int startContext = last ? 0 : 1;
-            int endContext = identicalLines == diffSeq.size() ? 0 : 1;
-            int context = startContext + endContext;
+        const size_type startContext = (last ? 0 : 1);
+        const size_type endContext = (identicalLines == diffSeq.size() ? 0 : 1);
+        const size_type context = startContext + endContext;
 
+        if (identicalLines >= context && identicalLines - context > 2U) {
             diffSeq.erase(diffSeq.cbegin() + startContext,
                           diffSeq.cbegin() + (identicalLines - endContext));
             diffSeq.emplace(diffSeq.cbegin() + startContext, DiffLineType::Note,
