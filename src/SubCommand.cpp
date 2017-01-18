@@ -54,8 +54,8 @@ SubCommand::getAllCmds()
 }
 
 int
-SubCommand::exec(BuildHistory &bh, Repository &repo, const std::string &alias,
-                 const std::vector<std::string> &args)
+SubCommand::exec(Settings &settings, BuildHistory &bh, Repository &repo,
+                 const std::string &alias, const std::vector<std::string> &args)
 {
     hasErrors = false;
 
@@ -75,6 +75,7 @@ SubCommand::exec(BuildHistory &bh, Repository &repo, const std::string &alias,
     }
 
     if (!hasErrors) {
+        settingsValue = &settings;
         bhValue = &bh;
         repoValue = &repo;
 

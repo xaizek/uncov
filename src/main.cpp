@@ -77,7 +77,8 @@ main(int argc, char *argv[])
         DB db(repo.getGitPath() + "/uncov.sqlite");
         BuildHistory bh(db);
 
-        return cmd->second->exec(bh, repo, invocation.getSubcommandName(),
+        return cmd->second->exec(*settings, bh, repo,
+                                 invocation.getSubcommandName(),
                                  invocation.getSubcommandArgs());
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << '\n';
