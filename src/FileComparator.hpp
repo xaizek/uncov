@@ -50,6 +50,35 @@ struct DiffLine
     }
 };
 
+/**
+ * @brief FileComparator-specific settings.
+ */
+class FileComparatorSettings
+{
+public:
+    /**
+     * @brief Enable polymorphic destruction.
+     */
+    virtual ~FileComparatorSettings() = default;
+
+public:
+    /**
+     * @brief Retrieves minimum size of a fold.
+     *
+     * @returns The size.
+     */
+    virtual int getMinFoldSize() const = 0;
+
+    /**
+     * @brief Retrieves size of context in diff results.
+     *
+     * Both above and below folded piece.
+     *
+     * @returns The size.
+     */
+    virtual int getDiffContext() const = 0;
+};
+
 class FileComparator
 {
 public:
@@ -57,7 +86,8 @@ public:
                    const std::vector<int> &oCov,
                    const std::vector<std::string> &n,
                    const std::vector<int> &nCov,
-                   bool considerHits);
+                   bool considerHits,
+                   const FileComparatorSettings &settings);
 
 public:
     bool isValidInput() const;

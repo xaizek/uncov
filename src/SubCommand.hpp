@@ -28,6 +28,7 @@
 
 class BuildHistory;
 class Repository;
+class Settings;
 
 class SubCommand
 {
@@ -69,8 +70,8 @@ public:
         return descriptions.at(alias);
     }
 
-    int exec(BuildHistory &bh, Repository &repo, const std::string &alias,
-             const std::vector<std::string> &args);
+    int exec(Settings &settings, BuildHistory &bh, Repository &repo,
+             const std::string &alias, const std::vector<std::string> &args);
 
 protected:
     void describe(const std::string &alias, const std::string &descr);
@@ -83,6 +84,7 @@ protected:
     }
 
 protected:
+    Settings *const &settings = settingsValue;
     BuildHistory *const &bh = bhValue;
     Repository *const &repo = repoValue;
 
@@ -101,6 +103,7 @@ private:
 
     int hasErrors = false;
     std::unordered_map<std::string, std::string> descriptions;
+    Settings *settingsValue;
     BuildHistory *bhValue;
     Repository *repoValue;
 };

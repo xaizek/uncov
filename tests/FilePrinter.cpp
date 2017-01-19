@@ -25,12 +25,15 @@
 #include "utils/Text.hpp"
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
+#include "Settings.hpp"
+
+#include "TestUtils.hpp"
 
 TEST_CASE("Annotated file contents is printed", "[FilePrinter]")
 {
     std::ostringstream oss;
 
-    FilePrinter printer(true);
+    FilePrinter printer(*getSettings());
     printer.print(oss, "path", "line1\nline2\nline3\n", { -1, 0, 1 });
 
     const std::string expected = "    1       : line1\n"
@@ -60,7 +63,7 @@ TEST_CASE("File contents length and coverage length is checked",
     }
 
     std::ostringstream oss;
-    FilePrinter printer(true);
+    FilePrinter printer(*getSettings());
     printer.print(oss, "path", contents, { -1, 0 });
 
     REQUIRE(boost::starts_with(oss.str(), expected + "ERROR: "));
@@ -75,10 +78,10 @@ TEST_CASE("File diffing works", "[FilePrinter]")
 
     FileComparator comparator(oldVersion.asLines(), oldCov,
                               newVersion.asLines(), newCov,
-                              true);
+                              true, *getSettings());
 
     std::ostringstream oss;
-    FilePrinter printer(true);
+    FilePrinter printer(*getSettings());
     printer.printDiff(oss, "path",
                       oldVersion.asStream(), oldCov,
                       newVersion.asStream(), newCov,
@@ -97,7 +100,7 @@ TEST_CASE("Can leave only missed lines", "[FilePrinter]")
 {
     std::ostringstream oss;
 
-    FilePrinter printer(true);
+    FilePrinter printer(*getSettings());
     printer.print(oss, "path",
                   "line1\nline2\nline3\nline4\nline5\nline6\nline7\n",
                   { 0, 0, -1, -1, -1, -1, -1 }, true);

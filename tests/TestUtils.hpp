@@ -19,9 +19,12 @@
 #define UNCOV__TESTS__TESTUTILS_HPP__
 
 #include <iosfwd>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
+
+class Settings;
 
 /**
  * @brief Temporarily redirects specified stream into a string.
@@ -77,7 +80,7 @@ private:
 class TempDirCopy
 {
 public:
-    TempDirCopy(const std::string &from, const std::string &to);
+    TempDirCopy(const std::string &from, const std::string &to, bool force);
 
     TempDirCopy(const TempDirCopy &) = delete;
     TempDirCopy & operator=(const TempDirCopy &) = delete;
@@ -130,5 +133,12 @@ vi(std::vector<int> v)
 {
     return v;
 }
+
+/**
+ * @brief Retrieves copy of default settings.
+ *
+ * @returns The settings.
+ */
+std::shared_ptr<Settings> & getSettings();
 
 #endif // UNCOV__TESTS__TESTUTILS_HPP__

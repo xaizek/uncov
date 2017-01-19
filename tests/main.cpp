@@ -1,15 +1,24 @@
 #define CATCH_CONFIG_RUNNER
 #include "Catch/catch.hpp"
 
+#include <memory>
+
+#include "Settings.hpp"
 #include "decoration.hpp"
+#include "printing.hpp"
 
 #include "TestUtils.hpp"
 
 int
 main(int argc, const char *argv[])
 {
+    PrintingSettings::set(getSettings());
+
     decor::disableDecorations();
-    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git");
+
+    // Remove destination directory if it exists to account for crashes.
+    TempDirCopy tempDirCopy("tests/test-repo/_git", "tests/test-repo/.git",
+                            true);
 
     return Catch::Session().run(argc, argv);
 }

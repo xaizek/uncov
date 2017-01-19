@@ -41,6 +41,7 @@
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
 #include "Repository.hpp"
+#include "Settings.hpp"
 #include "SubCommand.hpp"
 #include "TablePrinter.hpp"
 #include "arg_parsing.hpp"
@@ -323,6 +324,8 @@ private:
             }
         }
 
+        filePrinter.reset(new FilePrinter(*settings));
+
         RedirectToPager redirectToPager;
 
         if (buildsDiff) {
@@ -330,6 +333,8 @@ private:
         } else {
             diffFile(oldBuild, newBuild, path, true, alias == "diff-hits");
         }
+
+        filePrinter.reset();
 
         // TODO: maybe print some totals/stats here.
     }
@@ -385,7 +390,7 @@ private:
 
         FileComparator comparator(oldVersion.asLines(), oldCov,
                                   newVersion.asLines(), newCov,
-                                  considerHits);
+                                  considerHits, *settings);
 
         if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath
@@ -403,10 +408,10 @@ private:
         }
         printInfo(oldBuild, newBuild, filePath, standalone, true);
 
-        filePrinter.printDiff(std::cout, filePath,
-                              oldVersion.asStream(), oldCov,
-                              newVersion.asStream(), newCov,
-                              comparator);
+        filePrinter->printDiff(std::cout, filePath,
+                               oldVersion.asStream(), oldCov,
+                               newVersion.asStream(), newCov,
+                               comparator);
     }
 
     void printInfo(const Build &oldBuild, const Build &newBuild,
@@ -432,7 +437,7 @@ private:
     }
 
 private:
-    FilePrinter filePrinter;
+    std::unique_ptr<FilePrinter> filePrinter;
 };
 
 class FilesCmd : public AutoSubCommand<FilesCmd>
@@ -735,7 +740,7 @@ private:
             return error();
         }
 
-        FilePrinter printer;
+        FilePrinter printer(*settings);
         RedirectToPager redirectToPager;
         printBuildHeader(std::cout, bh, build);
 

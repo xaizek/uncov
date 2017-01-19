@@ -108,7 +108,7 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    CHECK(getCmd("diff")->exec(bh, repo, "diff",
+    CHECK(getCmd("diff")->exec(*getSettings(), bh, repo, "diff",
                                { "no-such-path" }) == EXIT_FAILURE);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() != std::string());
@@ -124,7 +124,7 @@ TEST_CASE("Paths to files can be relative inside repository",
     Chdir chdirInsideRepoSubdir("tests/test-repo/subdir");
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    CHECK(getCmd("get")->exec(bh, repo, "get",
+    CHECK(getCmd("get")->exec(*getSettings(), bh, repo, "get",
                               { "@@", "../test-file1.cpp" }) == EXIT_SUCCESS);
     CHECK(coutCapture.get() != std::string());
     CHECK(cerrCapture.get() == std::string());
@@ -145,7 +145,8 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "test-file1.cpp\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_FAILURE);
     }
 
     SECTION("Not number in coverage")
@@ -157,7 +158,8 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 asdf -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_FAILURE);
     }
 
     SECTION("Wrong file hash")
@@ -169,7 +171,8 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
                                   "734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_FAILURE);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_FAILURE);
     }
 
     CHECK(coutCapture.get() == std::string());
@@ -195,7 +198,8 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
 
@@ -212,7 +216,8 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
 
@@ -229,7 +234,8 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
                                   "7e734c598d6ebdc19bbd660f6a7a6c73\n"
                                   "5\n"
                                   "-1 1 -1 1 -1\n");
-        CHECK(getCmd("new")->exec(bh, repo, "new", {}) == EXIT_SUCCESS);
+        CHECK(getCmd("new")->exec(*getSettings(), bh, repo, "new",
+                                  {}) == EXIT_SUCCESS);
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
 
@@ -264,7 +270,8 @@ TEST_CASE("New-json handles input gracefully",
                 }
             })");
 
-        CHECK_THROWS_AS(getCmd("new-json")->exec(bh, repo, "new-json", {}),
+        CHECK_THROWS_AS(getCmd("new-json")->exec(*getSettings(), bh, repo,
+                                                 "new-json", {}),
                         std::exception);
         CHECK(cerrCapture.get() == std::string());
     }
@@ -287,8 +294,8 @@ TEST_CASE("New-json handles input gracefully",
                 }
             })");
 
-        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
-              EXIT_FAILURE);
+        CHECK(getCmd("new-json")->exec(*getSettings(), bh, repo, "new-json",
+                                       {}) == EXIT_FAILURE);
         CHECK(cerrCapture.get() != std::string());
     }
 
@@ -323,8 +330,8 @@ TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
                     "branch": "master"
                 }
             })");
-        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
-              EXIT_SUCCESS);
+        CHECK(getCmd("new-json")->exec(*getSettings(), bh, repo, "new-json",
+                                       {}) == EXIT_SUCCESS);
         CHECK(cerrCapture.get() != std::string());
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
@@ -342,8 +349,8 @@ TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
                     "branch": "master"
                 }
             })");
-        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
-              EXIT_SUCCESS);
+        CHECK(getCmd("new-json")->exec(*getSettings(), bh, repo, "new-json",
+                                       {}) == EXIT_SUCCESS);
         CHECK(cerrCapture.get() == std::string());
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
@@ -368,8 +375,8 @@ TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
                     "branch": "master"
                 }
             })");
-        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
-              EXIT_SUCCESS);
+        CHECK(getCmd("new-json")->exec(*getSettings(), bh, repo, "new-json",
+                                       {}) == EXIT_SUCCESS);
         CHECK(cerrCapture.get() == std::string());
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
@@ -394,8 +401,8 @@ TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
                     "branch": "master"
                 }
             })");
-        CHECK(getCmd("new-json")->exec(bh, repo, "new-json", {}) ==
-              EXIT_SUCCESS);
+        CHECK(getCmd("new-json")->exec(*getSettings(), bh, repo, "new-json",
+                                       {}) == EXIT_SUCCESS);
         CHECK(cerrCapture.get() == std::string());
         REQUIRE(bh.getBuilds().size() == sizeWas + 1);
         REQUIRE(bh.getBuilds().back().getPaths() != vs({}));
@@ -411,7 +418,7 @@ TEST_CASE("Dirs fails on unknown dir path", "[subcommands][dirs-subcommand]")
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    CHECK(getCmd("dirs")->exec(bh, repo, "dirs",
+    CHECK(getCmd("dirs")->exec(*getSettings(), bh, repo, "dirs",
                                { "no-such-path" }) == EXIT_FAILURE);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() != std::string());
@@ -424,7 +431,7 @@ TEST_CASE("Files fails on unknown dir path", "[subcommands][files-subcommand]")
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    CHECK(getCmd("files")->exec(bh, repo, "files",
+    CHECK(getCmd("files")->exec(*getSettings(), bh, repo, "files",
                                 { "no-such-path" }) == EXIT_FAILURE);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() != std::string());

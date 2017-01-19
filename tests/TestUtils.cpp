@@ -19,13 +19,19 @@
 
 #include <boost/filesystem/operations.hpp>
 
+#include "Settings.hpp"
+
 namespace fs = boost::filesystem;
 
 static void copyDir(const fs::path &src, const fs::path &dst);
 
-TempDirCopy::TempDirCopy(const std::string &from, const std::string &to)
+TempDirCopy::TempDirCopy(const std::string &from, const std::string &to,
+                         bool force)
     : to(to)
 {
+    if (force) {
+        fs::remove_all(to);
+    }
     copyDir(from, to);
 }
 
@@ -62,4 +68,11 @@ FileRestorer::~FileRestorer()
 {
     fs::remove(from);
     fs::rename(to, from);
+}
+
+std::shared_ptr<Settings> &
+getSettings()
+{
+    static auto settings = std::make_shared<Settings>();
+    return settings;
 }

@@ -27,10 +27,31 @@
 
 class FileComparator;
 
+/**
+ * @brief FilePrinter-specific settings.
+ */
+class FilePrinterSettings
+{
+public:
+    /**
+     * @brief Enable polymorphic destruction.
+     */
+    virtual ~FilePrinterSettings() = default;
+
+public:
+    /**
+     * @brief Retrieves number of spaces that comprise a tabulation.
+     *
+     * @returns The number.
+     */
+    virtual int getTabSize() const = 0;
+};
+
 class FilePrinter
 {
 public:
-    explicit FilePrinter(bool allowColors = true);
+    explicit FilePrinter(const FilePrinterSettings &settings,
+                         bool allowColors = true);
 
 public:
     void print(std::ostream &os, const std::string &path,
