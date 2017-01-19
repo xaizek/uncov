@@ -20,10 +20,12 @@
 
 #include <string>
 
+#include "FileComparator.hpp"
 #include "FilePrinter.hpp"
 #include "printing.hpp"
 
-class Settings : public PrintingSettings, public FilePrinterSettings
+class Settings : public PrintingSettings, public FilePrinterSettings,
+                 public FileComparatorSettings
 {
     // XXX: hard-coded values.
 
@@ -47,6 +49,17 @@ public: // FilePrinterSettings
     virtual int getTabSize() const override
     {
         return 4;
+    }
+
+public: // FileComparatorSettings
+    virtual int getMinFoldSize() const override
+    {
+        return 2;
+    }
+
+    virtual int getDiffContext() const override
+    {
+        return 1;
     }
 };
 

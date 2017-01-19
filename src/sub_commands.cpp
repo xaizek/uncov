@@ -390,7 +390,7 @@ private:
 
         FileComparator comparator(oldVersion.asLines(), oldCov,
                                   newVersion.asLines(), newCov,
-                                  considerHits);
+                                  considerHits, *settings);
 
         if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath

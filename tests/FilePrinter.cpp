@@ -78,7 +78,7 @@ TEST_CASE("File diffing works", "[FilePrinter]")
 
     FileComparator comparator(oldVersion.asLines(), oldCov,
                               newVersion.asLines(), newCov,
-                              true);
+                              true, *getSettings());
 
     std::ostringstream oss;
     FilePrinter printer(*getSettings());
