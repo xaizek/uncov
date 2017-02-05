@@ -74,8 +74,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) \
                                         $(filter $(subst *,%,$2),$d))
 
-bin_name := uncov$(bin_suffix)
-bin := $(out_dir)/$(bin_name)
+bin := $(out_dir)/uncov$(bin_suffix)
 
 bin_sources := $(call rwildcard, src/, *.cpp)
 bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
@@ -143,7 +142,7 @@ install: release
 	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
 
 uninstall:
-	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/bin/uncov-gcov \
+	$(RM) $(DESTDIR)/usr/bin/$(basename $(bin)) $(DESTDIR)/usr/bin/uncov-gcov \
 	      $(DESTDIR)/usr/share/man/man1/uncov.1
 
 # work around parenthesis warning in tests somehow caused by ccache
