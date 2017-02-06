@@ -1,5 +1,5 @@
 CXXFLAGS += -std=c++11 -Wall -Wextra -Werror -MMD -I$(abspath src)
-CXXFLAGS += -Wno-non-template-friend
+CXXFLAGS += -Wno-non-template-friend -include config.h
 LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_program_options
 LDFLAGS  += -lboost_system
@@ -150,7 +150,10 @@ $(out_dir)/tests/tests: EXTRA_CXXFLAGS += -Wno-error=parentheses -Itests/
 $(out_dir)/tests/tests: $(tests_objects) tests/. | $(out_dirs)
 	$(CXX) -o $@ $(tests_objects) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-$(out_dir)/%.o: %.cpp | $(out_dirs)
+config.h: | config.h.in
+	cp config.h.in $@
+
+$(out_dir)/%.o: %.cpp config.h | $(out_dirs)
 	$(CXX) -o $@ -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) $<
 
 $(out_dirs) $(out_dir)/docs:

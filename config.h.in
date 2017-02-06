@@ -1,0 +1,2 @@
+// Path to data (should take DESTDIR into account).
+#define DATADIR "/usr/share/uncov"
