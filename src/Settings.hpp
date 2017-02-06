@@ -51,11 +51,6 @@ public: // FilePrinterSettings only
         return 4;
     }
 
-    virtual bool isHtmlOutput() const override
-    {
-        return false;
-    }
-
 public: // FileComparatorSettings only
     virtual int getMinFoldSize() const override
     {
@@ -65,6 +60,12 @@ public: // FileComparatorSettings only
     virtual int getDiffContext() const override
     {
         return 1;
+    }
+
+public: // PrintingSettings and FilePrinterSettings
+    virtual bool isHtmlOutput() const override
+    {
+        return false;
     }
 };
 

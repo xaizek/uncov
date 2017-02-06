@@ -76,13 +76,27 @@ public:
 public:
     std::ostream & decorate(std::ostream &os) const
     {
-        os << highlightGroups.at(groupName);
+        const bool isHtmlOutput = settings->isHtmlOutput();
+
+        if (isHtmlOutput) {
+            const auto width = os.width({});
+            os << "<span class=\"" << groupName << "\">";
+            static_cast<void>(os.width(width));
+        } else {
+            os << highlightGroups.at(groupName);
+        }
 
         for (const auto app : apps) {
             app(os);
         }
 
-        os << decor::def;
+        if (isHtmlOutput) {
+            const auto width = os.width({});
+            os << "</span>";
+            static_cast<void>(os.width(width));
+        } else {
+            os << decor::def;
+        }
 
         return os;
     }
