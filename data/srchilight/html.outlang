@@ -1,0 +1,6 @@
+include "html_common.outlang"
+
+nodoctemplate
+""
+""
+end

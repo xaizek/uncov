@@ -29,7 +29,7 @@ class Settings : public PrintingSettings, public FilePrinterSettings,
 {
     // XXX: hard-coded values.
 
-public: // PrintingSettings
+public: // PrintingSettings only
     virtual std::string getTimeFormat() const override
     {
         return "%Y-%m-%d %H:%M:%S";
@@ -45,13 +45,18 @@ public: // PrintingSettings
         return 90.0f;
     }
 
-public: // FilePrinterSettings
+public: // FilePrinterSettings only
     virtual int getTabSize() const override
     {
         return 4;
     }
 
-public: // FileComparatorSettings
+    virtual bool isHtmlOutput() const override
+    {
+        return false;
+    }
+
+public: // FileComparatorSettings only
     virtual int getMinFoldSize() const override
     {
         return 2;

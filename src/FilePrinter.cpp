@@ -123,11 +123,13 @@ private:
 
 FilePrinter::FilePrinter(const FilePrinterSettings &settings, bool allowColors)
     : colorizeOutput(allowColors && isOutputToTerminal()),
-      sourceHighlight("esc256.outlang"),
+      highlighter(settings.isHtmlOutput() ? DATADIR "/srchilight/html.outlang"
+                                          : "esc256.outlang"),
       langMap("lang.map")
 {
-    sourceHighlight.setStyleFile("esc256.style");
-    sourceHighlight.setTabSpaces(settings.getTabSize());
+    highlighter.setStyleFile(settings.isHtmlOutput() ? "default.style"
+                                                     : "esc256.style");
+    highlighter.setTabSpaces(settings.getTabSize());
 }
 
 void
@@ -301,8 +303,8 @@ FilePrinter::highlight(std::stringstream &ss, std::istream &text,
                        const std::string &lang, srchilite::LineRanges *ranges)
 {
     if (colorizeOutput) {
-        sourceHighlight.setLineRanges(ranges);
-        sourceHighlight.highlight(text, ss, lang);
+        highlighter.setLineRanges(ranges);
+        highlighter.highlight(text, ss, lang);
     } else {
         ss << text.rdbuf();
     }
