@@ -58,6 +58,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "label",         decor::bold },
     { "revision",      decor::none },
     { "time",          decor::none },
+    { "hitcount",      decor::none },
 };
 
 class Highlight
@@ -125,14 +126,16 @@ printHits(std::ostream &os, int hits, bool silent)
     std::string prefix = silent ? "silent" : "";
 
     if (hits == 0) {
-        return os << (Highlight(prefix + "missed") << "x0" << ' ');
+        return os << (Highlight("hitcount") <<
+                      (Highlight(prefix + "missed") << "x0" << ' '));
     } else if (hits > 0) {
         // 'x' and number must be output as a single unit here so that field
         // width applies correctly.
-        return os << (Highlight(prefix + "covered")
-                  << 'x' + std::to_string(hits) << ' ');
+        return os << (Highlight("hitcount") <<
+                      (Highlight(prefix + "covered")
+                       << 'x' + std::to_string(hits) << ' '));
     } else {
-        return os << "" << ' ';
+        return os << (Highlight("hitcount") << "") << ' ';
     }
 }
 
