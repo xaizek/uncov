@@ -233,7 +233,7 @@ operator<<(std::ostream &os, const TableHeader &th)
 std::ostream &
 operator<<(std::ostream &os, const LineNo &lineNo)
 {
-    return os << (Highlight("lineno") << lineNo.data << ' ');
+    return os << (Highlight("lineno") << std::to_string(lineNo.data) << ' ');
 }
 
 std::ostream &
