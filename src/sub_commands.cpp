@@ -502,7 +502,8 @@ private:
             table = describeBuildDirs(bh, build, dirFilter, prev);
         } else {
             const bool changedOnly = (alias == "changed");
-            table = describeBuildFiles(bh, build, dirFilter, changedOnly, prev);
+            table = describeBuildFiles(bh, build, dirFilter, changedOnly, false,
+                                       prev);
         }
 
         for (std::vector<std::string> &row : table) {

@@ -116,7 +116,7 @@ getDirsCoverage(const Build &build, const std::string &dirFilter)
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
                    const std::string &dirFilter, bool changedOnly,
-                   const Build *prevBuild)
+                   bool directOnly, const Build *prevBuild)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
@@ -130,8 +130,15 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         prev = bh->getBuild(prevBuildId);
     }
 
+    boost::filesystem::path dpath = dirFilter;
     for (const std::string &filePath : paths) {
-        if (!pathIsInSubtree(dirFilter, filePath)) {
+        boost::filesystem::path fpath = filePath;
+
+        if (!pathIsInSubtree(dpath, fpath)) {
+            continue;
+        }
+
+        if (directOnly && fpath.parent_path() != dpath) {
             continue;
         }
 
@@ -144,7 +151,7 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         }
 
         rows.push_back({
-            filePath,
+            directOnly ? fpath.filename().string() : filePath,
             covInfo.formatCoverageRate(),
             covInfo.formatLines(" / "),
             covChange.formatCoverageRate(),
