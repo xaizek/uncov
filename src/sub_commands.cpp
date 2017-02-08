@@ -188,7 +188,8 @@ private:
 
         Build build = getBuild(bh, buildId);
 
-        const std::vector<std::string> descr = describeBuild(bh, build, false);
+        const std::vector<std::string> descr = describeBuild(bh, build, false,
+                                                             true);
         tablePrinter.append({ "Id:", descr[0] });
         tablePrinter.append({ "Coverage:", descr[1] });
         tablePrinter.append({ "C/R Lines:", descr[2] });
@@ -243,7 +244,7 @@ private:
 
         for (Build &build : builds) {
             const std::vector<std::string> descr = describeBuild(bh, build,
-                                                                 true);
+                                                                 true, true);
             tablePrinter.append({ descr[0], descr[1], descr[2], descr[3],
                                   descr[4], descr[5] });
         }
