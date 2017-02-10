@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "FileComparator.hpp"
-#include "integration.hpp"
 #include "printing.hpp"
 
 namespace {
@@ -122,7 +121,7 @@ private:
 }
 
 FilePrinter::FilePrinter(const FilePrinterSettings &settings, bool allowColors)
-    : colorizeOutput(allowColors && isOutputToTerminal()),
+    : colorizeOutput(allowColors && settings.isColorOutputAllowed()),
       highlighter(settings.isHtmlOutput() ? DATADIR "/srchilight/html.outlang"
                                           : "esc256.outlang"),
       langMap("lang.map")

@@ -22,6 +22,7 @@
 
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
+#include "integration.hpp"
 #include "printing.hpp"
 
 class Settings : public PrintingSettings, public FilePrinterSettings,
@@ -49,6 +50,11 @@ public: // FilePrinterSettings only
     virtual int getTabSize() const override
     {
         return 4;
+    }
+
+    virtual bool isColorOutputAllowed() const override
+    {
+        return isOutputToTerminal();
     }
 
 public: // FileComparatorSettings only

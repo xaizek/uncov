@@ -47,7 +47,14 @@ public:
     virtual int getTabSize() const = 0;
 
     /**
-     * @brief Retrieves information about output required format.
+     * @brief Retrieves information about availability of color processing.
+     *
+     * @returns @c true if output can be colorized, @c false otherwise.
+     */
+    virtual bool isColorOutputAllowed() const = 0;
+
+    /**
+     * @brief Retrieves information about required output format.
      *
      * @returns @c true if output is HTML, @c false otherwise.
      */

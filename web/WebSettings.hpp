@@ -15,13 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__WEBSETTINGS_HPP__
-#define UNCOV__WEBSETTINGS_HPP__
+#ifndef UNCOV__WEB__WEBSETTINGS_HPP__
+#define UNCOV__WEB__WEBSETTINGS_HPP__
 
 #include "Settings.hpp"
 
 class WebSettings : public Settings
 {
+public: // FilePrinterSettings only
+    virtual bool isColorOutputAllowed() const override
+    {
+        return true;
+    }
+
 public: // PrintingSettings and FilePrinterSettings
     virtual bool isHtmlOutput() const override
     {
@@ -29,4 +35,4 @@ public: // PrintingSettings and FilePrinterSettings
     }
 };
 
-#endif // UNCOV__WEBSETTINGS_HPP__
+#endif // UNCOV__WEB__WEBSETTINGS_HPP__
