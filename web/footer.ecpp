@@ -1,0 +1,7 @@
+<%cpp>
+    static_cast<void>(request);
+</%cpp>
+
+<div class="barfooter">
+    <a href="https://github.com/xaizek/uncov">uncov</a>
+</div>

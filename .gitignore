@@ -6,5 +6,9 @@
 *.d
 *.o
 /uncov
+/uncov-web
 /tests/tests
 /config.h
+
+# ignore automatically generated cpp-files
+/web/*.cpp

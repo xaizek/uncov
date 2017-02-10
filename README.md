@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 09 January, 2017_
+_This file last updated on 10 February, 2017_
 
 ### Brief Description ###
 
@@ -41,6 +41,7 @@ like `--dump`, others could be extended by adding it).
 * Comparison of coverage.
 * Displaying parts of files that need attention with regard to coverage.
 * Can be used from Vim via the plugin provided.
+* Can be used on CI to display coverage.
 
 ### Status ###
 
@@ -67,6 +68,7 @@ Expected to work in Unix-like environments.
 * [libsqlite3][sqlite].
 * libsource-highlight from [GNU Source-highlight][srchilite].
 * [zlib][zlib].
+* [tntnet][tntnet].
 * (optional) [pandoc][pandoc] for regenerating man page.
 * (optional) [python][python] for collecting coverage for C and C++ (would be
   nice to get rid of this weird dependency, probably by rewriting the tool).
@@ -156,6 +158,7 @@ GNU Affero General Public License, version 3 or later.
 [sqlite]: https://www.sqlite.org/
 [srchilite]: https://www.gnu.org/software/src-highlite/
 [zlib]: http://zlib.net/
+[tntnet]: http://www.tntnet.org/
 [pandoc]: http://pandoc.org/
 [python]: https://www.python.org/
 [vim-gcov-marker]: https://github.com/m42e/vim-gcov-marker

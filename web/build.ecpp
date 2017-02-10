@@ -1,0 +1,143 @@
+<!--
+
+Copyright (C) 2017 xaizek <xaizek@openmailbox.org>
+
+This file is part of uncov.
+
+uncov is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+uncov is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with uncov.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<%pre>
+    #include <boost/optional.hpp>
+
+    #include "BuildHistory.hpp"
+    #include "listings.hpp"
+
+    #include "utils.hpp"
+
+    extern BuildHistory *globalBH;
+</%pre>
+
+<%cpp>
+    const int buildId = [&request]() {
+        try {
+            return std::stoi(request.getArg("buildId"));
+        } catch (const std::exception &) {
+            return 0;
+        }
+    }();
+    const std::string dirPath = request.getArg("dirPath");
+</%cpp>
+
+<html>
+
+<head>
+    <title>
+    <$ dirPath.empty() ? "/" : dirPath $> of build #<$ buildId $> | uncov
+    </title>
+
+    <%include>web/header.ecpp</%include>
+
+    <style>
+    table {
+        table-layout: fixed;
+    }
+    </style>
+</head>
+
+<body>
+%   if (boost::optional<Build> build = globalBH->getBuild(buildId)) {
+
+%   std::vector<std::string> buildInfo = describeBuild(globalBH, *build, false,
+%                                                      true);
+
+    <div class="sidenav">
+        <a href="/builds">All Builds</a>
+        <a href="/builds/<$ buildId $>">Current Build</a>
+    </div>
+
+    <div class="rightbar">
+    <div class="bargroup">
+        <span class="barelem">Build <$$ buildInfo[0] $></span>
+        <span class="barelem"><$$ buildInfo[1] $></br>
+                              <small><$$ buildInfo[2] $></small></span>
+        <span class="barelem"><$$ buildInfo[3] $></br>
+                              <small><$$ buildInfo[4] $></small></span>
+        <span class="barelem"><$$ buildInfo[5] $></span>
+    </div>
+    <%include>web/footer.ecpp</%include>
+    </div>
+
+    <h4>
+    Path: <a class="path" href="/builds/<$ buildId $>">&lt;root&gt;</a>
+%   std::string prefix;
+%   for (const std::string &entry : split(dirPath, '/')) {
+%       prefix += '/' + entry;
+        / <a class="path"
+             href="/builds/<$ buildId $><$ prefix $>/"><$ entry $></a>
+%   }
+    </h4>
+
+    <table>
+    <tr>
+    <th>Directory</th>
+    <th>Coverage</th>
+    <th>C/R Lines</th>
+    <th>Cov Change</th>
+    <th>C/U/R Line Changes</th>
+    </tr>
+
+%   for (const std::vector<std::string> &row :
+%        describeBuildDirs(globalBH, *build, dirPath)) {
+%       if (row.front() == dirPath + '/') {
+        <tr>
+%       } else {
+        <tr onclick="document.location = '/builds/<$ buildId $>/<$ row.front() $>'">
+%       }
+%       for (const std::string &cell : row) {
+            <td><$$ cell $></td>
+%       }
+        </tr>
+%   }
+
+    </table>
+
+    <table>
+    <tr>
+    <th>File</th>
+    <th>Coverage</th>
+    <th>C/R Lines</th>
+    <th>Cov Change</th>
+    <th>C/U/R Line Changes</th>
+    </tr>
+
+%   for (const std::vector<std::string> &row :
+%        describeBuildFiles(globalBH, *build, dirPath, false, true)) {
+        <tr onclick="document.location = '/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>'">
+%       for (const std::string &cell : row) {
+            <td><$$ cell $></td>
+%       }
+        </tr>
+%   }
+
+%   } else {
+%   log_warn("Can't find requested build with ID: " + std::to_string(buildId));
+    <h1>No such build</h1>
+%   }
+
+    </table>
+</body>
+
+</html>

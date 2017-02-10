@@ -1,0 +1,168 @@
+body {
+    width: 70%;
+    margin: 1em auto;
+    background-color: #F4F5F0;
+    color: #111;
+}
+
+table {
+    width: 100%;
+    margin-top: 1em;
+    border-spacing: 0 3px;
+}
+
+td, th {
+    text-align: right;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    color: rgb(22, 40, 51);
+}
+
+a.path {
+    color: #111;
+    text-decoration: none;
+}
+
+a.path:hover {
+    background-color: #E1E2DD;
+}
+
+th {
+    background-color: #252525;
+    color: #eee;
+    text-transform: uppercase;
+    font-family: Sans-Serif;
+    letter-spacing: 1px;
+}
+
+tr {
+    background-color: #F9FAF5;
+}
+
+tr:hover td {
+    background-color: #E1E2DD;
+}
+
+td:nth-child(1), th:nth-child(1) {
+    text-align: left;
+}
+
+pre {
+    line-height: 125%;
+}
+
+span.lineno {
+    font-weight: bold;
+    padding-right: 5px;
+}
+
+span.hitcount {
+    padding-right: 5px;
+}
+
+span.missed {
+    background-color: #f05050;
+    font-weight: bold;
+    color: #F4F5F0;
+}
+
+span.covered {
+    background-color: #50b050;
+    font-weight: bold;
+    color: #F4F5F0;
+}
+
+span.linesbad, span.covbad {
+    font-weight: bold;
+    color: #d33;
+}
+
+span.linesok {
+    font-weight: bold;
+    color: grey;
+}
+
+span.covok {
+    font-weight: bold;
+    color: #c75;
+}
+
+span.covnormal {
+    font-weight: bold;
+    color: #fe9030;
+}
+
+span.linesgood, span.covgood {
+    font-weight: bold;
+    color: #090;
+}
+
+span.lineschanged {
+    color: #c75;
+}
+
+span.revision {
+    font-family: monospace;
+}
+
+.sidenav {
+    height: 100%;
+    width: 13%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    padding-top: 60px;
+}
+
+.rightbar {
+    height: 100%;
+    width: 13%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    padding-top: 10px;
+}
+
+.sidenav a {
+    padding: 8px 8px 16px 1.5vw;
+    text-decoration: none;
+    font-size: 22px;
+    color: #aaa;
+    display: block;
+    outline: none;
+}
+
+.rightbar .bargroup {
+    padding-top: 50px;
+}
+
+.rightbar .barfooter {
+    font-size: small;
+    bottom: 20px;
+    position: fixed;
+}
+
+.bargroup .barelem, .barfooter a {
+    padding: 4px 32px 4px 1.5vw;
+    text-decoration: none;
+    color: #aaa;
+    display: block;
+}
+
+.bargroup .barelem {
+    font-size: 17px;
+}
+
+.barfooter a {
+    font-size: 15px;
+}
+
+.sidenav a:hover, .offcanvas a:focus{
+    color: #f1f1f1;
+}
