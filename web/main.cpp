@@ -67,7 +67,10 @@ main(int argc, char *argv[]) try
     po::variables_map varMap = parseOptions({ argv + 1, argv + argc });
 
     if (varMap.count("help")) {
-        std::cout << cmdlineOptions;
+        std::cout << "Usage: " << argv[0]
+                  << " --vhost <vhostname> [options...]\n"
+                  << "\nOptions:\n"
+                  << cmdlineOptions;
         return EXIT_SUCCESS;
     }
 
