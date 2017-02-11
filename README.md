@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 10 February, 2017_
+_This file last updated on 11 February, 2017_
 
 ### Brief Description ###
 
@@ -87,8 +87,7 @@ in example below:
     find . -name '*.o' -exec gcov -p {} +
     # generage and combine coverage reports (--capture-worktree automatically
     # makes stray commit if repository is dirty)
-    uncov-gcov --root . --build-root . --no-gcov --capture-worktree \
-               --exclude tests | uncov new
+    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
     # remove coverage reports
     find . -name '*.gcov' -delete
 

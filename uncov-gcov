@@ -72,6 +72,9 @@ def create_args(params):
                              'file; when this happens, gcov needs to run in '
                              'the same directory as the compiler in order '
                              'to find the source files')
+    parser.add_argument('--collect-root', metavar='DIR', default='',
+                        help='directory to look gcov files in '
+                             '(--root by default)')
     parser.add_argument('-e', '--exclude', metavar='DIR|FILE', action='append',
                         help='set exclude file or directory', default=[])
     parser.add_argument('-i', '--include', metavar='DIR|FILE', action='append',
@@ -374,10 +377,16 @@ def collect(args):
 
     report['service_name'] = args.service_name
 
+    if args.collect_root:
+        collect_root = args.collect_root
+    else:
+        collect_root = args.root
+    abs_collect = path.abspath(collect_root)
+
     discovered_files = set()
     src_files = {}
     abs_root = path.abspath(args.root)
-    for root, dirs, files in os.walk(args.root,
+    for root, dirs, files in os.walk(abs_collect,
                                      followlinks=args.follow_symlinks):
         dirs[:] = filter_dirs(root, dirs, excl_paths)
 
@@ -509,7 +518,10 @@ def run():
         args.gcov_options = ''
     if not args.root:
         args.root = '.'
-    if not args.build_root:
+
+    if args.build_root:
+        args.build_root = path.abspath(args.build_root)
+    else:
         args.build_root = ''
 
     if not args.no_gcov:
