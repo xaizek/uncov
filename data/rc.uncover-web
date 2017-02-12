@@ -1,0 +1,62 @@
+#!/bin/bash
+# uncov-web daemon
+# chkconfig: 345 20 80
+# description: uncov-web daemon
+
+echo "Edit USER and DAEMONOPTS below and remove this and the next line!"
+exit 1
+
+USER=uncov
+DAEMON=uncov-web
+DAEMONOPTS='--vhost SOME.HOST --repo SOME.PATH'
+
+NAME=uncov-web
+DESC="uncov-web daemon"
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+case "$1" in
+start)
+    printf "%-50s" "Starting $NAME..."
+    PID=`su -l "$USER" -c "$DAEMON $DAEMONOPTS > /dev/null 2>&1 & echo \\\$!"`
+    if [ -z "$PID" ]; then
+        echo "Fail"
+    else
+        echo "$PID" > $PIDFILE
+        echo "Ok"
+    fi
+;;
+status)
+    printf "%-50s" "Checking $NAME..."
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+            echo "Process dead but pidfile exists"
+        else
+            echo "Running"
+        fi
+    else
+        echo "Service not running"
+    fi
+;;
+stop)
+    printf "%-50s" "Stopping $NAME"
+    PID=`cat $PIDFILE`
+    if [ -f $PIDFILE ]; then
+        kill $PID
+        echo "Ok"
+        rm -f $PIDFILE
+    else
+        echo "pidfile not found"
+    fi
+;;
+
+restart)
+    $0 stop
+    $0 start
+;;
+
+*)
+    echo "Usage: $0 {status|start|stop|restart}"
+    exit 1
+esac
