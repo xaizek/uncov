@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 11 February, 2017_
+_This file last updated on 12 February, 2017_
 
 ### Brief Description ###
 
@@ -17,6 +17,10 @@ referring to unavailable git objects just won't be accessible).
 
 Provided command-line interface should be familiar to most of git users and
 helps to avoid switching to a browser to verify code coverage.
+
+It's also possible to display coverage information in a browser, say, on a CI
+server.  This makes uncov something like self-hosted coveralls.io analogue (but
+note that Web-interface is secondary in this case and isn't feature complete).
 
 ### Structure ###
 
@@ -41,7 +45,11 @@ like `--dump`, others could be extended by adding it).
 * Comparison of coverage.
 * Displaying parts of files that need attention with regard to coverage.
 * Can be used from Vim via the plugin provided.
-* Can be used on CI to display coverage.
+* Can be used on CI to display coverage in a browser (via Web-UI).
+
+and thus serve
+  as self-hosted analogue for coveralls (but this part is byproduct and isn't
+  complete).
 
 ### Status ###
 
@@ -130,6 +138,14 @@ some other interesting things.  List of latest builds (`uncov builds`):
 Results of comparison (`uncov diff`):
 
 ![diff](data/screenshots/diff.png)
+
+Annotated source code in Web-UI:
+
+![Web-UI](data/screenshots/webui.png)
+
+### Web-UI Demo ###
+
+Deployed Web-interface can be seen [here](http://ci.vifm.info:8000/).
 
 ### Credits ###
 

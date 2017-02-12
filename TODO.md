@@ -85,6 +85,12 @@ maybe even when branch ref matches build commit.
 
 Maybe should also indicate "temporary" commits somehow.
 
+## Write manual pages for uncov-gcov and uncov-web. ##
+
+| ID   |  Status   |  Type  |
+|------|-----------|--------|
+| LSY  |  planned  |  task  |
+
 ## Source-highlight hangs if passed in std::istream is at EOF? ##
 
 | ID   |  Status     |  Type   |
@@ -120,6 +126,15 @@ Not all seem to be awfully useful though.
 This can help make some error messages better, but is it really that useful
 (not sure handling of exceptions will actually differ, so maybe only to
 provide more details about the error).
+
+## A command to show newly introduced missed lines. ##
+
+| ID   |  Status   |  Type      |
+|------|-----------|------------|
+| RSY  |  planned  |  addition  |
+
+Probably an alias of `diff` subcommand.  This should be convenient to see
+what's not covered in new code.
 
 ## Maybe something to exclude files. ##
 
@@ -169,15 +184,7 @@ Another suitable place is separate table in the database.
 
 And might need a global one at some point too.
 
-Implementation could be:
-
-1. Abstract `*Settings` class per unit that needs settings (`FileComparator`,
-   `FilePrinter`, etc.).
-2. A way to set pointer (wrapped in `std::shared<>`) for each such unit (a
-   static member of that abstract class, separate function or could be a
-   parameter).
-3. One `Settings` class (in `main.cpp` probably) that implements all those
-   interfaces and is then set used by all units.
+There is already Settings class that can be used to provide configuration.
 
 ## Maybe introduce range syntax to specify two builds. ##
 
@@ -289,3 +296,37 @@ Outline of possible implementation:
 | ID   |  Status   |  Type         |
 |------|-----------|---------------|
 | eRY  |  planned  |  improvement  |
+
+# Web-UI #
+
+## For web-ui we might want to cache highlighting results. ##
+
+| ID   |  Status     |  Type         |
+|------|-------------|---------------|
+| mRY  |  undecided  |  improvement  |
+
+Highlighting is a slow process due to use of regular expressions.
+
+## Support multiple projects in web-ui. ##
+
+| ID   |  Status   |  Type     |
+|------|-----------|-----------|
+| sSY  |  planned  |  feature  |
+
+If only one project is specified (on command-line), do as now.
+
+If there is more than one project, then:
+ * add menu item `All Projects`
+ * display list of projects by default (in site root)
+
+In code this would take a structure like this one:
+
+    struct Project
+    {
+        Repository *const repo;
+        BuildHistory *const bh;
+    };
+
+With global state being:
+
+    std::map<std::string, Project> projects;
