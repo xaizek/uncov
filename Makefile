@@ -1,5 +1,5 @@
 CXXFLAGS += -std=c++11 -Wall -Wextra -Werror -MMD -I$(abspath src)
-CXXFLAGS += -Wno-non-template-friend
+CXXFLAGS += -Wno-non-template-friend -include config.h
 LDFLAGS  += -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_program_options
 LDFLAGS  += -lboost_system
@@ -74,8 +74,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) \
                                         $(filter $(subst *,%,$2),$d))
 
-bin_name := uncov$(bin_suffix)
-bin := $(out_dir)/$(bin_name)
+bin := $(out_dir)/uncov$(bin_suffix)
 
 bin_sources := $(call rwildcard, src/, *.cpp)
 bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
@@ -86,23 +85,32 @@ tests_sources := $(filter-out tests/test-repo/%, $(tests_sources))
 
 tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o)
 tests_objects += $(filter-out %/main.o,$(bin_objects))
-tests_depends := $(tests_sources:%.cpp=$(out_dir)/%.d)
+tests_depends := $(tests_objects:%.o=%.d)
 
-out_dirs := $(sort $(dir $(bin_objects) $(tests_objects)))
+webbin := $(out_dir)/uncov-web$(bin_suffix)
+web_sources := $(call rwildcard, web/, *.cpp)
+web_temps := $(patsubst %.ecpp,$(out_dir)/%.cpp,$(call rwildcard, web/, *.ecpp))
+web_temps += $(patsubst %.css,$(out_dir)/%.cpp,$(call rwildcard, web/, *.css))
+web_temps += $(patsubst %.ico,$(out_dir)/%.cpp,$(call rwildcard, web/, *.ico))
+web_objects := $(web_sources:%.cpp=$(out_dir)/%.o)
+web_objects += $(web_temps:%.cpp=%.o)
+web_objects += $(filter-out %/main.o,$(bin_objects))
+web_depends := $(web_objects:%.o=%.d)
+
+out_dirs := $(sort $(dir $(bin_objects) $(web_objects) $(tests_objects)))
 
 .PHONY: all check clean debug release sanitize-basic man install uninstall
 .PHONY: coverage self-coverage reset-coverage
 
-all: $(bin)
+all: $(bin) $(webbin)
 
-debug release: $(bin)
-
-sanitize-basic: $(bin)
+debug release sanitize-basic: all
 
 coverage: check $(bin)
-	find $(out_dir)/ -name '*.o' -exec gcov -p {} +
-	$(GCOV_PREFIX)uncov-gcov --root . --build-root . --no-gcov \
-	                         --capture-worktree --exclude tests \
+	find $(out_dir)/ -name '*.o' -exec gcov -p {} + > $(out_dir)/gcov.out \
+	|| (cat $(out_dir)/gcov.out && false)
+	$(GCOV_PREFIX)uncov-gcov --root . --no-gcov --capture-worktree \
+	                         --exclude tests \
 	| $(UNCOV_PREFIX)uncov new
 	find . -name '*.gcov' -delete
 
@@ -130,36 +138,57 @@ ifeq ($(with_cov),1)
 	find $(out_dir)/ -name '*.gcda' -delete
 endif
 
-$(bin): | $(out_dirs)
+$(bin) $(webbin): | $(out_dirs)
 
 $(bin): $(bin_objects)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
+
+$(webbin): $(web_objects)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) -ltntnet -lcxxtools
 
 check: $(target) $(out_dir)/tests/tests reset-coverage
 	@$(out_dir)/tests/tests
 
 install: release
-	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) uncov-gcov
+	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) $(webbin) uncov-gcov
+	$(INSTALL) -t $(DESTDIR)/usr/share/uncov/srchilight/ data/srchilight/*
 	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
 
 uninstall:
-	$(RM) $(DESTDIR)/usr/bin/$(bin_name) $(DESTDIR)/usr/bin/uncov-gcov \
-	      $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(RM) $(DESTDIR)/usr/bin/$(basename $(bin)) \
+	      $(DESTDIR)/usr/bin/$(basename $(webbin)) \
+	      $(DESTDIR)/usr/bin/uncov-gcov $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(RM) -r $(DESTDIR)/usr/share/uncov/
 
 # work around parenthesis warning in tests somehow caused by ccache
 $(out_dir)/tests/tests: EXTRA_CXXFLAGS += -Wno-error=parentheses -Itests/
 $(out_dir)/tests/tests: $(tests_objects) tests/. | $(out_dirs)
 	$(CXX) -o $@ $(tests_objects) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-$(out_dir)/%.o: %.cpp | $(out_dirs)
+config.h: | config.h.in
+	cp config.h.in $@
+
+$(out_dir)/web/%.o: CXXFLAGS += -I$(abspath web)
+
+$(out_dir)/%.o: %.cpp config.h | $(out_dirs)
 	$(CXX) -o $@ -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) $<
+
+$(out_dir)/%.cpp: %.ecpp | $(out_dirs)
+	ecppc -o $@ $<
+
+$(out_dir)/%.cpp: %.css | $(out_dirs)
+	ecppc -b -m text/css -o $@ $<
+
+$(out_dir)/%.cpp: %.ico | $(out_dirs)
+	ecppc -b -m image/x-icon -o $@ $<
 
 $(out_dirs) $(out_dir)/docs:
 	mkdir -p $@
 
 clean:
 	-$(RM) -r coverage/ debug/ release/
-	-$(RM) $(bin_objects) $(bin_depends) $(tests_objects) $(tests_depends) \
-	       $(bin) $(out_dir)/tests/tests
+	-$(RM) $(bin_objects) $(tests_objects) $(web_objects) \
+	       $(bin_depends) $(tests_depends) $(web_depends) \
+	       $(bin) $(webbin) $(out_dir)/tests/tests
 
-include $(wildcard $(bin_depends) $(tests_depends))
+include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))

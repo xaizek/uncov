@@ -62,6 +62,13 @@ public:
      */
     virtual float getHiLimit() const = 0;
 
+    /**
+     * @brief Retrieves information about output required format.
+     *
+     * @returns @c true if output is HTML, @c false otherwise.
+     */
+    virtual bool isHtmlOutput() const = 0;
+
 public:
     /**
      * @brief Sets settings for the unit.

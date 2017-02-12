@@ -69,6 +69,7 @@ function make_todo()
 {
     list_component 'Core' component==
     list_component 'Vim Plugin' component==vim-plugin
+    list_component 'Web-UI' component==web-ui
 }
 
 dir="$(readlink -f "$(dirname "$0")")"

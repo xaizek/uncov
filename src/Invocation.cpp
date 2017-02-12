@@ -106,22 +106,22 @@ parseOptions(const std::vector<std::string> &args)
                        ->default_value({}, ""),
          "positional args");
 
-    po::positional_options_description positional_options;
-    positional_options.add("positional", -1);
+    po::positional_options_description positionalOptions;
+    positionalOptions.add("positional", -1);
 
-    po::options_description cmdline_options;
+    po::options_description cmdlineOptions;
 
-    cmdline_options.add_options()
+    cmdlineOptions.add_options()
         ("help,h", "display help message")
         ("version,v", "display version");
 
-    po::options_description all_options;
-    all_options.add(cmdline_options).add(hiddenOpts);
+    po::options_description allOptions;
+    allOptions.add(cmdlineOptions).add(hiddenOpts);
 
     auto parsed_from_cmdline =
         po::command_line_parser(args)
-        .options(all_options)
-        .positional(positional_options)
+        .options(allOptions)
+        .positional(positionalOptions)
         .extra_style_parser(&stopAtFirstPositional)
         .run();
 

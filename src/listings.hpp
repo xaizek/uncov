@@ -43,11 +43,14 @@ class File;
  * @param bh Object maintaining history of all builds.
  * @param build The build we're describing.
  * @param extraAlign Whether alignment should look nice in a table.
+ * @param spacing Whether to add extra spacing around `/` separator.
+ * @param prevBuild Build to compute coverage change against.
  *
  * @returns Row with information about the build.
  */
 std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build,
-                                       bool extraAlign);
+                                       bool extraAlign, bool spacing,
+                                       const Build *prevBuild = nullptr);
 
 /**
  * @brief Formats information about directories within the build as a table.
@@ -87,6 +90,7 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
  * @param build The build we're describing.
  * @param dirFilter Root directory that filters displayed files.  Can be empty.
  * @param changedOnly Filter out all files which unchanged coverage.
+ * @param directOnly Print only direct descendants of the directory.
  * @param prevBuild Build to compute coverage change against.
  *
  * @returns Table of strings describing the build.
@@ -94,7 +98,7 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
                    const std::string &dirFilter, bool changedOnly,
-                   const Build *prevBuild = nullptr);
+                   bool directOnly, const Build *prevBuild = nullptr);
 
 /**
  * @brief Prints build header which is a one line description of it.
@@ -117,6 +121,27 @@ void printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
  */
 void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                      const File &file);
+
+/**
+ * @brief Formats information about specified build as a table row.
+ *
+ * Returned row consists of the following columns:
+ *
+ *  * File path
+ *  * Coverage
+ *  * C/R Lines
+ *  * Cov Change
+ *  * C/M/R Line Changes
+ *
+ * @param bh Object maintaining history of all builds.
+ * @param build Build we're interested in.
+ * @param file File to describe.
+ * @param spacing Whether to add extra spacing around `/` separator.
+ *
+ * @returns Row with information about the build.
+ */
+std::vector<std::string> describeFile(BuildHistory *bh, const Build &build,
+                                      const File &file, bool spacing);
 
 /**
  * @brief Prints file header which is a one line description of it.

@@ -58,6 +58,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "label",         decor::bold },
     { "revision",      decor::none },
     { "time",          decor::none },
+    { "hitcount",      decor::none },
 };
 
 class Highlight
@@ -76,13 +77,27 @@ public:
 public:
     std::ostream & decorate(std::ostream &os) const
     {
-        os << highlightGroups.at(groupName);
+        const bool isHtmlOutput = settings->isHtmlOutput();
+
+        if (isHtmlOutput) {
+            const auto width = os.width({});
+            os << "<span class=\"" << groupName << "\">";
+            static_cast<void>(os.width(width));
+        } else {
+            os << highlightGroups.at(groupName);
+        }
 
         for (const auto app : apps) {
             app(os);
         }
 
-        os << decor::def;
+        if (isHtmlOutput) {
+            const auto width = os.width({});
+            os << "</span>";
+            static_cast<void>(os.width(width));
+        } else {
+            os << decor::def;
+        }
 
         return os;
     }
@@ -111,14 +126,16 @@ printHits(std::ostream &os, int hits, bool silent)
     std::string prefix = silent ? "silent" : "";
 
     if (hits == 0) {
-        return os << (Highlight(prefix + "missed") << "x0" << ' ');
+        return os << (Highlight("hitcount") <<
+                      (Highlight(prefix + "missed") << "x0" << ' '));
     } else if (hits > 0) {
         // 'x' and number must be output as a single unit here so that field
         // width applies correctly.
-        return os << (Highlight(prefix + "covered")
-                  << 'x' + std::to_string(hits) << ' ');
+        return os << (Highlight("hitcount") <<
+                      (Highlight(prefix + "covered")
+                       << 'x' + std::to_string(hits) << ' '));
     } else {
-        return os << "" << ' ';
+        return os << (Highlight("hitcount") << "") << ' ';
     }
 }
 
@@ -216,7 +233,7 @@ operator<<(std::ostream &os, const TableHeader &th)
 std::ostream &
 operator<<(std::ostream &os, const LineNo &lineNo)
 {
-    return os << (Highlight("lineno") << lineNo.data << ' ');
+    return os << (Highlight("lineno") << std::to_string(lineNo.data) << ' ');
 }
 
 std::ostream &

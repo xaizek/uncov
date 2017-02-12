@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 09 January, 2017_
+_This file last updated on 12 February, 2017_
 
 ### Brief Description ###
 
@@ -17,6 +17,10 @@ referring to unavailable git objects just won't be accessible).
 
 Provided command-line interface should be familiar to most of git users and
 helps to avoid switching to a browser to verify code coverage.
+
+It's also possible to display coverage information in a browser, say, on a CI
+server.  This makes uncov something like self-hosted coveralls.io analogue (but
+note that Web-interface is secondary in this case and isn't feature complete).
 
 ### Structure ###
 
@@ -41,6 +45,11 @@ like `--dump`, others could be extended by adding it).
 * Comparison of coverage.
 * Displaying parts of files that need attention with regard to coverage.
 * Can be used from Vim via the plugin provided.
+* Can be used on CI to display coverage in a browser (via Web-UI).
+
+and thus serve
+  as self-hosted analogue for coveralls (but this part is byproduct and isn't
+  complete).
 
 ### Status ###
 
@@ -67,6 +76,7 @@ Expected to work in Unix-like environments.
 * [libsqlite3][sqlite].
 * libsource-highlight from [GNU Source-highlight][srchilite].
 * [zlib][zlib].
+* [tntnet][tntnet].
 * (optional) [pandoc][pandoc] for regenerating man page.
 * (optional) [python][python] for collecting coverage for C and C++ (would be
   nice to get rid of this weird dependency, probably by rewriting the tool).
@@ -85,8 +95,7 @@ in example below:
     find . -name '*.o' -exec gcov -p {} +
     # generage and combine coverage reports (--capture-worktree automatically
     # makes stray commit if repository is dirty)
-    uncov-gcov --root . --build-root . --no-gcov --capture-worktree \
-               --exclude tests | uncov new
+    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
     # remove coverage reports
     find . -name '*.gcov' -delete
 
@@ -130,6 +139,14 @@ Results of comparison (`uncov diff`):
 
 ![diff](data/screenshots/diff.png)
 
+Annotated source code in Web-UI:
+
+![Web-UI](data/screenshots/webui.png)
+
+### Web-UI Demo ###
+
+Deployed Web-interface can be seen [here](http://ci.vifm.info:8000/).
+
 ### Credits ###
 
 * [LCOV][lcov] project is the source of useful ideas and primary source of
@@ -156,6 +173,7 @@ GNU Affero General Public License, version 3 or later.
 [sqlite]: https://www.sqlite.org/
 [srchilite]: https://www.gnu.org/software/src-highlite/
 [zlib]: http://zlib.net/
+[tntnet]: http://www.tntnet.org/
 [pandoc]: http://pandoc.org/
 [python]: https://www.python.org/
 [vim-gcov-marker]: https://github.com/m42e/vim-gcov-marker

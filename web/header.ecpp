@@ -1,0 +1,5 @@
+<%cpp>
+    static_cast<void>(request);
+</%cpp>
+
+<link rel="stylesheet" type="text/css" href="/style.css">

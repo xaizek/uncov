@@ -1,4 +1,11 @@
-### Building ###
+### Configuring ###
+
+`config.h.in` in the root is used to produce `config.h` by default, but one can
+write custom `config.h` to change something.  There is only `DATADIR` define
+which specifies location of data after installation, make sure it accounts for
+custom `DESTDIR` when it's used.
+
+### Build ###
 
 #### Defaults ####
 

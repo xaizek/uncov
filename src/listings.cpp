@@ -44,17 +44,19 @@ static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
                                   const Build *prevBuild = nullptr);
 
 std::vector<std::string>
-describeBuild(BuildHistory *bh, const Build &build, bool extraAlign)
+describeBuild(BuildHistory *bh, const Build &build, bool extraAlign,
+              bool spacing, const Build *prevBuild)
 {
+    const std::string sep = spacing ? " / " : "/";
     CovInfo covInfo(build);
-    CovChange covChange = getBuildCovChange(bh, build, covInfo);
+    CovChange covChange = getBuildCovChange(bh, build, covInfo, prevBuild);
 
     return {
         "#" + std::to_string(build.getId()),
         covInfo.formatCoverageRate(),
-        covInfo.formatLines(" / "),
+        covInfo.formatLines(sep),
         covChange.formatCoverageRate(),
-        covChange.formatLines(" / ", extraAlign ? 4 : 0),
+        covChange.formatLines(sep, extraAlign ? 4 : 0),
         build.getRefName(),
         Revision{build.getRef()},
         Time{build.getTimestamp()}
@@ -116,7 +118,7 @@ getDirsCoverage(const Build &build, const std::string &dirFilter)
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
                    const std::string &dirFilter, bool changedOnly,
-                   const Build *prevBuild)
+                   bool directOnly, const Build *prevBuild)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
@@ -130,8 +132,15 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         prev = bh->getBuild(prevBuildId);
     }
 
+    boost::filesystem::path dpath = dirFilter;
     for (const std::string &filePath : paths) {
-        if (!pathIsInSubtree(dirFilter, filePath)) {
+        boost::filesystem::path fpath = filePath;
+
+        if (!pathIsInSubtree(dpath, fpath)) {
+            continue;
+        }
+
+        if (directOnly && fpath.parent_path() != dpath) {
             continue;
         }
 
@@ -144,7 +153,7 @@ describeBuildFiles(BuildHistory *bh, const Build &build,
         }
 
         rows.push_back({
-            filePath,
+            directOnly ? fpath.filename().string() : filePath,
             covInfo.formatCoverageRate(),
             covInfo.formatLines(" / "),
             covChange.formatCoverageRate(),
@@ -159,15 +168,12 @@ void
 printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                  const Build *prevBuild)
 {
-    CovInfo covInfo(build);
-    CovChange covChange = getBuildCovChange(bh, build, covInfo, prevBuild);
-
-    os << Label{"Build"} << ": #" << build.getId() << ", "
-       << covInfo.formatCoverageRate() << ' '
-       << '(' << covInfo.formatLines("/") << "), "
-       << covChange.formatCoverageRate() << ' '
-       << '(' << covChange.formatLines("/") << "), "
-       << build.getRefName() << '\n';
+    std::vector<std::string> v = describeBuild(bh, build, false, false,
+                                               prevBuild);
+    os << Label{"Build"} << ": " << v[0] << ", "
+       << v[1] << '(' << v[2] << "), "
+       << v[3] << '(' << v[4] << "), "
+       << v[5] << '\n';
 }
 
 static CovChange
@@ -188,10 +194,28 @@ void
 printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                 const File &file)
 {
+    std::vector<std::string> v = describeFile(bh, build, file, false);
+    os << Label{"File"} << ": " << v[0] << ", "
+       << v[1] << '(' << v[2] << "), "
+       << v[3] << '(' << v[4] << ")\n";
+}
+
+std::vector<std::string>
+describeFile(BuildHistory *bh, const Build &build, const File &file,
+            bool spacing)
+{
+    const std::string sep = spacing ? " / " : "/";
     CovInfo covInfo(file);
     CovChange covChange = getFileCovChange(bh, build, file.getPath(), nullptr,
                                            covInfo);
-    printFileHeader(os, file.getPath(), covInfo, covChange);
+
+    return {
+        file.getPath(),
+        covInfo.formatCoverageRate(),
+        covInfo.formatLines(sep),
+        covChange.formatCoverageRate(),
+        covChange.formatLines(sep),
+    };
 }
 
 void

@@ -45,11 +45,31 @@ public:
      * @returns The number.
      */
     virtual int getTabSize() const = 0;
+
+    /**
+     * @brief Retrieves information about availability of color processing.
+     *
+     * @returns @c true if output can be colorized, @c false otherwise.
+     */
+    virtual bool isColorOutputAllowed() const = 0;
+
+    /**
+     * @brief Retrieves information about required output format.
+     *
+     * @returns @c true if output is HTML, @c false otherwise.
+     */
+    virtual bool isHtmlOutput() const = 0;
 };
 
 class FilePrinter
 {
 public:
+    /**
+     * @brief Constructs an object performing some highlighting preparations.
+     *
+     * @param settings FilePrinter settings.
+     * @param allowColors Highlight source file.
+     */
     explicit FilePrinter(const FilePrinterSettings &settings,
                          bool allowColors = true);
 
@@ -90,7 +110,7 @@ private:
 
 private:
     const bool colorizeOutput;
-    srchilite::SourceHighlight sourceHighlight;
+    srchilite::SourceHighlight highlighter;
     srchilite::LangMap langMap;
 };
 

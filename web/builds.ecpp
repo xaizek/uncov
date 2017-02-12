@@ -1,0 +1,81 @@
+<!--
+
+Copyright (C) 2017 xaizek <xaizek@openmailbox.org>
+
+This file is part of uncov.
+
+uncov is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+uncov is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with uncov.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<%pre>
+    #include <boost/range/adaptor/reversed.hpp>
+
+    #include "BuildHistory.hpp"
+    #include "listings.hpp"
+
+    extern BuildHistory *globalBH;
+</%pre>
+
+<%cpp>
+    static_cast<void>(request);
+</%cpp>
+
+<html>
+
+<head>
+    <title>All builds | uncov</title>
+
+    <%include>web/header.ecpp</%include>
+</head>
+
+<body>
+    <div class="sidenav">
+        <a href="/builds">All Builds</a>
+    </div>
+
+    <div class="rightbar">
+    <%include>web/footer.ecpp</%include>
+    </div>
+
+%// TODO: display repository description somewhere here
+
+    <table>
+
+    <tr>
+    <th>Build</th>
+    <th>Coverage</th>
+    <th>C/R Lines</th>
+    <th>Cov Change</th>
+    <th>C/U/R Line Changes</th>
+    <th>Ref</th>
+    </tr>
+
+%   std::vector<Build> builds = globalBH->getBuilds();
+%   namespace adaptors = boost::adaptors;
+%   for (const Build &build : adaptors::reverse(builds)) {
+        <tr onclick="document.location = '/builds/<$ build.getId() $>'">
+%       const std::vector<std::string> descr = describeBuild(globalBH, build,
+%                                                            true, true);
+%       for (const std::string &cell : { descr[0], descr[1], descr[2],
+%                                        descr[3], descr[4], descr[5] }) {
+            <td><$$ cell $></td>
+%       }
+        </tr>
+%   }
+
+    </table>
+</body>
+
+</html>
