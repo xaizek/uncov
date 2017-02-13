@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 12 February, 2017_
+_This file last updated on 13 February, 2017_
 
 ### Brief Description ###
 
@@ -46,10 +46,6 @@ like `--dump`, others could be extended by adding it).
 * Displaying parts of files that need attention with regard to coverage.
 * Can be used from Vim via the plugin provided.
 * Can be used on CI to display coverage in a browser (via Web-UI).
-
-and thus serve
-  as self-hosted analogue for coveralls (but this part is byproduct and isn't
-  complete).
 
 ### Status ###
 
