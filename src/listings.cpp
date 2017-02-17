@@ -44,8 +44,8 @@ static CovChange getFileCovChange(BuildHistory *bh, const Build &build,
                                   const Build *prevBuild = nullptr);
 
 std::vector<std::string>
-describeBuild(BuildHistory *bh, const Build &build, bool extraAlign,
-              bool spacing, const Build *prevBuild)
+describeBuild(BuildHistory *bh, const Build &build, DoExtraAlign extraAlign,
+              DoSpacing spacing, const Build *prevBuild)
 {
     const std::string sep = spacing ? " / " : "/";
     CovInfo covInfo(build);
@@ -117,8 +117,8 @@ getDirsCoverage(const Build &build, const std::string &dirFilter)
 
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter, bool changedOnly,
-                   bool directOnly, const Build *prevBuild)
+                   const std::string &dirFilter, ListChangedOnly changedOnly,
+                   ListDirectOnly directOnly, const Build *prevBuild)
 {
     const std::vector<std::string> &paths = build.getPaths();
 
@@ -168,8 +168,8 @@ void
 printBuildHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                  const Build *prevBuild)
 {
-    std::vector<std::string> v = describeBuild(bh, build, false, false,
-                                               prevBuild);
+    std::vector<std::string> v = describeBuild(bh, build, DoExtraAlign{},
+                                               !DoSpacing{}, prevBuild);
     os << Label{"Build"} << ": " << v[0] << ", "
        << v[1] << '(' << v[2] << "), "
        << v[3] << '(' << v[4] << "), "
@@ -194,7 +194,7 @@ void
 printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
                 const File &file)
 {
-    std::vector<std::string> v = describeFile(bh, build, file, false);
+    std::vector<std::string> v = describeFile(bh, build, file, !DoSpacing{});
     os << Label{"File"} << ": " << v[0] << ", "
        << v[1] << '(' << v[2] << "), "
        << v[3] << '(' << v[4] << ")\n";
@@ -202,7 +202,7 @@ printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
 
 std::vector<std::string>
 describeFile(BuildHistory *bh, const Build &build, const File &file,
-            bool spacing)
+             DoSpacing spacing)
 {
     const std::string sep = spacing ? " / " : "/";
     CovInfo covInfo(file);

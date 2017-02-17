@@ -66,9 +66,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %   if (boost::optional<File &> file = build->getFile(filePath)) {
 
 %   std::vector<std::string> fileInfo = describeFile(globalBH, *build, *file,
-%                                                    true);
-%   std::vector<std::string> buildInfo = describeBuild(globalBH, *build, false,
-%                                                      true);
+%                                                    DoSpacing{});
+%   std::vector<std::string> buildInfo = describeBuild(globalBH, *build,
+%                                                      !DoExtraAlign{},
+%                                                      DoSpacing{});
 
     <div class="sidenav">
     <a href="/builds">All Builds</a>

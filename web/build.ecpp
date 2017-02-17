@@ -60,8 +60,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 <body>
 %   if (boost::optional<Build> build = globalBH->getBuild(buildId)) {
 
-%   std::vector<std::string> buildInfo = describeBuild(globalBH, *build, false,
-%                                                      true);
+%   std::vector<std::string> buildInfo = describeBuild(globalBH, *build,
+%                                                      !DoExtraAlign{},
+%                                                      DoSpacing{});
 
     <div class="sidenav">
         <a href="/builds">All Builds</a>
@@ -124,7 +125,8 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     </tr>
 
 %   for (const std::vector<std::string> &row :
-%        describeBuildFiles(globalBH, *build, dirPath, false, true)) {
+%        describeBuildFiles(globalBH, *build, dirPath, !ListChangedOnly{},
+%                           ListDirectOnly{})) {
         <tr onclick="document.location = '/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>'">
 %       for (const std::string &cell : row) {
             <td><$$ cell $></td>
