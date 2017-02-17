@@ -188,8 +188,9 @@ private:
 
         Build build = getBuild(bh, buildId);
 
-        const std::vector<std::string> descr = describeBuild(bh, build, false,
-                                                             true);
+        const std::vector<std::string> descr = describeBuild(bh, build,
+                                                             !DoExtraAlign{},
+                                                             DoSpacing{});
         tablePrinter.append({ "Id:", descr[0] });
         tablePrinter.append({ "Coverage:", descr[1] });
         tablePrinter.append({ "C/R Lines:", descr[2] });
@@ -244,7 +245,8 @@ private:
 
         for (Build &build : builds) {
             const std::vector<std::string> descr = describeBuild(bh, build,
-                                                                 true, true);
+                                                                 DoExtraAlign{},
+                                                                 DoSpacing{});
             tablePrinter.append({ descr[0], descr[1], descr[2], descr[3],
                                   descr[4], descr[5] });
         }
@@ -502,9 +504,9 @@ private:
         if (alias == "dirs") {
             table = describeBuildDirs(bh, build, dirFilter, prev);
         } else {
-            const bool changedOnly = (alias == "changed");
-            table = describeBuildFiles(bh, build, dirFilter, changedOnly, false,
-                                       prev);
+            ListChangedOnly changedOnly(alias == "changed");
+            table = describeBuildFiles(bh, build, dirFilter, changedOnly,
+                                       !ListDirectOnly{}, prev);
         }
 
         for (std::vector<std::string> &row : table) {

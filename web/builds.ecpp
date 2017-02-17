@@ -67,7 +67,8 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %   for (const Build &build : adaptors::reverse(builds)) {
         <tr onclick="document.location = '/builds/<$ build.getId() $>'">
 %       const std::vector<std::string> descr = describeBuild(globalBH, build,
-%                                                            true, true);
+%                                                            DoExtraAlign{},
+%                                                            DoSpacing{});
 %       for (const std::string &cell : { descr[0], descr[1], descr[2],
 %                                        descr[3], descr[4], descr[5] }) {
             <td><$$ cell $></td>

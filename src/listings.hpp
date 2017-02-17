@@ -22,9 +22,31 @@
 #include <string>
 #include <vector>
 
+#include "utils/Flag.hpp"
+
 class Build;
 class BuildHistory;
 class File;
+
+/**
+ * @brief Boolean flag type for controlling extra alignment.
+ */
+using DoExtraAlign = Flag<struct DoExtraAlignTag>;
+
+/**
+ * @brief Boolean flag type for controlling spacing.
+ */
+using DoSpacing = Flag<struct DoSpacingTag>;
+
+/**
+ * @brief Boolean flag type for limiting list of files to changed only.
+ */
+using ListChangedOnly = Flag<struct ListChangedOnlyTag>;
+
+/**
+ * @brief Boolean flag type for limiting list of files to direct children only.
+ */
+using ListDirectOnly = Flag<struct ListDirectOnlyTag>;
 
 /**
  * @brief Formats information about specified build as a table row.
@@ -49,7 +71,8 @@ class File;
  * @returns Row with information about the build.
  */
 std::vector<std::string> describeBuild(BuildHistory *bh, const Build &build,
-                                       bool extraAlign, bool spacing,
+                                       DoExtraAlign extraAlign,
+                                       DoSpacing spacing,
                                        const Build *prevBuild = nullptr);
 
 /**
@@ -97,8 +120,8 @@ describeBuildDirs(BuildHistory *bh, const Build &build,
  */
 std::vector<std::vector<std::string>>
 describeBuildFiles(BuildHistory *bh, const Build &build,
-                   const std::string &dirFilter, bool changedOnly,
-                   bool directOnly, const Build *prevBuild = nullptr);
+                   const std::string &dirFilter, ListChangedOnly changedOnly,
+                   ListDirectOnly directOnly, const Build *prevBuild = nullptr);
 
 /**
  * @brief Prints build header which is a one line description of it.
@@ -141,7 +164,7 @@ void printFileHeader(std::ostream &os, BuildHistory *bh, const Build &build,
  * @returns Row with information about the build.
  */
 std::vector<std::string> describeFile(BuildHistory *bh, const Build &build,
-                                      const File &file, bool spacing);
+                                      const File &file, DoSpacing spacing);
 
 /**
  * @brief Prints file header which is a one line description of it.
