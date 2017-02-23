@@ -177,7 +177,7 @@ DB::getLastRowId()
 }
 
 int
-DB::Row::getCountCount() const
+DB::Row::getColumnCount() const
 {
     return sqlite3_column_count(ps);
 }

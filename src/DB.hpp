@@ -85,7 +85,7 @@ public:
     template <typename... Types>
     operator std::tuple<Types...>()
     {
-        const int nCols = getCountCount();
+        const int nCols = getColumnCount();
         if (nCols != sizeof...(Types)) {
             throw std::runtime_error {
                 "Expected " + std::to_string(nCols) + " columns, got " +
@@ -103,7 +103,7 @@ private:
         return std::make_tuple(makeTupleItem(Is, Marker<Types>())...);
     }
 
-    int getCountCount() const;
+    int getColumnCount() const;
 
     std::string makeTupleItem(std::size_t idx, Marker<std::string>);
     int makeTupleItem(std::size_t idx, Marker<int>);
