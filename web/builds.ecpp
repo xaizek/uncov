@@ -70,10 +70,17 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                                                            DoExtraAlign{},
 %                                                            DoSpacing{});
 %       for (const std::string &cell : { descr[0], descr[1], descr[2],
-%                                        descr[3], descr[4], descr[5] }) {
+%                                        descr[3], descr[4] }) {
             <td><$$ cell $></td>
 %       }
-        </tr>
+
+        <td>
+            <div class="tooltip"><$$ descr[5] $>
+                <span class="tooltiptext">
+                    <$$ descr[6] $>
+                </span>
+            </div>
+        </td>
 %   }
 
     </table>

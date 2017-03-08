@@ -76,7 +76,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
                               <small><$$ buildInfo[2] $></small></span>
         <span class="barelem"><$$ buildInfo[3] $></br>
                               <small><$$ buildInfo[4] $></small></span>
-        <span class="barelem"><$$ buildInfo[5] $></span>
+        <span class="barelem">
+            <div class="tooltip"><$$ buildInfo[5] $>
+                <span class="tooltiptext">
+                    <$$ buildInfo[6] $>
+                </span>
+            </div>
+        </span>
     </div>
     <%include>web/footer.ecpp</%include>
     </div>
