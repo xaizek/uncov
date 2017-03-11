@@ -1,8 +1,14 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 13 February, 2017_
+_This file last updated on 11 March, 2017_
 
-### Brief Description ###
+1. [Description](description)
+2. [Supported Environment](#supported-environment)
+3. [Usage](#usage)
+4. [Credits](#credits)
+5. [License](#license)
+
+## Description ##
 
 `uncov` is a tool that collect and processes coverage reports.
 
@@ -22,6 +28,14 @@ It's also possible to display coverage information in a browser, say, on a CI
 server.  This makes uncov something like self-hosted coveralls.io analogue (but
 note that Web-interface is secondary in this case and isn't feature complete).
 
+### Features ###
+
+* Code highlighting.
+* Comparison of coverage.
+* Displaying parts of files that need attention with regard to coverage.
+* Can be used from Vim via the plugin provided.
+* Can be used on CI to display coverage in a browser (via Web-UI).
+
 ### Structure ###
 
 Storage management tool itself is language independent and is relying on
@@ -31,21 +45,13 @@ coverage harness.
 Importer of coverage for C and C++ languages that collects data from `gcov` is
 provided.
 
-#### Adding support for a language ####
+### Adding support for a language ###
 
 Support for other languages can be added by converting existing coverage tools
 or even using them as is.  The `new-json` subcommand accepts JSON that's used by
 [coveralls.io][coveralls] API, all what's needed is to extract this JSON and
 pipe it to `uncov new-json` (some tools might already have a command-line option
 like `--dump`, others could be extended by adding it).
-
-### Features ###
-
-* Code highlighting.
-* Comparison of coverage.
-* Displaying parts of files that need attention with regard to coverage.
-* Can be used from Vim via the plugin provided.
-* Can be used on CI to display coverage in a browser (via Web-UI).
 
 ### Status ###
 
@@ -59,7 +65,7 @@ be lost.
  * Configuration.  Currently values that could be configurable are hard-coded.
  * Tuning behaviour with command-line parameters.
 
-### Supported Environment ###
+## Supported Environment ##
 
 Expected to work in Unix-like environments.
 
@@ -77,7 +83,7 @@ Expected to work in Unix-like environments.
 * (optional) [python][python] for collecting coverage for C and C++ (would be
   nice to get rid of this weird dependency, probably by rewriting the tool).
 
-### Usage ###
+## Usage ##
 
 `uncov-gcov` can be used to generate coverage, but it seems to not play well
 with out-of-tree builds (some coverage is missing, this issue is inherited from
@@ -143,7 +149,7 @@ Annotated source code in Web-UI:
 
 Deployed Web-interface can be seen [here](http://ci.vifm.info:8000/).
 
-### Credits ###
+## Credits ##
 
 * [LCOV][lcov] project is the source of useful ideas and primary source of
   inspiration.
@@ -153,7 +159,7 @@ Deployed Web-interface can be seen [here](http://ci.vifm.info:8000/).
 * [gcov-marker.vim][vim-gcov-marker] was the source of idea of filling location
   list with not covered lines in the plugin.
 
-### License ###
+## License ##
 
 ![AGPLv3+](data/agplv3.png)
 
