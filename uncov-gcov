@@ -99,6 +99,8 @@ def create_args(params):
                         default=False,
                         help='Make an dangling commit if working directory is '
                              'dirty')
+    parser.add_argument('--ref-name', default=None, metavar='REF',
+                        help='force custom ref name')
 
     return parser.parse_args(params)
 
@@ -444,6 +446,10 @@ def collect(args):
     # Use the root directory to get information on the Git repository
     report['git'] = gitrepo(abs_root, args.capture_worktree,
             map(lambda x: x['name'], report['source_files']))
+
+    if args.ref_name is not None:
+        report['git']['ref-name'] = args.ref_name
+
     return report
 
 def gitrepo(abs_repo_root, capture_worktree, src_files):
