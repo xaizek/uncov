@@ -1,4 +1,4 @@
-*uncov.txt*               For Vim version 7.4          Last change: 2017 Jan 03
+*uncov.txt*               For Vim version 7.4         Last change: 2017 Apr 03
 
 
                        uncov plugin documentation
@@ -40,8 +40,9 @@ moment of coverage collection.  The buffer in that tab:
 ==============================================================================
 3. Usage                                        *uncov-usage*
 
-:Uncov                                          *uncov-:Uncov* *:Uncov*
+:Uncov [buildid]                                *uncov-:Uncov* *:Uncov*
 Loads coverage of current file in a buffer of a new tab page.
+Without argument latest build (@@) is used.
 
 :UncovInfo                                      *uncov-:UncovInfo* *:UncovInfo*
 Loads coverage of current file in a buffer of a new tab page.

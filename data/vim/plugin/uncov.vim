@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@openmailbox.org>
-" Last Change: 2017 January 08
+" Last Change: 2017 April 02
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -24,10 +24,19 @@ doautocmd Uncov ColorScheme
 sign define UncovCovered text=  texthl=UncovCovered
 sign define UncovMissed text=  texthl=UncovMissed
 
-function! s:ShowCoverage() abort
+function! s:ShowCoverage(...) abort
+    let l:buildid = '@@'
+    if a:0 > 0
+        if a:1 !~ '^@\d\+\|@@$'
+            echohl ErrorMsg | echo 'Wrong argument:' a:1 | echohl None
+            return
+        endif
+        let l:buildid = a:1
+    endif
+
     let l:repo = fugitive#buffer().repo()
     let l:relFilePath = fugitive#buffer().path()
-    let l:coverageInfo = systemlist('uncov . get @@ /'
+    let l:coverageInfo = systemlist('uncov . get '.l:buildid.' /'
                                   \.shellescape(l:relFilePath))
     if v:shell_error != 0
         let l:errorMsg = 'uncov error: '.join(l:coverageInfo, '\n')
@@ -145,6 +154,6 @@ function! s:PrintCoverageInfo() abort
                  \ l:covered, l:relevant)
 endfunction
 
-command! -nargs=0 Uncov call s:ShowCoverage()
+command! -nargs=? Uncov call s:ShowCoverage(<f-args>)
 
 " vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab :
