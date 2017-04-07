@@ -173,7 +173,11 @@ span.revision {
 .tooltip {
     position: relative;
     display: inline-block;
-    border-bottom: 1px dotted grey; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip object, used to underline even wrapped text */
+.tooltip .tooltipobj {
+    border-bottom: 1px dotted grey;
 }
 
 /* Tooltip text */

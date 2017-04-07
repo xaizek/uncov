@@ -75,7 +75,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %       }
 
         <td>
-            <div class="tooltip"><$$ descr[5] $>
+            <div class="tooltip">
+                <span class="tooltipobj">
+                    <$$ descr[5] $>
+                </span>
                 <span class="tooltiptext">
                     <$$ descr[6] $>
                 </span>
