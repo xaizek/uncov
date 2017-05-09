@@ -41,10 +41,15 @@ moment of coverage collection.  The buffer in that tab:
 3. Usage                                        *uncov-usage*
 
 :Uncov [buildid]                                *uncov-:Uncov* *:Uncov*
-Loads coverage of current file in a buffer of a new tab page.
+
+In non-uncov buffer, loads coverage of current file in a buffer of a new tab
+page.  When already in uncov buffer, reloads coverage of a file in current
+buffer, but possibly from a different build.
+
 Without argument latest build (@@) is used.
 
 :UncovInfo                                      *uncov-:UncovInfo* *:UncovInfo*
+
 Loads coverage of current file in a buffer of a new tab page.
 The command is local to buffers created by this plugin.
 

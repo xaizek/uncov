@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@openmailbox.org>
-" Last Change: 2017 April 02
+" Last Change: 2017 May 09
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -24,7 +24,7 @@ doautocmd Uncov ColorScheme
 sign define UncovCovered text=  texthl=UncovCovered
 sign define UncovMissed text=  texthl=UncovMissed
 
-function! s:ShowCoverage(...) abort
+function! s:ShowCoverage(reload, ...) abort
     let l:buildid = '@@'
     if a:0 > 0
         if a:1 !~ '^@\d\+\|@@$'
@@ -34,10 +34,20 @@ function! s:ShowCoverage(...) abort
         let l:buildid = a:1
     endif
 
-    let l:repo = fugitive#buffer().repo()
-    let l:relFilePath = fugitive#buffer().path()
-    let l:coverageInfo = systemlist('uncov . get '.l:buildid.' /'
-                                  \.shellescape(l:relFilePath))
+    if a:reload
+        let l:repo = b:uncovRepo
+        let l:relFilePath = b:uncovRelFilePath
+    else
+        let l:repo = fugitive#buffer().repo()
+        let l:relFilePath = fugitive#buffer().path()
+    endif
+
+    call s:MakeBuffer(l:repo, l:relFilePath, l:buildid, a:reload)
+endfunction
+
+function! s:MakeBuffer(repo, relFilePath, buildid, reload)
+    let l:coverageInfo = systemlist('uncov '.a:repo.dir().' get '.a:buildid.' /'
+                                  \.shellescape(a:relFilePath))
     if v:shell_error != 0
         let l:errorMsg = 'uncov error: '.join(l:coverageInfo, '\n')
         echohl ErrorMsg | echo l:errorMsg | echohl None
@@ -45,8 +55,8 @@ function! s:ShowCoverage(...) abort
     endif
     let l:commit = l:coverageInfo[0]
 
-    let l:gitArgs = ['show', l:commit.':'.l:relFilePath]
-    let l:cmd = call(repo.git_command, l:gitArgs, repo)
+    let l:gitArgs = ['show', l:commit.':'.a:relFilePath]
+    let l:cmd = call(a:repo.git_command, l:gitArgs, a:repo)
     let l:fileLines = systemlist(l:cmd)
     if v:shell_error != 0
         let l:errorMsg = 'git error: '.join(l:fileLines, '\n')
@@ -56,28 +66,36 @@ function! s:ShowCoverage(...) abort
 
     let l:cursPos = getcurpos()
 
-    tabedit
+    if a:reload
+        enew
+    else
+        tabedit
+    endif
+
+    let b:uncovRepo = a:repo
+    let b:uncovRelFilePath = a:relFilePath
 
     let l:coverage = l:coverageInfo[1:]
     let [l:loclist, b:uncovCovered, b:uncoRelevant] =
                 \ s:ParseCoverage(l:coverage, l:fileLines)
 
     " XXX: insert buildid here?
-    execute 'silent!' 'file' escape('uncov:'.l:relFilePath, ' \%')
+    execute 'silent!' 'file' escape('uncov:'.a:relFilePath, ' \%')
     for l:fileLine in l:fileLines
         call append(line('$'), l:fileLine)
     endfor
     0delete
     setlocal buftype=nofile bufhidden=wipe noswapfile nomodified nomodifiable
 
-    execute 'doautocmd BufRead' l:relFilePath
-    execute 'doautocmd BufEnter' l:relFilePath
+    execute 'doautocmd BufRead' a:relFilePath
+    execute 'doautocmd BufEnter' a:relFilePath
 
     call cursor(l:cursPos[1:])
     call setloclist(0, l:loclist)
     call s:FoldCovered(l:coverage)
 
     command -buffer UncovInfo call s:PrintCoverageInfo()
+    command -buffer -nargs=? Uncov call s:ShowCoverage(1, <f-args>)
 
     UncovInfo
 endfunction
@@ -154,6 +172,6 @@ function! s:PrintCoverageInfo() abort
                  \ l:covered, l:relevant)
 endfunction
 
-command! -nargs=? Uncov call s:ShowCoverage(<f-args>)
+command! -nargs=? Uncov call s:ShowCoverage(0, <f-args>)
 
 " vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab :
