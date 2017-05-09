@@ -272,6 +272,27 @@ Related to `ARY`, we need to analyze commit graph to do this.
 
 # Vim Plugin #
 
+## A way to populate location list with covered lines. ##
+
+| ID   |  Status   |  Type         |
+|------|-----------|---------------|
+| CSY  |  planned  |  improvement  |
+
+This is useful for source files which have almost none coverage and you want to
+see what is covered.
+
+## Bad buffer name for multiple buffers of the same file. ##
+
+| ID   |  Status   |  Type   |
+|------|-----------|---------|
+| SSY  |  planned  |  issue  |
+
+Vim doesn't allow several buffers to have the same name, so with current naming
+scheme only one buffer will get the name while the other one will be
+"[No Name]".
+
+Need to identify buffers more uniquely.
+
 ## Don't depend on fugitive in the plugin. ##
 
 | ID   |  Status   |  Type         |
@@ -296,6 +317,15 @@ Outline of possible implementation:
 | ID   |  Status   |  Type         |
 |------|-----------|---------------|
 | eRY  |  planned  |  improvement  |
+
+## Unfold lines under cursor after :Uncov. ##
+
+| ID   |  Status   |  Type         |
+|------|-----------|---------------|
+| oSY  |  planned  |  improvement  |
+
+Otherwise this is likely the first thing user does right after the buffer is
+loaded simply because line of interest might be under the fold.
 
 # Web-UI #
 
