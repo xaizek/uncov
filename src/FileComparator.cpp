@@ -17,6 +17,7 @@
 
 #include "FileComparator.hpp"
 
+#define BOOST_DISABLE_ASSERTS
 #include <boost/multi_array.hpp>
 
 #include <deque>
