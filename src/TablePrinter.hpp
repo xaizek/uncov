@@ -35,7 +35,7 @@ public:
     /**
      * @brief Constructs the table formatter.
      *
-     * @param fmt Format specification: <field>,<field>...
+     * @param headings Format specification: field, field...
      * @param maxWidth Maximum allowed table width.
      * @param hiddenHeader Do not print table header.
      */

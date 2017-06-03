@@ -50,10 +50,10 @@ public:
     /**
      * @brief Custom stream buffer that spawns pager for large outputs only.
      *
-     * Collect up to <terminal height> lines.  If buffer is closed with this
-     * limit not reached, it prints lines on std::cout.  If we hit the limit in
-     * the process of output, it opens a pager and feeds it all collected output
-     * and everything that comes next.
+     * Collect up to terminal height lines.  If buffer is closed with this limit
+     * not reached, it prints lines on std::cout.  If we hit the limit in the
+     * process of output, it opens a pager and feeds it all collected output and
+     * everything that comes next.
      */
     class ScreenPageBuffer
     {

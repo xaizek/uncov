@@ -106,7 +106,7 @@ public:
     /**
      * @brief Initializes data field.
      *
-     * @param d Data to be initialized with.
+     * @param data Data to be initialized with.
      */
     PrintWrapper(const T &data) : data(data) {}
 

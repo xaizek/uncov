@@ -49,6 +49,7 @@ public:
      *
      * @param idx Index of the column.
      * @param heading Key of the column.
+     * @param alignLeft This column should be left-aligned.
      * @param hiddenHeader Do not print column header.
      */
     Column(int idx, std::string heading, bool alignLeft, bool hiddenHeader)
@@ -71,7 +72,7 @@ public:
     /**
      * @brief Returns whether this column should be aligned to the left.
      *
-     * @returns @true if so, @false otherwise.
+     * @returns @c true if so, @c false otherwise.
      */
     bool leftAlign() const
     {

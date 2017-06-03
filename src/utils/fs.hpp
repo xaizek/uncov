@@ -21,7 +21,7 @@
 #include <boost/filesystem/path.hpp>
 
 /**
- * @brief Checks that @path is somewhere under @root.
+ * @brief Checks that @p path is somewhere under @p root.
  *
  * @param root Root to check against.
  * @param path Path to check.
