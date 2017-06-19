@@ -20,6 +20,7 @@
 
 #include <deque>
 #include <string>
+#include <utility>
 #include <vector>
 
 enum class DiffLineType
