@@ -38,8 +38,8 @@ struct DiffLine
     int oldLine;
     int newLine;
 
-    DiffLine(DiffLineType type, const std::string &text,
-             int oldLine, int newLine)
+    DiffLine(DiffLineType type, std::string text,
+             int oldLine = -1, int newLine = -1)
         : type(type), text(text), oldLine(oldLine), newLine(newLine)
     {
     }

@@ -91,7 +91,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
                           diffSeq.cbegin() + (identicalLines - endContext));
             diffSeq.emplace(diffSeq.cbegin() + startContext, DiffLineType::Note,
                             std::to_string(identicalLines - context) +
-                            " lines folded", -1, -1);
+                            " lines folded");
         }
         identicalLines = 0U;
     };
