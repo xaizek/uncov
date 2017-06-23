@@ -40,7 +40,7 @@ class Transaction;
 class DB
 {
     class Row;
-    class RowWrapper;
+    class SingleRow;
     class RowIterator;
     class RowsData;
     class Rows;
@@ -57,8 +57,8 @@ public:
 public:
     void execute(const std::string &stmt,
                  const std::vector<Binding> &binds = {});
-    RowWrapper queryOne(const std::string &stmt,
-                        const std::vector<Binding> &binds = {});
+    SingleRow queryOne(const std::string &stmt,
+                       const std::vector<Binding> &binds = {});
     Rows queryAll(const std::string &stmt,
                   const std::vector<Binding> &binds = {});
     std::int64_t getLastRowId();
@@ -113,10 +113,10 @@ private:
     sqlite3_stmt *ps;
 };
 
-class DB::RowWrapper : public Row
+class DB::SingleRow : public Row
 {
 public:
-    RowWrapper(stmtPtr ps);
+    explicit SingleRow(stmtPtr ps);
 
 private:
     stmtPtr ps;

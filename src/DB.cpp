@@ -121,11 +121,11 @@ DB::execute(const std::string &stmt, const std::vector<Binding> &binds)
     }
 }
 
-DB::RowWrapper
+DB::SingleRow
 DB::queryOne(const std::string &stmt, const std::vector<Binding> &binds)
 {
     stmtPtr ps = prepare(stmt, binds);
-    return RowWrapper(std::move(ps));
+    return SingleRow(std::move(ps));
 }
 
 DB::Rows
@@ -232,7 +232,7 @@ DB::Row::makeTupleItem(std::size_t idx, Marker<std::vector<int>>)
     return vec;
 }
 
-DB::RowWrapper::RowWrapper(stmtPtr ps) : Row(ps.get()), ps(std::move(ps))
+DB::SingleRow::SingleRow(stmtPtr ps) : Row(ps.get()), ps(std::move(ps))
 {
     if (sqlite3_step(this->ps.get()) != SQLITE_ROW) {
         throw std::runtime_error("Failed to read single row");
