@@ -222,7 +222,8 @@ private:
 
 class BlankBinding
 {
-public:
+    friend BlankBinding operator ""_b(const char name[], std::size_t len);
+
     explicit BlankBinding(std::string name) : name(std::move(name))
     {
     }
@@ -247,7 +248,8 @@ private:
     const std::string name;
 };
 
-inline BlankBinding operator "" _b(const char name[], std::size_t len)
+inline BlankBinding
+operator ""_b(const char name[], std::size_t len)
 {
     return BlankBinding(std::string(name, len));
 }
