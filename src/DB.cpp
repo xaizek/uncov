@@ -261,6 +261,10 @@ Transaction::Transaction(sqlite3 *conn) : conn(conn), committed(false)
 void
 Transaction::commit()
 {
+    if (committed) {
+        throw std::logic_error("An attempt to commit a transaction twice");
+    }
+
     char *errMsg;
     if (sqlite3_exec(conn, "END TRANSACTION", nullptr, nullptr, &errMsg) != 0) {
         std::string error = errMsg;
