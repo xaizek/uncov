@@ -24,6 +24,12 @@
 #include <vector>
 
 /**
+ * @file FileComparator.hpp
+ *
+ * This unit provides file comparison functionality.
+ */
+
+/**
  * @brief Type of a single line of a diff.
  */
 enum class DiffLineType
