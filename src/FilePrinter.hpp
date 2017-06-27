@@ -25,6 +25,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * @file FilePrinter.hpp
+ *
+ * Implements printing files or their diffs annotated with coverage information.
+ */
+
 class FileComparator;
 
 /**
@@ -61,6 +67,9 @@ public:
     virtual bool isHtmlOutput() const = 0;
 };
 
+/**
+ * @brief Prints highlighted files or their diffs annotated with coverage.
+ */
 class FilePrinter
 {
 public:
@@ -74,6 +83,17 @@ public:
                          bool allowColors = true);
 
 public:
+    /**
+     * @brief Prints highlighted file with optional folding of covered lines.
+     *
+     * @param os Stream to print output to.
+     * @param path Name of the file (for highlighting detection).
+     * @param contents Contents of the file.
+     * @param coverage Coverage information per line of contents.
+     * @param leaveMissedOnly Fold lines which are covered or not relevant.
+     *
+     * @note @c coverage.size() should match lines in @p contents.
+     */
     void print(std::ostream &os, const std::string &path,
                const std::string &contents, const std::vector<int> &coverage,
                bool leaveMissedOnly = false);
@@ -103,14 +123,32 @@ public:
                    const FileComparator &comparator);
 
 private:
+    /**
+     * @brief Derives language from path.
+     *
+     * @param path Path to analyze.
+     *
+     * @returns Determined language.
+     */
     std::string getLang(const std::string &path);
+    /**
+     * @brief Highlights source code.
+     *
+     * @param ss Stream for highlighted output.
+     * @param text Code to highlight.
+     * @param lang Language in which the code is written.
+     * @param ranges Ranges of lines to be highlighted.
+     */
     void highlight(std::stringstream &ss, std::istream &text,
                    const std::string &lang,
                    srchilite::LineRanges *ranges = nullptr);
 
 private:
+    //! Whether code highlighting is enabled.
     const bool colorizeOutput;
+    //! Code highlighting object.
     srchilite::SourceHighlight highlighter;
+    //! Loaded language map.
     srchilite::LangMap langMap;
 };
 
