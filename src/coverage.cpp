@@ -24,10 +24,10 @@
 #include "printing.hpp"
 
 void
-CovInfo::add(const CovInfo &rhs)
+CovInfo::add(const CovInfo &other)
 {
-    coveredCount += rhs.coveredCount;
-    missedCount += rhs.missedCount;
+    coveredCount += other.coveredCount;
+    missedCount += other.missedCount;
 }
 
 std::string

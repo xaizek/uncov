@@ -60,9 +60,9 @@ public:
     /**
      * @brief Adds coverage information.
      *
-     * @param rhs Another coverage information.
+     * @param other Another coverage information.
      */
-    void add(const CovInfo &rhs);
+    void add(const CovInfo &other);
     /**
      * @brief Formats coverage rate in the new state as a string.
      *
