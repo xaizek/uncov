@@ -23,10 +23,9 @@
 #include <utility>
 #include <vector>
 
-using namespace detail;
-
 auto
-parseArg<BuildId>::parse(const std::vector<std::string> &args, std::size_t idx)
+detail::parseArg<BuildId>::parse(const std::vector<std::string> &args,
+                                 std::size_t idx)
     -> std::pair<resultType, ParseResult>
 {
     if (idx < args.size()) {
@@ -53,7 +52,8 @@ parseArg<BuildId>::parse(const std::vector<std::string> &args, std::size_t idx)
 }
 
 auto
-parseArg<FilePath>::parse(const std::vector<std::string> &args, std::size_t idx)
+detail::parseArg<FilePath>::parse(const std::vector<std::string> &args,
+                                  std::size_t idx)
     -> std::pair<resultType, ParseResult>
 {
     if (idx < args.size()) {
@@ -63,8 +63,8 @@ parseArg<FilePath>::parse(const std::vector<std::string> &args, std::size_t idx)
 }
 
 auto
-parseArg<PositiveNumber>::parse(const std::vector<std::string> &args,
-                                std::size_t idx)
+detail::parseArg<PositiveNumber>::parse(const std::vector<std::string> &args,
+                                        std::size_t idx)
     -> std::pair<resultType, ParseResult>
 {
     if (idx >= args.size()) {
