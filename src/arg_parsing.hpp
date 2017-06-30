@@ -28,68 +28,139 @@
 #include <utility>
 #include <vector>
 
-// Input tags for tryParse().  Not defined.
+/**
+ * @file arg_parsing.hpp
+ *
+ * Positional arguments parsing facility.
+ */
+
+//! Build id parameter (not defined).
 struct BuildId;
+//! Fiel path parameter (not defined).
 struct FilePath;
+//! Positive number parameter (not defined).
 struct PositiveNumber;
+//! Overload resolution wrapper for string literal classes (not defined).
 template <typename T>
 struct StringLiteral;
 
-// Special output type.
+//! Special output type.
 struct Nothing {};
 
-// Build id when not provided in arguments.
+//! Default build id when not provided in input arguments.
 const int LatestBuildMarker = 0;
 
 namespace detail
 {
 
+/**
+ * @brief Parser which must be specialized per parameter type.
+ *
+ * @tparam T Input type.
+ */
 template <typename T>
 struct parseArg;
 
-// Map of input tags to output types.
+/**
+ * @brief Maps input tag to output type.
+ *
+ * @tparam InType Input tag.
+ */
 template <typename InType>
 using ToOutType = typename parseArg<InType>::resultType;
 
+/**
+ * @brief Single argument parsing result for internal machinery.
+ */
 enum class ParseResult
 {
-    Accepted,
-    Rejected,
-    Skipped
+    Accepted, //!< Matcher accepted input and parsing can continue.
+    Rejected, //!< Matcher failed to match input, which is fatal error.
+    Skipped   //!< Matcher matches zero arguments and parsing can go on.
 };
 
+/**
+ * @brief Parses build id, which is of the form `/@@|@number/`.
+ */
 template <>
 struct parseArg<BuildId>
 {
+    //! Type of result yielded by this parser.
     using resultType = int;
 
+    /**
+     * @brief Parses build id.
+     *
+     * @param args Input arguments.
+     * @param idx  Current position within @p args or just past its end.
+     *
+     * @returns Parsed value and indication whether parsing was successful.
+     */
     static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
+/**
+ * @brief Parses file path, which can be any string.
+ */
 template <>
 struct parseArg<FilePath>
 {
+    //! Type of result yielded by this parser.
     using resultType = std::string;
 
+    /**
+     * @brief Parses build id.
+     *
+     * @param args Input arguments.
+     * @param idx  Current position within @p args or just past its end.
+     *
+     * @returns Parsed value and indication whether parsing was successful.
+     */
     static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
+/**
+ * @brief Parses an argument that is a positive number (> 0).
+ */
 template <>
 struct parseArg<PositiveNumber>
 {
+    //! Type of result yielded by this parser.
     using resultType = unsigned int;
 
+    /**
+     * @brief Parses build id.
+     *
+     * @param args Input arguments.
+     * @param idx  Current position within @p args or just past its end.
+     *
+     * @returns Parsed value and indication whether parsing was successful.
+     */
     static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx);
 };
 
+/**
+ * @brief Parses an argument that strictly matches string literal.
+ *
+ * @tparam T Arbitrary type that provides @c text field with the literal.
+ */
 template <typename T>
 struct parseArg<StringLiteral<T>>
 {
+    //! Type of result yielded by this parser.
     using resultType = Nothing;
 
+    /**
+     * @brief Parses build id.
+     *
+     * @param args Input arguments.
+     * @param idx  Current position within @p args or just past its end.
+     *
+     * @returns Parsed value and indication whether parsing was successful.
+     */
     static std::pair<resultType, ParseResult>
     parse(const std::vector<std::string> &args, std::size_t idx)
     {
@@ -103,6 +174,16 @@ struct parseArg<StringLiteral<T>>
     }
 };
 
+/**
+ * @brief Dispatches single-parameter format.
+ *
+ * @tparam T Type of the first expected parameter.
+ *
+ * @param args Input arguments.
+ * @param idx  Current position within @p args or just past its end.
+ *
+ * @returns Unit tuple with result of parsing if it was successful.
+ */
 template <typename T>
 boost::optional<std::tuple<ToOutType<T>>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
@@ -120,6 +201,18 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
     return {};
 }
 
+/**
+ * @brief Dispatches multiple-parameter format.
+ *
+ * @tparam T1    Type of the first expected parameter.
+ * @tparam T2    Type of the second expected parameter.
+ * @tparam Types Types of the rest expected parameters (might be empty).
+ *
+ * @param args Input arguments.
+ * @param idx  Current position within @p args or just past its end.
+ *
+ * @returns Tuple of results of parsing if it was successful.
+ */
 template <typename T1, typename T2, typename... Types>
 boost::optional<std::tuple<ToOutType<T1>, ToOutType<T2>, ToOutType<Types>...>>
 tryParse(const std::vector<std::string> &args, std::size_t idx)
@@ -144,6 +237,15 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
 
 }
 
+/**
+ * @brief Parses argument list guided by format specified in template arguments.
+ *
+ * @tparam Types Types of expected parameters.
+ *
+ * @param args Input arguments.
+ *
+ * @returns Tuple of results of parsing if it was successful.
+ */
 template <typename... Types>
 boost::optional<std::tuple<detail::ToOutType<Types>...>>
 tryParse(const std::vector<std::string> &args)
