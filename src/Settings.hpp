@@ -25,6 +25,15 @@
 #include "integration.hpp"
 #include "printing.hpp"
 
+/**
+ * @file Settings.hpp
+ *
+ * Implementation of settings.
+ */
+
+/**
+ * @brief Implementation of settings for all classes that have them.
+ */
 class Settings : public PrintingSettings, public FilePrinterSettings,
                  public FileComparatorSettings
 {
