@@ -22,6 +22,12 @@
 #include <utility>
 
 /**
+ * @file integration.hpp
+ *
+ * Several terminal integration utilities.
+ */
+
+/**
  * @brief A class that automatically spawns pager if output is large.
  *
  * Output must come to @c std::cout and is considered to be large when it
@@ -37,7 +43,9 @@ public:
      */
     RedirectToPager();
 
+    //! No copy-constructor.
     RedirectToPager(const RedirectToPager &rhs) = delete;
+    //! No copy-move.
     RedirectToPager & operator=(const RedirectToPager &rhs) = delete;
 
     /**
