@@ -22,6 +22,12 @@
 #include <vector>
 
 /**
+ * @file Invocation.hpp
+ *
+ * @brief This unit implements parsing of command-line arguments..
+ */
+
+/**
  * @brief Breaks command-line arguments into separate fields.
  */
 class Invocation

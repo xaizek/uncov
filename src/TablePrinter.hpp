@@ -23,6 +23,12 @@
 #include <vector>
 
 /**
+ * @file TablePrinter.hpp
+ *
+ * @brief This unit provides table formatting facilities for terminal.
+ */
+
+/**
  * @brief String table formatter and printer.
  *
  * Format and sorting are configurable via constructor's parameters.

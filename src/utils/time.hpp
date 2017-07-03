@@ -24,6 +24,12 @@
 #include <tuple>
 
 /**
+ * @file time.hpp
+ *
+ * @brief This unit implements put_time from C++14 standard.
+ */
+
+/**
  * @brief std::put_time emulation with a tuple (available since GCC 5.0).
  */
 using put_time = std::tuple<const std::tm *, const char *>;

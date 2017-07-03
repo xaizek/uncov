@@ -21,6 +21,12 @@
 #include <boost/filesystem/path.hpp>
 
 /**
+ * @file fs.hpp
+ *
+ * @brief File-system utilities.
+ */
+
+/**
  * @brief Checks that @p path is somewhere under @p root.
  *
  * @param root Root to check against.

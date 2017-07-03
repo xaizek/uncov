@@ -22,6 +22,12 @@
 #include <utility>
 
 /**
+ * @file memory.hpp
+ *
+ * @brief This unit implements make_unique from C++14 standard.
+ */
+
+/**
  * @brief make_unique function missing in C++11.
  *
  * @tparam T Type of object to construct.

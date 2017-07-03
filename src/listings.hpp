@@ -24,6 +24,12 @@
 
 #include "utils/Flag.hpp"
 
+/**
+ * @file listings.hpp
+ *
+ * @brief This unit provides functions for listings all sorts of things.
+ */
+
 class Build;
 class BuildHistory;
 class File;

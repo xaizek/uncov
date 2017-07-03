@@ -26,6 +26,12 @@
 #include <string>
 
 /**
+ * @file printing.hpp
+ *
+ * @brief Elements that abstract HTML/ASCII formatting.
+ */
+
+/**
  * @brief Unit-specific settings.
  */
 class PrintingSettings

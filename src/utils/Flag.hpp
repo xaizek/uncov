@@ -19,6 +19,12 @@
 #define UNCOV__UTILS__FLAG_HPP__
 
 /**
+ * @file Flag.hpp
+ *
+ * @brief Strong typedef for boolean flags.
+ */
+
+/**
  * @brief Type safe boolean flag.
  *
  * Usage example:

@@ -26,6 +26,12 @@
 #include <vector>
 
 /**
+ * @file Text.hpp
+ *
+ * @brief A text handling class that exposes it as lines or a stream.
+ */
+
+/**
  * @brief A convenient class that provides access to text in different forms.
  */
 class Text
