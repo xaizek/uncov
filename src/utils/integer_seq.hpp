@@ -20,34 +20,79 @@
 
 #include <cstddef>
 
-template <std::size_t...>
+/**
+ * @file integer_seq.hpp
+ *
+ * This unit implements integer sequence from C++14 standard.
+ */
+
+/**
+ * @brief This type provides storage for integer sequence in its parameters.
+ *
+ * @tparam Idxs Indexes this sequence contains.
+ */
+template <std::size_t... Idxs>
 struct integer_sequence {};
 
-template <typename... T>
+/**
+ * @brief Builder of integer sequence.
+ *
+ * @tparam Ts Any types.
+ */
+template <typename... Ts>
 struct Idx;
 
+/**
+ * @brief Tail specialization of integer sequence builder.
+ *
+ * @tparam T Tail type.
+ */
 template <typename T>
 struct Idx<T>
 {
+    //! Integer sequence type.
     using type = integer_sequence<0U>;
 };
 
+/**
+ * @brief Helper template for extending integer sequence by one element.
+ *
+ * @tparam T Any type.
+ */
 template <typename T>
 struct Extend;
 
+/**
+ * @brief Extends integer sequence by one element.
+ *
+ * @tparam Is Integer sequence.
+ */
 template <std::size_t... Is>
 struct Extend<integer_sequence<Is...>>
 {
+    //! Integer sequence type that is longer by one element.
     using type = integer_sequence<Is..., sizeof...(Is)>;
 };
 
+/**
+ * @brief Prefix specialization of integer sequence builder.
+ *
+ * @tparam T Head type.
+ * @tparam Ts Tail types.
+ */
 template <typename T, typename... Ts>
 struct Idx<T, Ts...>
 {
+    //! Integer sequence type.
     using type = typename Extend<typename Idx<Ts...>::type>::type;
 };
 
-template <typename... T>
-using index_sequence_for = typename Idx<T...>::type;
+/**
+ * @brief Convenience typedef for building integer sequence.
+ *
+ * @tparam Ts Types.
+ */
+template <typename... Ts>
+using index_sequence_for = typename Idx<Ts...>::type;
 
 #endif // UNCOV__UTILS__INTEGER_SEQ_HPP__
