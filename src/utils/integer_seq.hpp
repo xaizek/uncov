@@ -23,7 +23,7 @@
 /**
  * @file integer_seq.hpp
  *
- * This unit implements integer sequence from C++14 standard.
+ * @brief This unit implements integer sequence from C++14 standard.
  */
 
 /**

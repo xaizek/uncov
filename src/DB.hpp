@@ -21,7 +21,7 @@
 /**
  * @file DB.hpp
  *
- * This unit provides basic facilities for interacting with a database.
+ * @brief This unit provides basic facilities for interacting with a database.
  *
  * At the moment SQLite is the only supported database.
  */

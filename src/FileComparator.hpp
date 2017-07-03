@@ -26,7 +26,7 @@
 /**
  * @file FileComparator.hpp
  *
- * This unit provides file comparison functionality.
+ * @brief This unit provides file comparison functionality.
  */
 
 /**

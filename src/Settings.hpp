@@ -28,7 +28,7 @@
 /**
  * @file Settings.hpp
  *
- * Implementation of settings.
+ * @brief Implementation of settings.
  */
 
 /**

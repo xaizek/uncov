@@ -25,7 +25,7 @@
 /**
  * @file decoration.hpp
  *
- * This unit provides facilities for decorating text with escape-sequences.
+ * @brief Facilities for decorating text with escape-sequences.
  */
 
 /**

@@ -23,7 +23,7 @@
 /**
  * @file coverage.hpp
  *
- * Coverage computation and formatting.
+ * @brief Coverage computation and formatting.
  */
 
 /**

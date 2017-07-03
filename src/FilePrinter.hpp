@@ -28,7 +28,7 @@
 /**
  * @file FilePrinter.hpp
  *
- * Implements printing files or their diffs annotated with coverage information.
+ * @brief Printing files or their diffs annotated with coverage information.
  */
 
 class FileComparator;

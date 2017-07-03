@@ -24,7 +24,7 @@
 /**
  * @file integration.hpp
  *
- * Several terminal integration utilities.
+ * @brief Several terminal integration utilities.
  */
 
 /**

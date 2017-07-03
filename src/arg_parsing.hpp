@@ -31,7 +31,7 @@
 /**
  * @file arg_parsing.hpp
  *
- * Positional arguments parsing facility.
+ * @brief Positional arguments parsing facility.
  */
 
 //! Build id parameter (not defined).
