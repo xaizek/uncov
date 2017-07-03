@@ -34,24 +34,16 @@ class Build;
 class BuildHistory;
 class File;
 
-/**
- * @brief Boolean flag type for controlling extra alignment.
- */
+//! Boolean flag type for controlling extra alignment.
 using DoExtraAlign = Flag<struct DoExtraAlignTag>;
 
-/**
- * @brief Boolean flag type for controlling spacing.
- */
+//! Boolean flag type for controlling spacing.
 using DoSpacing = Flag<struct DoSpacingTag>;
 
-/**
- * @brief Boolean flag type for limiting list of files to changed only.
- */
+//! Boolean flag type for limiting list of files to changed only.
 using ListChangedOnly = Flag<struct ListChangedOnlyTag>;
 
-/**
- * @brief Boolean flag type for limiting list of files to direct children only.
- */
+//! Boolean flag type for limiting list of files to direct children only.
 using ListDirectOnly = Flag<struct ListDirectOnlyTag>;
 
 /**

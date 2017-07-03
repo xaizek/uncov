@@ -32,7 +32,9 @@
 namespace {
 
 /**
- * @brief Settings for this unit.  Must be set before using the unit.
+ * @brief Settings for this unit.
+ *
+ * Must be set before using the unit.
  */
 std::shared_ptr<PrintingSettings> settings;
 

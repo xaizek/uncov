@@ -63,17 +63,11 @@ public:
     }
 
 private:
-    /**
-     * @brief Stream that is being redirected.
-     */
+    //! Stream that is being redirected.
     std::istream &is;
-    /**
-     * @brief Temporary input buffer of the stream.
-     */
+    //! Temporary input buffer of the stream.
     std::istringstream iss;
-    /**
-     * @brief Original input buffer of the stream.
-     */
+    //! Original input buffer of the stream.
     std::streambuf *rdbuf;
 };
 

@@ -34,9 +34,7 @@
 static std::string hashCoverage(const std::vector<int> &vec);
 static void updateDBSchema(DB &db, int fromVersion);
 
-/**
- * @brief Current database scheme version.
- */
+//! Current database scheme version.
 const int AppDBVersion = 1;
 
 File::File(std::string path, std::string hash, std::vector<int> coverage)

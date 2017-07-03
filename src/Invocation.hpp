@@ -93,33 +93,19 @@ public:
     bool shouldPrintVersion() const;
 
 private:
-    /**
-     * @brief Name of the program.
-     */
+    //! Name of the program.
     std::string programName;
-    /**
-     * @brief Error message or empty string.
-     */
+    //! Error message or empty string.
     std::string error;
-    /**
-     * @brief Path to repository.
-     */
+    //! Path to repository.
     std::string repositoryPath;
-    /**
-     * @brief Name of subcommand to execute.
-     */
+    //! Name of subcommand to execute.
     std::string subcommandName;
-    /**
-     * @brief Arguments for subcommand.
-     */
+    //! Arguments for subcommand.
     std::vector<std::string> subcommandArgs;
-    /**
-     * @brief Whether usage information printing was requested.
-     */
+    //! Whether usage information printing was requested.
     bool printHelp = false;
-    /**
-     * @brief Whether version information printing was requested.
-     */
+    //! Whether version information printing was requested.
     bool printVersion = false;
 };
 

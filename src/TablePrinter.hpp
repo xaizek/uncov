@@ -104,21 +104,13 @@ private:
     std::string alignCell(std::string s, const Column &col) const;
 
 private:
-    /**
-     * @brief Maximum allowed table width.
-     */
+    //! Maximum allowed table width.
     const unsigned int maxWidth;
-    /**
-     * @brief Whether header should be omitted in output.
-     */
+    //! Whether header should be omitted in output.
     bool hiddenHeader;
-    /**
-     * @brief List of columns of the table.
-     */
+    //! List of columns of the table.
     std::vector<Column> cols;
-    /**
-     * @brief List of items to display.
-     */
+    //! List of items to display.
     std::vector<std::vector<std::string>> items;
 };
 

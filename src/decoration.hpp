@@ -38,9 +38,7 @@
  */
 namespace decor {
 
-/**
- * @brief Type of function that performs decoration.
- */
+//! Type of function that performs decoration.
 using decorFunc = std::ostream & (*)(std::ostream &os);
 
 /**

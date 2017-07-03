@@ -159,25 +159,15 @@ private:
     }
 
 private:
-    /**
-     * @brief Index of the column.
-     */
+    //! Index of the column.
     const int idx;
-    /**
-     * @brief Whether this column should be aligned to the left.
-     */
+    //! Whether this column should be aligned to the left.
     bool alignLeft;
-    /**
-     * @brief Title of the column for printing.
-     */
+    //! Title of the column for printing.
     const std::string heading;
-    /**
-     * @brief Width of the column.
-     */
+    //! Width of the column.
     unsigned int width;
-    /**
-     * @brief Contents of the column.
-     */
+    //! Contents of the column.
     std::vector<std::string> values;
 };
 

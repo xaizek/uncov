@@ -117,21 +117,15 @@ template <class C>
 class AutoSubCommand : public SubCommand
 {
 public:
-    /**
-     * @brief Pull in parent constructor.
-     */
+    // Pull in parent constructor.
     using SubCommand::SubCommand;
 
 private:
-    /**
-     * @brief Static initialization of this variable performs the registration.
-     */
+    //! Static initialization of this variable performs the registration.
     static const bool invokeRegister;
 
 private:
-    /**
-     * @brief Purpose of this field it to make @c invokeRegister used.
-     */
+    //! Purpose of this field it to make @c invokeRegister used.
     const bool forceRegistration = invokeRegister;
 };
 

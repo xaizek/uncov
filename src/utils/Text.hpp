@@ -86,13 +86,9 @@ public:
     }
 
 private:
-    /**
-     * @brief Storage of text.
-     */
+    //! Storage of text.
     std::istringstream iss;
-    /**
-     * @brief Text broken in lines.
-     */
+    //! Text broken in lines.
     std::vector<std::string> lines;
 };
 

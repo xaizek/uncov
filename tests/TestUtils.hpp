@@ -63,17 +63,11 @@ public:
     }
 
 private:
-    /**
-     * @brief Stream that is being redirected.
-     */
+    //! Stream that is being redirected.
     std::ostream &os;
-    /**
-     * @brief Temporary output buffer of the stream.
-     */
+    //! Temporary output buffer of the stream.
     std::ostringstream oss;
-    /**
-     * @brief Original output buffer of the stream.
-     */
+    //! Original output buffer of the stream.
     std::streambuf *rdbuf;
 };
 

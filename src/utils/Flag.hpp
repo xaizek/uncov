@@ -75,9 +75,7 @@ public:
     }
 
 private:
-    /**
-     * @brief Value of the flag.
-     */
+    //! Value of the flag.
     const bool value;
 };
 

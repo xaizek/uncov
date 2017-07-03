@@ -54,9 +54,7 @@ public:
     ~RedirectToPager();
 
 private:
-    /**
-     * @brief Implementation details.
-     */
+    //! Implementation details.
     std::unique_ptr<Impl> impl;
 };
 
