@@ -30,10 +30,18 @@
 
 #include "utils/md5.hpp"
 
+/**
+ * @brief A RAII wrapper that manages lifetime of libgit2's handles.
+ *
+ * @tparam T
+ */
 template <typename T>
 class Repository::GitObjPtr
 {
 public:
+    /**
+     * @brief Frees the handle.
+     */
     ~GitObjPtr()
     {
         if (ptr != nullptr) {
@@ -42,16 +50,33 @@ public:
     }
 
 public:
+    /**
+     * @brief Implicitly converts to pointer value.
+     *
+     * @returns The pointer.
+     */
     operator T*()
     {
         return ptr;
     }
 
+    /**
+     * @brief Convertion to a pointer to allow external initialization.
+     *
+     * @returns Pointer to internal pointer.
+     */
     T ** operator &()
     {
         return &ptr;
     }
 
+    /**
+     * @brief Pointer convertion.
+     *
+     * @tparam U Target type.
+     *
+     * @returns Converted value.
+     */
     template <typename U>
     U * as()
     {
@@ -59,25 +84,45 @@ public:
     }
 
 private:
+    /**
+     * @brief Frees @c git_object.
+     *
+     * @param ptr The pointer.
+     */
     void deleteObj(git_object *ptr)
     {
         git_object_free(ptr);
     }
 
+    /**
+     * @brief Frees @c git_tree.
+     *
+     * @param ptr The pointer.
+     */
     void deleteObj(git_tree *ptr)
     {
         git_tree_free(ptr);
     }
 
+    /**
+     * @brief Frees @c git_tree_entry.
+     *
+     * @param ptr The pointer.
+     */
     void deleteObj(git_tree_entry *ptr)
     {
         git_tree_entry_free(ptr);
     }
 
+    /**
+     * @brief Catch implicit conversions and unhandled cases at compile-time.
+     *
+     * @param ptr The pointer.
+     */
     void deleteObj(void *ptr) = delete;
 
 private:
-    T *ptr = nullptr;
+    T *ptr = nullptr; //!< Wrapped pointer.
 };
 
 LibGitUser::LibGitUser()
@@ -188,7 +233,7 @@ Repository::readFile(const std::string &ref, const std::string &path) const
 
     GitObjPtr<git_object> blobObj;
     if (git_tree_entry_to_object(&blobObj, repo, treeEntry) != 0) {
-        throw std::runtime_error("Failed to as object from tree entry");
+        throw std::runtime_error("Failed to query object from tree entry");
     }
 
     if (git_object_type(blobObj) != GIT_OBJ_BLOB) {

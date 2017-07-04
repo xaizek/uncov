@@ -21,18 +21,40 @@
 #include <string>
 #include <unordered_map>
 
+/**
+ * @file Repository.hpp
+ *
+ * @brief This unit provides facilities for interacting with a repository.
+ *
+ * git is the only VCS that is supported.
+ */
+
 struct git_repository;
 struct git_tree;
 
+/**
+ * @brief Simple RAII class to keep track of libgit2 usage.
+ */
 class LibGitUser
 {
 public:
+    /**
+     * @brief Informs libgit2 about one more client.
+     */
     LibGitUser();
+    //! No copy-constructor.
     LibGitUser(const LibGitUser &rhs) = delete;
+    //! No copy-assignment.
     LibGitUser & operator=(const LibGitUser &rhs) = delete;
+    /**
+     * @brief Informs libgit2 about one less client.
+     */
     ~LibGitUser();
 };
 
+/**
+ * @brief Provides high-level access to repository data.
+ */
 class Repository
 {
     template <typename T>
@@ -48,23 +70,82 @@ public:
      */
     explicit Repository(const std::string &path);
 
+    //! No copy-constructor.
     Repository(const Repository &rhs) = delete;
+    //! No move-assignment.
     Repository & operator=(const Repository &rhs) = delete;
+
+    /**
+     * @brief Frees resources allocated for the repository.
+     */
     ~Repository();
 
 public:
+    /**
+     * @brief Retrieves absolute path to the `.git` directory.
+     *
+     * @returns The path.
+     */
     std::string getGitPath() const;
+    /**
+     * @brief Converts ref into object ID.
+     *
+     * @param ref Symbolic reference.
+     *
+     * @returns Object ID that corresponds to the symbolic reference.
+     *
+     * @throws std::invalid_argument If ref couldn't be resolved.
+     */
     std::string resolveRef(const std::string &ref) const;
+    /**
+     * @brief Lists files from tree associated with the ref.
+     *
+     * @param ref Reference to look up list of files.
+     *
+     * @returns Pairs of path files and MD5 hashes of their contents.
+     *
+     * @throws std::invalid_argument If ref couldn't be resolved.
+     * @throws std::invalid_argument If ref doesn't refer to commit object.
+     * @throws std::runtime_error    If querying tree fails.
+     * @throws std::runtime_error    On error while walking the tree.
+     */
     std::unordered_map<std::string, std::string>
     listFiles(const std::string &ref) const;
+    /**
+     * @brief Queries contents of a file in @p ref at @p path.
+     *
+     * @param ref  Symbolic reference.
+     * @param path Path to the file.
+     *
+     * @returns Contents of the file.
+     *
+     * @throws std::invalid_argument If ref couldn't be resolved.
+     * @throws std::invalid_argument If ref doesn't refer to commit object.
+     * @throws std::invalid_argument On wrong path (invalid or not a file).
+     * @throws std::runtime_error    If querying tree fails.
+     * @throws std::runtime_error    On error querying data.
+     */
     std::string readFile(const std::string &ref, const std::string &path) const;
 
 private:
+    /**
+     * @brief Obtains handle to tree root that corresponds to a reference.
+     *
+     * @param ref Symbolic reference.
+     *
+     * @returns The handle.
+     *
+     * @throws std::invalid_argument If ref couldn't be resolved.
+     * @throws std::invalid_argument If ref doesn't refer to commit object.
+     * @throws std::runtime_error    If querying tree fails.
+     */
     GitObjPtr<git_tree> getRefRoot(const std::string &ref) const;
 
 public:
-    git_repository *repo;
+    //! libgit2 lifetime management.
     const LibGitUser libgitUser;
+    //! Repository handle.
+    git_repository *repo;
 };
 
 #endif // UNCOV__REPOSITORY_HPP__
