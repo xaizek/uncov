@@ -49,6 +49,12 @@
 #include "integration.hpp"
 #include "listings.hpp"
 
+/**
+ * @file sub_commands.cpp
+ *
+ * @brief Implementation of sub-commands.
+ */
+
 namespace {
 
 /**
@@ -56,9 +62,9 @@ namespace {
  */
 enum class PathCategory
 {
-    File,      ///< Path refers to a file.
-    Directory, ///< Path refers to a directory.
-    None       ///< Path is not in the build.
+    File,      //!< Path refers to a file.
+    Directory, //!< Path refers to a directory.
+    None       //!< Path is not in the build.
 };
 
 class InRepoPath
@@ -161,6 +167,9 @@ static void printFile(BuildHistory *bh, const Repository *repo,
 static void printLineSeparator();
 static PathCategory classifyPath(const Build &build, const std::string &path);
 
+/**
+ * @brief Displays information about single build.
+ */
 class BuildCmd : public AutoSubCommand<BuildCmd>
 {
 public:
@@ -205,9 +214,17 @@ private:
     }
 };
 
+/**
+ * @brief Lists builds.
+ */
 class BuildsCmd : public AutoSubCommand<BuildsCmd>
 {
-    struct All { static constexpr const char *const text = "all"; };
+    //! Storage for `"all"` literal.
+    struct All
+    {
+        //! The literal.
+        static constexpr const char *const text = "all";
+    };
 
 public:
     BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
@@ -256,6 +273,9 @@ private:
     }
 };
 
+/**
+ * @brief Compares builds, directories or files.
+ */
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
@@ -342,6 +362,14 @@ private:
         // TODO: maybe print some totals/stats here.
     }
 
+    /**
+     * @brief Prints difference between two builds.
+     *
+     * @param oldBuild     Original build.
+     * @param newBuild     Changed build.
+     * @param dirFilter    Prefix to filter paths.
+     * @param considerHits Whether to treat `x1` and `x2` as different.
+     */
     void diffBuilds(const Build &oldBuild, const Build &newBuild,
                     const std::string &dirFilter, bool considerHits)
     {
@@ -366,6 +394,15 @@ private:
         }
     }
 
+    /**
+     * @brief Prints difference of a file between two builds.
+     *
+     * @param oldBuild     Original build.
+     * @param newBuild     Changed build.
+     * @param filePath     Path to the file.
+     * @param standalone   Whether we're printing just one file.
+     * @param considerHits Whether to treat `x1` and `x2` as different.
+     */
     void diffFile(const Build &oldBuild, const Build &newBuild,
                   const std::string &filePath, bool standalone,
                   bool considerHits)
@@ -417,6 +454,15 @@ private:
                                comparator);
     }
 
+    /**
+     * @brief Prints information about comparison.
+     *
+     * @param oldBuild  Original build.
+     * @param newBuild  Changed build.
+     * @param filePath  Path to the file.
+     * @param buildInfo Whether to print information about builds.
+     * @param fileInfo  Whether to print information about file.
+     */
     void printInfo(const Build &oldBuild, const Build &newBuild,
                    const std::string &filePath, bool buildInfo, bool fileInfo)
     {
@@ -440,9 +486,13 @@ private:
     }
 
 private:
+    //! File printer created once shared here to omit passing it around.
     std::unique_ptr<FilePrinter> filePrinter;
 };
 
+/**
+ * @brief Lists statistics about files or directories.
+ */
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
@@ -518,6 +568,9 @@ private:
     }
 };
 
+/**
+ * @brief Dumps coverage information of a file.
+ */
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
@@ -550,6 +603,9 @@ private:
     }
 };
 
+/**
+ * @brief Imports new build from stdin.
+ */
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
@@ -616,6 +672,9 @@ private:
     }
 };
 
+/**
+ * @brief Imports new build in JSON format from stdin.
+ */
 class NewJsonCmd : public AutoSubCommand<NewJsonCmd>
 {
 public:
@@ -704,6 +763,9 @@ private:
     }
 };
 
+/**
+ * @brief Displays a build, directory or file.
+ */
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
@@ -769,6 +831,16 @@ private:
     }
 };
 
+/**
+ * @brief Retrieves build by its id.
+ *
+ * @param bh      Build history.
+ * @param buildId Build id.
+ *
+ * @returns The build.
+ *
+ * @throws std::runtime_error If there are no builds or build id is wrong.
+ */
 static Build
 getBuild(BuildHistory *bh, int buildId)
 {
@@ -788,6 +860,16 @@ getBuild(BuildHistory *bh, int buildId)
     return *build;
 }
 
+/**
+ * @brief Retrieves file from a build.
+ *
+ * @param build Build to look up file in.
+ * @param path  Path to look up.
+ *
+ * @returns The file.
+ *
+ * @throws std::runtime_error On wrong path.
+ */
 static File &
 getFile(const Build &build, const std::string &path)
 {
@@ -801,6 +883,16 @@ getFile(const Build &build, const std::string &path)
     return *file;
 }
 
+/**
+ * @brief Prints file onto the screen.
+ *
+ * @param bh Build history (for querying previous build).
+ * @param repo Repository.
+ * @param build Build.
+ * @param file File to print.
+ * @param printer File printer.
+ * @param leaveMissedOnly Fold lines which are covered or not relevant.
+ */
 static void
 printFile(BuildHistory *bh, const Repository *repo, const Build &build,
           const File &file, FilePrinter &printer, bool leaveMissedOnly)
@@ -823,6 +915,9 @@ printFile(BuildHistory *bh, const Repository *repo, const Build &build,
                   leaveMissedOnly);
 }
 
+/**
+ * @brief Prints horizontal separator.
+ */
 static void
 printLineSeparator()
 {
