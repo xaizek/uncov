@@ -263,8 +263,7 @@ Build::getFile(const std::string &path) const
     }
 
     // Load the file and cache it.
-    if (boost::optional<File> file = loader->loadFile(pathMatch->second,
-                                                      path)) {
+    if (boost::optional<File> file = loader->loadFile(pathMatch->second)) {
         return files.emplace(path, std::move(*file)).first->second;
     }
 
@@ -421,16 +420,16 @@ BuildHistory::loadPaths(int buildid)
 }
 
 boost::optional<File>
-BuildHistory::loadFile(int fileid, const std::string &path)
+BuildHistory::loadFile(int fileid)
 {
     try {
-        std::tuple<std::string, std::vector<int>> vals =
-            db.queryOne("SELECT hash, coverage FROM files "
+        std::tuple<std::string, std::string, std::vector<int>> vals =
+            db.queryOne("SELECT path, hash, coverage FROM files "
                         "WHERE fileid = :fileid",
                         { ":fileid"_b = fileid });
 
-        return File(path, std::move(std::get<0>(vals)),
-                    std::move(std::get<1>(vals)));
+        return File(std::move(std::get<0>(vals)), std::move(std::get<1>(vals)),
+                    std::move(std::get<2>(vals)));
     } catch (const std::runtime_error &) {
         return {};
     }

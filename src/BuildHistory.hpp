@@ -39,8 +39,7 @@ protected:
 
 public:
     virtual std::map<std::string, int> loadPaths(int buildid) = 0;
-    virtual boost::optional<File> loadFile(int fileid,
-                                           const std::string &path) = 0;
+    virtual boost::optional<File> loadFile(int fileid) = 0;
 };
 
 class BuildHistory : private DataLoader
@@ -79,8 +78,7 @@ public:
 
 private:
     virtual std::map<std::string, int> loadPaths(int buildid) override;
-    virtual boost::optional<File> loadFile(int fileid,
-                                           const std::string &path) override;
+    virtual boost::optional<File> loadFile(int fileid) override;
 
 private:
     DB &db;
