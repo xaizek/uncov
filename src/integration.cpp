@@ -146,8 +146,8 @@ public:
      */
     ~PagerRedirect()
     {
-        // Flush the stream to make sure that we put all contents we want through
-        // the custom stream buffer.
+        // Flush the stream to make sure that we put all contents we want
+        // through the custom stream buffer.
         std::cout.flush();
 
         std::cout.rdbuf(rdbuf);
