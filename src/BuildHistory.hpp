@@ -112,8 +112,6 @@ public:
     BuildData(std::string ref, std::string refName);
 
 public:
-    const std::string & getRef() const;
-    const std::string & getRefName() const;
     void addFile(File file);
 
 private:

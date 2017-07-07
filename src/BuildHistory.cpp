@@ -87,18 +87,6 @@ BuildData::BuildData(std::string ref, std::string refName)
 {
 }
 
-const std::string &
-BuildData::getRef() const
-{
-    return ref;
-}
-
-const std::string &
-BuildData::getRefName() const
-{
-    return refName;
-}
-
 void
 BuildData::addFile(File file)
 {
@@ -120,8 +108,8 @@ operator<<(DB &db, const BuildData &bd)
 
     db.execute("INSERT INTO builds (vcsref, vcsrefname, covered, missed) "
                "VALUES (:ref, :refname, :covered, :missed)",
-               { ":ref"_b = bd.getRef(),
-                 ":refname"_b = bd.getRefName(),
+               { ":ref"_b = bd.ref,
+                 ":refname"_b = bd.refName,
                  ":covered"_b = coveredCount,
                  ":missed"_b = missedCount });
 
