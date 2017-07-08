@@ -20,6 +20,19 @@
 
 #include <string>
 
+/**
+ * @file md5.hpp
+ *
+ * @brief A third-party implementation of MD5 algorithm.
+ */
+
+/**
+ * @brief Computes hash of the string.
+ *
+ * @param str String to hash.
+ *
+ * @returns MD5 hash of the string.
+ */
 std::string md5(const std::string &str);
 
 #endif // UNCOV__UTILS__MD5_HPP__
