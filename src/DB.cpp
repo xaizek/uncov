@@ -39,14 +39,14 @@ public:
 public:
     void operator()(int i)
     {
-        combineErrors(sqlite3_bind_int(ps, idx, i));
+        errorValue = sqlite3_bind_int(ps, idx, i);
     }
 
     void operator()(const std::string &str)
     {
-        combineErrors(sqlite3_bind_text(ps, idx,
-                                        str.c_str(), str.length(),
-                                        SQLITE_STATIC));
+        errorValue = sqlite3_bind_text(ps, idx,
+                                       str.c_str(), str.length(),
+                                       SQLITE_STATIC);
     }
 
     void operator()(const std::vector<int> &vec)
@@ -72,21 +72,13 @@ public:
         }
         blob.resize(4U + compressedSize);
 
-        combineErrors(sqlite3_bind_blob(ps, idx,
-                                        blob.data(), blob.size(),
-                                        SQLITE_TRANSIENT));
+        errorValue = sqlite3_bind_blob(ps, idx,
+                                       blob.data(), blob.size(),
+                                       SQLITE_TRANSIENT);
     }
 
 public:
     const int &error = errorValue;
-
-private:
-    void combineErrors(int error)
-    {
-        if (errorValue == SQLITE_OK) {
-            errorValue = error;
-        }
-    }
 
 private:
     sqlite3_stmt *const ps;
