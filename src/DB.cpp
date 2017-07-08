@@ -29,19 +29,38 @@
 
 namespace {
 
+/**
+ * @brief Binds single argument of a prepared statement.
+ */
 class Binder : public boost::static_visitor<>
 {
 public:
+    /**
+     * @brief Initializes the binder.
+     *
+     * @param ps  Handle to statement to initialize.
+     * @param idx Index of the argument.
+     */
     Binder(sqlite3_stmt *ps, int idx) : ps(ps), idx(idx)
     {
     }
 
 public:
+    /**
+     * @brief Binds an integer argument.
+     *
+     * @param i The argument.
+     */
     void operator()(int i)
     {
         errorValue = sqlite3_bind_int(ps, idx, i);
     }
 
+    /**
+     * @brief Binds a string argument.
+     *
+     * @param str The argument.
+     */
     void operator()(const std::string &str)
     {
         errorValue = sqlite3_bind_text(ps, idx,
@@ -49,6 +68,11 @@ public:
                                        SQLITE_STATIC);
     }
 
+    /**
+     * @brief Binds a vector of integers.
+     *
+     * @param vec The argument.
+     */
     void operator()(const std::vector<int> &vec)
     {
         std::ostringstream oss;
@@ -78,12 +102,12 @@ public:
     }
 
 public:
-    const int &error = errorValue;
+    const int &error = errorValue; //!< "Accessor" for error code.
 
 private:
-    sqlite3_stmt *const ps;
-    const int idx;
-    int errorValue = SQLITE_OK;
+    sqlite3_stmt *const ps;     //!< Handle to statement to initialize.
+    const int idx;              //!< Index of the argument.
+    int errorValue = SQLITE_OK; //!< Error code.
 };
 
 }
