@@ -66,7 +66,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
 class Highlight
 {
 public:
-    Highlight(std::string groupName) : groupName(std::move(groupName))
+    explicit Highlight(std::string groupName) : groupName(std::move(groupName))
     {
     }
 
