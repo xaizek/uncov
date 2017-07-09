@@ -38,6 +38,7 @@ namespace {
  */
 std::shared_ptr<PrintingSettings> settings;
 
+//! Specification of terminal color scheme.
 const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "linesbad",      decor::bold + decor::red_fg   },
     { "linesok",       decor::bold + decor::black_fg },
@@ -63,13 +64,27 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "hitcount",      decor::none },
 };
 
+/**
+ * @brief Decorates text with highlighting (either ASCII codes or HTML classes).
+ */
 class Highlight
 {
 public:
+    /**
+     * @brief Initializes highlighting with a name of highlight group.
+     *
+     * @param groupName Name of the group.
+     */
     explicit Highlight(std::string groupName) : groupName(std::move(groupName))
     {
     }
 
+    /**
+     * @brief Constructs a new object which extends previous one by one action.
+     *
+     * @param hi  Object to be extend.
+     * @param app Action to append to list of actions.
+     */
     Highlight(Highlight &&hi, std::function<void(std::ostream&)> app)
         : groupName(std::move(hi.groupName)), apps(std::move(hi.apps))
     {
@@ -77,6 +92,13 @@ public:
     }
 
 public:
+    /**
+     * @brief Prints decorated output into the stream.
+     *
+     * @param os Output stream.
+     *
+     * @returns @p os
+     */
     std::ostream & decorate(std::ostream &os) const
     {
         const bool isHtmlOutput = settings->isHtmlOutput();
@@ -105,10 +127,20 @@ public:
     }
 
 private:
-    const std::string groupName;
-    std::vector<std::function<void(std::ostream&)>> apps;
+    const std::string groupName;                          //!< Highlight group.
+    std::vector<std::function<void(std::ostream&)>> apps; //!< List of actions.
 };
 
+/**
+ * @brief Appends element to the list of things to highlight.
+ *
+ * @tparam T Type of the element.
+ *
+ * @param hi  Highlight object.
+ * @param val Element to append.
+ *
+ * @returns New highlight object.
+ */
 template <typename T>
 Highlight
 operator<<(Highlight &&hi, const T &val)
@@ -116,12 +148,29 @@ operator<<(Highlight &&hi, const T &val)
     return Highlight(std::move(hi), [val](std::ostream &os) { os << val; });
 }
 
+/**
+ * @brief Outputs highlighted element into the stream.
+ *
+ * @param os Output stream.
+ * @param hi Highlight object.
+ *
+ * @returns @p os
+ */
 inline std::ostream &
 operator<<(std::ostream &os, const Highlight &hi)
 {
     return hi.decorate(os);
 }
 
+/**
+ * @brief Prints decorated number of hits.
+ *
+ * @param os     Output stream.
+ * @param hits   Number of hits.
+ * @param silent Whether to dim colors.
+ *
+ * @returns @p os
+ */
 std::ostream &
 printHits(std::ostream &os, int hits, bool silent)
 {
