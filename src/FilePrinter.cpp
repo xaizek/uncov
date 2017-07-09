@@ -47,24 +47,32 @@ countWidth(int n)
 
 class CoverageColumn
 {
-    struct Blank { const CoverageColumn &cc; };
-    struct LineAt { bool active; const CoverageColumn &cc; const int lineNo; };
+    struct Blank
+    {
+        const CoverageColumn &cc;
+    };
+    struct LineAt
+    {
+        const CoverageColumn &cc;
+        const int lineNo;
+        const bool active;
+    };
 
     friend std::ostream & operator<<(std::ostream &os, const Blank &blank)
     {
-        blank.cc.printBlank();
+        blank.cc.printBlank(os);
         return os;
     }
 
     friend std::ostream & operator<<(std::ostream &os, const LineAt &lineAt)
     {
-        lineAt.cc.printAt(lineAt.lineNo, lineAt.active);
+        lineAt.cc.printAt(os, lineAt.lineNo, lineAt.active);
         return os;
     }
 
 public:
-    CoverageColumn(std::ostream &os, const std::vector<int> &coverage)
-        : os(os), coverage(coverage)
+    explicit CoverageColumn(const std::vector<int> &coverage)
+        : coverage(coverage)
     {
         const int MinHitsNumWidth = 5;
         // XXX: this could in principle be stored in database.
@@ -83,21 +91,21 @@ public:
 
     LineAt active(int lineNo) const
     {
-        return { true, *this, lineNo };
+        return { *this, lineNo, true };
     }
 
     LineAt inactive(int lineNo) const
     {
-        return { false, *this, lineNo };
+        return { *this, lineNo, false };
     }
 
 private:
-    void printBlank() const
+    void printBlank(std::ostream &os) const
     {
         os << std::setw(hitsNumWidth) << "" << ' ';
     }
 
-    void printAt(std::size_t lineNo, bool active) const
+    void printAt(std::ostream &os, std::size_t lineNo, bool active) const
     {
         if (lineNo >= coverage.size()) {
             os << std::setw(hitsNumWidth) << ErrorMsg{"ERROR "};
@@ -113,7 +121,6 @@ private:
     }
 
 private:
-    std::ostream &os;
     const std::vector<int> &coverage;
     int hitsNumWidth;
 };
@@ -187,7 +194,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     std::stringstream ss;
     highlight(ss, iss, getLang(path), leaveMissedOnly ? &ranges : nullptr);
 
-    CoverageColumn covCol(os, coverage);
+    CoverageColumn covCol(coverage);
     std::size_t lineNo = 0U;
 
     for (int line : lines) {
@@ -256,7 +263,7 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
         return line;
     };
 
-    CoverageColumn oldCovCol(os, oCov), newCovCol(os, nCov);
+    CoverageColumn oldCovCol(oCov), newCovCol(nCov);
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case DiffLineType::Added:
