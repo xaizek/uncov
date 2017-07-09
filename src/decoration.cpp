@@ -23,36 +23,19 @@
 
 namespace {
 
-class Colors
+class ColorsState
 {
 public:
     void disable() { isAscii = false; }
 
-    const char * bold () { return isAscii ? "\033[1m" : ""; }
-    const char * inv  () { return isAscii ? "\033[7m" : ""; }
-    const char * def  () { return isAscii ? "\033[1m\033[0m" : ""; }
-
-    const char * black_fg   () { return isAscii ? "\033[30m" : ""; }
-    const char * red_fg     () { return isAscii ? "\033[31m" : ""; }
-    const char * green_fg   () { return isAscii ? "\033[32m" : ""; }
-    const char * yellow_fg  () { return isAscii ? "\033[33m" : ""; }
-    const char * blue_fg    () { return isAscii ? "\033[34m" : ""; }
-    const char * magenta_fg () { return isAscii ? "\033[35m" : ""; }
-    const char * cyan_fg    () { return isAscii ? "\033[36m" : ""; }
-    const char * white_fg   () { return isAscii ? "\033[37m" : ""; }
-
-    const char * black_bg   () { return isAscii ? "\033[40m" : ""; }
-    const char * red_bg     () { return isAscii ? "\033[41m" : ""; }
-    const char * green_bg   () { return isAscii ? "\033[42m" : ""; }
-    const char * yellow_bg  () { return isAscii ? "\033[43m" : ""; }
-    const char * blue_bg    () { return isAscii ? "\033[44m" : ""; }
-    const char * magenta_bg () { return isAscii ? "\033[45m" : ""; }
-    const char * cyan_bg    () { return isAscii ? "\033[46m" : ""; }
-    const char * white_bg   () { return isAscii ? "\033[47m" : ""; }
+    const char * operator()(const char text[]) const
+    {
+        return isAscii ? text : "";
+    }
 
 private:
     bool isAscii = isOutputToTerminal();
-} C;
+};
 
 }
 
@@ -61,29 +44,31 @@ using ostr = std::ostream;
 
 using namespace decor;
 
+static ColorsState S;
+
 const Decoration
     decor::none,
-    decor::bold       ([](ostr &os) -> ostr & { return os << C.bold();       }),
-    decor::inv        ([](ostr &os) -> ostr & { return os << C.inv();        }),
-    decor::def        ([](ostr &os) -> ostr & { return os << C.def();        }),
+    decor::bold       ([](ostr &os) -> ostr & { return os << S("\033[1m"); }),
+    decor::inv        ([](ostr &os) -> ostr & { return os << S("\033[7m"); }),
+    decor::def        ([](ostr &os) -> ostr & { return os << S("\033[0m"); }),
 
-    decor::black_fg   ([](ostr &os) -> ostr & { return os << C.black_fg();   }),
-    decor::red_fg     ([](ostr &os) -> ostr & { return os << C.red_fg();     }),
-    decor::green_fg   ([](ostr &os) -> ostr & { return os << C.green_fg();   }),
-    decor::yellow_fg  ([](ostr &os) -> ostr & { return os << C.yellow_fg();  }),
-    decor::blue_fg    ([](ostr &os) -> ostr & { return os << C.blue_fg();    }),
-    decor::magenta_fg ([](ostr &os) -> ostr & { return os << C.magenta_fg(); }),
-    decor::cyan_fg    ([](ostr &os) -> ostr & { return os << C.cyan_fg();    }),
-    decor::white_fg   ([](ostr &os) -> ostr & { return os << C.white_fg();   }),
+    decor::black_fg   ([](ostr &os) -> ostr & { return os << S("\033[30m"); }),
+    decor::red_fg     ([](ostr &os) -> ostr & { return os << S("\033[31m"); }),
+    decor::green_fg   ([](ostr &os) -> ostr & { return os << S("\033[32m"); }),
+    decor::yellow_fg  ([](ostr &os) -> ostr & { return os << S("\033[33m"); }),
+    decor::blue_fg    ([](ostr &os) -> ostr & { return os << S("\033[34m"); }),
+    decor::magenta_fg ([](ostr &os) -> ostr & { return os << S("\033[35m"); }),
+    decor::cyan_fg    ([](ostr &os) -> ostr & { return os << S("\033[36m"); }),
+    decor::white_fg   ([](ostr &os) -> ostr & { return os << S("\033[37m"); }),
 
-    decor::black_bg   ([](ostr &os) -> ostr & { return os << C.black_bg();   }),
-    decor::red_bg     ([](ostr &os) -> ostr & { return os << C.red_bg();     }),
-    decor::green_bg   ([](ostr &os) -> ostr & { return os << C.green_bg();   }),
-    decor::yellow_bg  ([](ostr &os) -> ostr & { return os << C.yellow_bg();  }),
-    decor::blue_bg    ([](ostr &os) -> ostr & { return os << C.blue_bg();    }),
-    decor::magenta_bg ([](ostr &os) -> ostr & { return os << C.magenta_bg(); }),
-    decor::cyan_bg    ([](ostr &os) -> ostr & { return os << C.cyan_bg();    }),
-    decor::white_bg   ([](ostr &os) -> ostr & { return os << C.white_bg();   });
+    decor::black_bg   ([](ostr &os) -> ostr & { return os << S("\033[40m"); }),
+    decor::red_bg     ([](ostr &os) -> ostr & { return os << S("\033[41m"); }),
+    decor::green_bg   ([](ostr &os) -> ostr & { return os << S("\033[42m"); }),
+    decor::yellow_bg  ([](ostr &os) -> ostr & { return os << S("\033[43m"); }),
+    decor::blue_bg    ([](ostr &os) -> ostr & { return os << S("\033[44m"); }),
+    decor::magenta_bg ([](ostr &os) -> ostr & { return os << S("\033[45m"); }),
+    decor::cyan_bg    ([](ostr &os) -> ostr & { return os << S("\033[46m"); }),
+    decor::white_bg   ([](ostr &os) -> ostr & { return os << S("\033[47m"); });
 
 Decoration::Decoration(const Decoration &rhs)
     : decorator(rhs.decorator),
@@ -122,5 +107,5 @@ Decoration::decorate(std::ostream &os) const
 void
 decor::disableDecorations()
 {
-    C.disable();
+    S.disable();
 }
