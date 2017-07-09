@@ -67,14 +67,29 @@ enum class PathCategory
     None       //!< Path is not in the build.
 };
 
+/**
+ * @brief Helper class that performs implicit conversions of paths.
+ */
 class InRepoPath
 {
 public:
+    /**
+     * @brief Constructs with reference to repository.
+     *
+     * @param repo Repository to adjust paths for.
+     */
     explicit InRepoPath(const Repository *repo) : repo(repo)
     {
     }
 
 public:
+    /**
+     * @brief Assigns value of the path.
+     *
+     * @param path New value.
+     *
+     * @returns @c *this.
+     */
     InRepoPath & operator=(std::string path)
     {
         namespace fs = boost::filesystem;
@@ -91,24 +106,39 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Implicit conversion to a string.
+     *
+     * @returns The path value.
+     */
     operator std::string() const
     {
         return path;
     }
 
+    /**
+     * @brief Explicit conversion to a string.
+     *
+     * @returns The path value.
+     */
     const std::string & str() const
     {
         return path;
     }
 
+    /**
+     * @brief Checks whether the path is empty.
+     *
+     * @returns @c true if so, @c false otherwise.
+     */
     bool empty() const
     {
         return path.empty();
     }
 
 private:
-    const Repository *repo;
-    std::string path;
+    const Repository *repo; //!< Repository for which paths are adjusted.
+    std::string path;       //!< Stored path.
 };
 
 }
