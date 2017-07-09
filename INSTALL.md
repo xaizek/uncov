@@ -30,6 +30,10 @@ Builds debug version with undefined and address sanitizers enabled in
 
 Rebuilds manual page in `<out>/docs/uncov.1`, requires `pandoc`.
 
+**`doxygen`**
+
+Builds Doxygen documentation in `doxygen/html`, requires `doxygen`.
+
 **`coverage`**
 
 Builds coverage in `coverage/` and commits it using `uncov` itself (which should

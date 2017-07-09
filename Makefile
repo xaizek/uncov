@@ -99,7 +99,8 @@ web_depends := $(web_objects:%.o=%.d)
 
 out_dirs := $(sort $(dir $(bin_objects) $(web_objects) $(tests_objects)))
 
-.PHONY: all check clean debug release sanitize-basic man install uninstall
+.PHONY: all check clean debug release sanitize-basic install uninstall
+.PHONY: man doxygen
 .PHONY: coverage self-coverage reset-coverage
 
 all: $(bin) $(webbin)
@@ -129,6 +130,9 @@ docs/uncov.1: force | $(out_dir)/docs
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@openmailbox.org>' \
 	       -s -o $@ $(sort $(wildcard docs/*.md))
+
+doxygen:
+	doxygen doxygen/config
 
 # target that doesn't exist and used to force rebuild
 force:
