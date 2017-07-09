@@ -39,4 +39,24 @@
 bool pathIsInSubtree(const boost::filesystem::path &root,
                      const boost::filesystem::path &path);
 
+/**
+ * @brief Excludes `..` and `.` entries from a path.
+ *
+ * @param path Path to process.
+ *
+ * @returns Normalized path.
+ */
+boost::filesystem::path normalizePath(const boost::filesystem::path &path);
+
+/**
+ * @brief Makes path relative to specified base directory.
+ *
+ * @param base Base path.
+ * @param path Path to make relative.
+ *
+ * @returns Relative path.
+ */
+boost::filesystem::path makeRelativePath(boost::filesystem::path base,
+                                         boost::filesystem::path path);
+
 #endif // UNCOV__UTILS__FS_HPP__

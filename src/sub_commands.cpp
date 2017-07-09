@@ -69,8 +69,6 @@ enum class PathCategory
 
 class InRepoPath
 {
-    using fsPath = boost::filesystem::path;
-
 public:
     explicit InRepoPath(const Repository *repo) : repo(repo)
     {
@@ -80,16 +78,16 @@ public:
     InRepoPath & operator=(std::string path)
     {
         namespace fs = boost::filesystem;
-        fsPath absRepoRoot =
-            fs::absolute(normalize(repo->getGitPath())).parent_path();
+        fs::path absRepoRoot =
+            fs::absolute(normalizePath(repo->getGitPath())).parent_path();
 
         if (path.substr(0, 1) == "/") {
             path.erase(path.begin());
         } else if (pathIsInSubtree(absRepoRoot, fs::current_path())) {
-            path = relative(absRepoRoot, fs::absolute(path)).string();
+            path = makeRelativePath(absRepoRoot, fs::absolute(path)).string();
         }
 
-        this->path = normalize(path).string();
+        this->path = normalizePath(path).string();
         return *this;
     }
 
@@ -106,50 +104,6 @@ public:
     bool empty() const
     {
         return path.empty();
-    }
-
-private:
-    static fsPath normalize(const fsPath &path)
-    {
-        fsPath result;
-        for (fsPath::iterator it = path.begin(); it != path.end(); ++it) {
-            if (*it == "..") {
-                if(result.filename() == "..") {
-                    result /= *it;
-                } else {
-                    result = result.parent_path();
-                }
-            } else if (*it != ".") {
-                result /= *it;
-            }
-        }
-        return result;
-    }
-
-    static fsPath relative(fsPath base, fsPath path)
-    {
-        auto baseIt = base.begin();
-        auto pathIt = path.begin();
-
-        // Loop through both
-        while (baseIt != base.end() && pathIt != path.end() &&
-               *pathIt == *baseIt) {
-            ++pathIt;
-            ++baseIt;
-        }
-
-        fsPath finalPath;
-        while (baseIt != base.end()) {
-            finalPath /= "..";
-            ++baseIt;
-        }
-
-        while (pathIt != path.end()) {
-            finalPath /= *pathIt;
-            ++pathIt;
-        }
-
-        return finalPath;
     }
 
 private:

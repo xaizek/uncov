@@ -35,3 +35,46 @@ pathIsInSubtree(const fs::path &root, const fs::path &path)
 
     return std::equal(root.begin(), root.end(), path.begin());
 }
+
+fs::path
+normalizePath(const fs::path &path)
+{
+    fs::path result;
+    for (fs::path::iterator it = path.begin(); it != path.end(); ++it) {
+        if (*it == "..") {
+            if(result.filename() == "..") {
+                result /= *it;
+            } else {
+                result = result.parent_path();
+            }
+        } else if (*it != ".") {
+            result /= *it;
+        }
+    }
+    return result;
+}
+
+fs::path
+makeRelativePath(fs::path base, fs::path path)
+{
+    auto baseIt = base.begin();
+    auto pathIt = path.begin();
+
+    while (baseIt != base.end() && pathIt != path.end() && *pathIt == *baseIt) {
+        ++pathIt;
+        ++baseIt;
+    }
+
+    fs::path finalPath;
+    while (baseIt != base.end()) {
+        finalPath /= "..";
+        ++baseIt;
+    }
+
+    while (pathIt != path.end()) {
+        finalPath /= *pathIt;
+        ++pathIt;
+    }
+
+    return finalPath;
+}
