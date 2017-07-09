@@ -34,6 +34,13 @@
 
 namespace {
 
+/**
+ * @brief Counts width of a number in digit places.
+ *
+ * @param n Number to measure.
+ *
+ * @returns The width plus one (for convenience) for non-zero and zero for zero.
+ */
 int
 countWidth(int n)
 {
@@ -45,25 +52,46 @@ countWidth(int n)
     return width;
 }
 
+/**
+ * @brief Auxiliary class that draws coverage column.
+ */
 class CoverageColumn
 {
+    //! Marker to print blank entry.
     struct Blank
     {
-        const CoverageColumn &cc;
+        const CoverageColumn &cc; //!< Reference to parent object.
     };
+    //! Marker to print information of a specific line.
     struct LineAt
     {
-        const CoverageColumn &cc;
-        const int lineNo;
-        const bool active;
+        const CoverageColumn &cc; //!< Reference to parent object.
+        const int lineNo;         //!< Line number.
+        const bool active;        //!< Whether the entry should standout.
     };
 
+    /**
+     * @brief Redirects printing to an instance of CoverageColumn.
+     *
+     * @param os    Output stream.
+     * @param blank Marker.
+     *
+     * @returns @p os.
+     */
     friend std::ostream & operator<<(std::ostream &os, const Blank &blank)
     {
         blank.cc.printBlank(os);
         return os;
     }
 
+    /**
+     * @brief Redirects printing to an instance of CoverageColumn.
+     *
+     * @param os     Output stream.
+     * @param lineAt Marker.
+     *
+     * @returns @p os.
+     */
     friend std::ostream & operator<<(std::ostream &os, const LineAt &lineAt)
     {
         lineAt.cc.printAt(os, lineAt.lineNo, lineAt.active);
@@ -71,6 +99,11 @@ class CoverageColumn
     }
 
 public:
+    /**
+     * @brief Constructs from coverage information.
+     *
+     * @param coverage Coverage information.
+     */
     explicit CoverageColumn(const std::vector<int> &coverage)
         : coverage(coverage)
     {
@@ -84,27 +117,58 @@ public:
     }
 
 public:
+    /**
+     * @brief Requests marker to print blank entry.
+     *
+     * @returns Marker to be output to @c std::ostream.
+     */
     Blank blank() const
     {
         return { *this };
     }
 
+    /**
+     * @brief Requests marker to print active number of hits.
+     *
+     * @param lineNo
+     *
+     * @returns Marker to be output to @c std::ostream.
+     */
     LineAt active(int lineNo) const
     {
         return { *this, lineNo, true };
     }
 
+    /**
+     * @brief Requests marker to print inactive number of hits.
+     *
+     * @param lineNo
+     *
+     * @returns Marker to be output to @c std::ostream.
+     */
     LineAt inactive(int lineNo) const
     {
         return { *this, lineNo, false };
     }
 
 private:
+    /**
+     * @brief Prints blank entry.
+     *
+     * @param os Output stream.
+     */
     void printBlank(std::ostream &os) const
     {
         os << std::setw(hitsNumWidth) << "" << ' ';
     }
 
+    /**
+     * @brief Prints entry with number of hits.
+     *
+     * @param os     Output stream.
+     * @param lineNo Line number.
+     * @param active Whether number of hits should standout.
+     */
     void printAt(std::ostream &os, std::size_t lineNo, bool active) const
     {
         if (lineNo >= coverage.size()) {
@@ -121,8 +185,8 @@ private:
     }
 
 private:
-    const std::vector<int> &coverage;
-    int hitsNumWidth;
+    const std::vector<int> &coverage; //!< Coverage information.
+    int hitsNumWidth;                 //!< Maximum width of number of hits.
 };
 
 }
