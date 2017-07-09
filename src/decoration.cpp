@@ -23,17 +23,31 @@
 
 namespace {
 
+/**
+ * @brief Class that manages global state of this unit.
+ */
 class ColorsState
 {
 public:
+    /**
+     * @brief Disables highlighting.
+     */
     void disable() { isAscii = false; }
 
+    /**
+     * @brief Transforms ASCII-sequence to disable it when colorization is off.
+     *
+     * @param text String with ASCII-sequence.
+     *
+     * @returns Either @p text or an empty string.
+     */
     const char * operator()(const char text[]) const
     {
         return isAscii ? text : "";
     }
 
 private:
+    //! Whether highlighting is enabled.
     bool isAscii = isOutputToTerminal();
 };
 
@@ -44,6 +58,7 @@ using ostr = std::ostream;
 
 using namespace decor;
 
+//! Global state of this unit.
 static ColorsState S;
 
 const Decoration
