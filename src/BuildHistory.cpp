@@ -378,20 +378,47 @@ BuildHistory::getBuild(int id)
     }
 }
 
+/**
+ * @brief Turns table rows into vector of builds.
+ *
+ * @tparam T Type of range of rows.
+ *
+ * @param range  Table rows (DB::Rows).
+ * @param loader Reference to loader of file and path data.
+ *
+ * @returns The list.
+ */
+template <typename T>
 std::vector<Build>
-BuildHistory::getBuilds()
+listBuilds(T &&rows, DataLoader &loader)
 {
     std::vector<Build> builds;
-    DataLoader &loader = *this;
-    for (std::tuple<int, std::string, std::string, int, int, int> vals :
-         db.queryAll("SELECT buildid, vcsref, vcsrefname, covered, missed, "
-                            "timestamp "
-                     "FROM builds")) {
+    for (std::tuple<int, std::string, std::string, int, int, int> vals : rows) {
         builds.emplace_back(std::get<0>(vals), std::get<1>(vals),
                             std::get<2>(vals), std::get<3>(vals),
                             std::get<4>(vals), std::get<5>(vals), loader);
     }
     return builds;
+}
+
+std::vector<Build>
+BuildHistory::getBuilds()
+{
+    return listBuilds(db.queryAll("SELECT buildid, vcsref, vcsrefname, "
+                                         "covered, missed, timestamp "
+                                  "FROM builds"),
+                      *this);
+}
+
+std::vector<Build>
+BuildHistory::getBuildsOn(const std::string &refName)
+{
+    return listBuilds(db.queryAll("SELECT buildid, vcsref, vcsrefname, "
+                                         "covered, missed, timestamp "
+                                  "FROM builds "
+                                  "WHERE vcsrefname = :refname",
+                                  { ":refname"_b = refName }),
+                      *this);
 }
 
 std::map<std::string, int>

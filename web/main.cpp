@@ -111,6 +111,9 @@ main(int argc, char *argv[]) try
     setArgs(app.vMapUrl(vhost, "^/builds/([0-9]+)/(.+)$",
                         Maptarget("file")),
             {{ "buildId", "$1" }, { "filePath", "$2" }});
+    setArgs(app.vMapUrl(vhost, "^/badges/svg/(.*)$",
+                        Maptarget("badge")),
+            {{ "branch", "$1" }});
     app.vMapUrl(vhost, "^/style.css", Maptarget("style"));
     app.vMapUrl(vhost, "^/favicon.ico", Maptarget("favicon"));
     app.run();

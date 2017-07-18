@@ -36,6 +36,16 @@ TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
     REQUIRE_THROWS_AS(BuildHistory bh(db), std::runtime_error);
 }
 
+TEST_CASE("List of builds on unknown branch is empty", "[BuildHistory]")
+{
+    Repository repo("tests/test-repo/subdir");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+
+    REQUIRE(BuildHistory(db).getBuildsOn(":wrong").empty());
+}
+
 TEST_CASE("File is loaded from database", "[Build][File]")
 {
     Repository repo("tests/test-repo/subdir");

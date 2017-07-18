@@ -1,0 +1,80 @@
+<!--
+
+Copyright (C) 2017 xaizek <xaizek@openmailbox.org>
+
+This file is part of uncov.
+
+uncov is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+uncov is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with uncov.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<%pre>
+    #include <iomanip>
+    #include <sstream>
+
+    #include "BuildHistory.hpp"
+    #include "WebSettings.hpp"
+
+    extern BuildHistory *globalBH;
+</%pre>
+
+<%cpp>
+    WebSettings settings;
+
+    const std::string branch = request.getArg("branch");
+
+    reply.setContentType("image/svg+xml");
+
+    const std::vector<Build> builds = globalBH->getBuildsOn(branch);
+    if (builds.empty()) {
+        // Do nothing on unknown branch.
+        return HTTP_OK;
+    }
+
+    // Not using CovInfo because it adds formatting and we need none here.
+    const Build &build = builds.back();
+    const int covered = build.getCoveredCount();
+    const int relevant = covered + build.getMissedCount();
+    float rate = (relevant == 0 ? 100.0f : (100.0f*covered)/relevant);
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(0) << rate << '%';
+    const std::string label = oss.str();
+
+    std::string color;
+    if (rate > settings.getHiLimit()) {
+        color = "#4b1";
+    } else if (rate > settings.getMedLimit()) {
+        color = "#995";
+    } else {
+        color = "#b41";
+    }
+</%cpp>
+
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="20">
+    <linearGradient id="a" x2="0" y2="100%">
+        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+        <stop offset="1" stop-opacity=".1"/>
+    </linearGradient>
+    <rect rx="3" width="90" height="20" fill="#555"/>
+    <rect rx="3" x="55" width="35" height="20" fill="<$ color $>"/>
+    <path fill="<$ color $>" d="M55 0h4v20h-4z"/>
+    <rect rx="3" width="90" height="20" fill="url(#a)"/>
+    <g fill="#fff" text-anchor="middle" font-family="sans-serif" font-size="11">
+        <text x="26.5" y="15" fill="#010101" fill-opacity=".3">covered</text>
+        <text x="26.5" y="14">covered</text>
+        <text x="72.5" y="15" fill="#010101" fill-opacity=".3"><$ label $></text>
+        <text x="72.5" y="14"><$ label $></text>
+    </g>
+</svg>

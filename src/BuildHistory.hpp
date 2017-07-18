@@ -125,6 +125,15 @@ public:
      */
     std::vector<Build> getBuilds();
 
+    /**
+     * @brief Retrieves all builds of the specified reference name.
+     *
+     * @param refName Name of the reference.
+     *
+     * @returns The builds.
+     */
+    std::vector<Build> getBuildsOn(const std::string &refName);
+
 private:
     virtual std::map<std::string, int> loadPaths(int buildid) override;
     virtual boost::optional<File> loadFile(int fileid) override;
