@@ -35,6 +35,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     const std::string branch = request.getArg("branch");
 
     reply.setContentType("image/svg+xml");
+    reply.setHeader(tnt::httpheader::cacheControl, "no-cache");
 
     const std::vector<Build> builds = globalBH->getBuildsOn(branch);
     if (builds.empty()) {
