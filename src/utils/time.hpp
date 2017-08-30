@@ -1,4 +1,4 @@
-// Copyright (C) 2017 xaizek <xaizek@openmailbox.org>
+// Copyright (C) 2017 xaizek <xaizek@posteo.net>
 //
 // This file is part of uncov.
 //

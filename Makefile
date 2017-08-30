@@ -128,7 +128,7 @@ docs/uncov.1: force | $(out_dir)/docs
 	       -V app=uncov \
 	       -V footer="uncov v0.1" \
 	       -V date="$$(date +'%B %d, %Y')" \
-	       -V author='xaizek <xaizek@openmailbox.org>' \
+	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/*.md))
 
 doxygen:

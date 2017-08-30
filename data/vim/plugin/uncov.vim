@@ -1,6 +1,6 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
-" Maintainer: xaizek <xaizek@openmailbox.org>
+" Maintainer: xaizek <xaizek@posteo.net>
 " Last Change: 2017 May 09
 " License: Same terms as Vim itself (see `help license`)
 

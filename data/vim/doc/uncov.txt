@@ -10,7 +10,7 @@ uncov plugin                                    *uncov*
 2. Description..................................|uncov-description|
 3. Usage........................................|uncov-usage|
 
-Author:  xaizek <xaizek@openmailbox.org>
+Author:  xaizek <xaizek@posteo.net>
 License: Same terms as Vim itself (see |license|)
 
 ==============================================================================
