@@ -186,6 +186,12 @@ And might need a global one at some point too.
 
 There is already Settings class that can be used to provide configuration.
 
+## Shell completion. ##
+
+| ID   |  Status   |  Type      |
+|------|-----------|------------|
+| hSY  |  planned  |  addition  |
+
 ## Maybe introduce range syntax to specify two builds. ##
 
 | ID   |  Status     |  Type  |
@@ -317,15 +323,6 @@ Outline of possible implementation:
 | ID   |  Status   |  Type         |
 |------|-----------|---------------|
 | eRY  |  planned  |  improvement  |
-
-## Unfold lines under cursor after :Uncov. ##
-
-| ID   |  Status   |  Type         |
-|------|-----------|---------------|
-| oSY  |  planned  |  improvement  |
-
-Otherwise this is likely the first thing user does right after the buffer is
-loaded simply because line of interest might be under the fold.
 
 # Web-UI #
 
