@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2017 September 03
+" Last Change: 2017 September 12
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -95,7 +95,7 @@ function! s:MakeBuffer(repo, relFilePath, buildid, reload)
     call s:FoldCovered(l:coverage)
 
     " make sure line under the cursor is not folded
-    normal! zO
+    silent! normal! zO
 
     command -buffer UncovInfo call s:PrintCoverageInfo()
     command -buffer -nargs=? Uncov call s:ShowCoverage(1, <f-args>)
