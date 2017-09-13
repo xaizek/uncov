@@ -260,6 +260,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
 
     CoverageColumn covCol(coverage);
     std::size_t lineNo = 0U;
+    std::size_t extraLines = 0U;
 
     for (int line : lines) {
         if (line < 0) {
@@ -269,7 +270,8 @@ FilePrinter::print(std::ostream &os, const std::string &path,
             std::string fileLine;
             if (!std::getline(ss, fileLine)) {
                 // Not enough lines in the file.
-                break;
+                fileLine = "<<< EOF >>>";
+                ++extraLines;
             }
 
             os << std::setw(lineNoWidth) << LineNo{lineNo + 1U}
@@ -284,8 +286,8 @@ FilePrinter::print(std::ostream &os, const std::string &path,
            << covCol.active(lineNo) << ": " << fileLine << '\n';
     }
 
-    if (lineNo < coverage.size()) {
-        os << ErrorMsg{"ERROR"} << ": not enough lines in the file.\n";
+    if (extraLines > 1U) {
+        os << ErrorMsg{"ERROR"} << ": too few lines in the file.\n";
     } else if (lineNo > coverage.size()) {
         os << ErrorMsg{"ERROR"} << ": too many lines in the file.\n";
     }

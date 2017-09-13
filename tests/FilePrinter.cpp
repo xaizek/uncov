@@ -17,8 +17,6 @@
 
 #include "Catch/catch.hpp"
 
-#include <boost/algorithm/string/predicate.hpp>
-
 #include <sstream>
 #include <string>
 
@@ -51,22 +49,35 @@ TEST_CASE("File contents length and coverage length is checked",
     SECTION("Too few file lines")
     {
         contents = "line1\n";
-        expected = "    1       : line1\n";
+        expected = "    1       : line1\n"
+                   "    2    x0 : <<< EOF >>>\n"
+                   "    3    x1 : <<< EOF >>>\n"
+                   "ERROR: too few lines in the file.\n";
+    }
+
+    SECTION("Extra coverage line")
+    {
+        contents = "line1\nline2\n";
+        expected = "    1       : line1\n"
+                   "    2    x0 : line2\n"
+                   "    3    x1 : <<< EOF >>>\n";
     }
 
     SECTION("Too many file lines")
     {
-        contents = "line1\nline2\nline3\n";
+        contents = "line1\nline2\nline3\nline4\n";
         expected = "    1       : line1\n"
                    "    2    x0 : line2\n"
-                   "    3 ERROR : line3\n";
+                   "    3    x1 : line3\n"
+                   "    4 ERROR : line4\n"
+                   "ERROR: too many lines in the file.\n";
     }
 
     std::ostringstream oss;
     FilePrinter printer(*getSettings());
-    printer.print(oss, "path", contents, { -1, 0 });
+    printer.print(oss, "path", contents, { -1, 0, 1 });
 
-    REQUIRE(boost::starts_with(oss.str(), expected + "ERROR: "));
+    REQUIRE(oss.str() == expected);
 }
 
 TEST_CASE("File diffing works", "[FilePrinter]")
