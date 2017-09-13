@@ -25,16 +25,31 @@
 
 #include "TestUtils.hpp"
 
-TEST_CASE("Invalid input is detected", "[FileComparator]")
+TEST_CASE("Input is validated correctly", "[FileComparator]")
 {
+    const std::vector<std::string> file4 = { "a", "b", "c", "d" };
     const std::vector<std::string> file5 = { "a", "b", "c", "d", "e" };
     const std::vector<std::string> file6 = { "a", "b", "c", "d", "e", "f" };
     const std::vector<int> cov5 = { -1, -1, -1, -1, -1 };
     const std::vector<int> cov6 = { -1, -1, -1, -1, -1, -1 };
 
+    SECTION("Empty old file")
+    {
+        FileComparator comparator({}, {}, file6, cov6, false, *getSettings());
+        CHECK(comparator.isValidInput());
+        CHECK(comparator.getInputError().empty());
+    }
+
+    SECTION("Empty new file")
+    {
+        FileComparator comparator(file6, cov6, {}, {}, false, *getSettings());
+        CHECK(comparator.isValidInput());
+        CHECK(comparator.getInputError().empty());
+    }
+
     SECTION("Invalid old information")
     {
-        FileComparator comparator(file5, cov6, file6, cov6, false,
+        FileComparator comparator(file4, cov6, file6, cov6, false,
                                   *getSettings());
         CHECK(!comparator.isValidInput());
         CHECK(!comparator.getInputError().empty());
@@ -59,6 +74,14 @@ TEST_CASE("Invalid input is detected", "[FileComparator]")
     SECTION("Valid old and new information")
     {
         FileComparator comparator(file6, cov6, file5, cov5, false,
+                                  *getSettings());
+        CHECK(comparator.isValidInput());
+        CHECK(comparator.getInputError().empty());
+    }
+
+    SECTION("Coverage with extra line")
+    {
+        FileComparator comparator(file5, cov6, file6, cov6, false,
                                   *getSettings());
         CHECK(comparator.isValidInput());
         CHECK(comparator.getInputError().empty());

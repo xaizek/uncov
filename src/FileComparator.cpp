@@ -157,16 +157,18 @@ validate(const std::vector<std::string> &o, const std::vector<int> &oCov,
          const std::vector<std::string> &n, const std::vector<int> &nCov,
          std::string &error)
 {
-    const bool valid = (o.size() == oCov.size() && n.size() == nCov.size());
-    if (o.size() != oCov.size()) {
+    bool valid = true;
+    if (o.size() > oCov.size() || o.size() + 1U < oCov.size()) {
         error += "Old state is incorrect (" + std::to_string(o.size()) +
                  " file lines vs. " + std::to_string(oCov.size()) +
                  " coverage lines)\n";
+        valid = false;
     }
-    if (n.size() != nCov.size()) {
+    if (n.size() > nCov.size() || n.size() + 1U < nCov.size()) {
         error += "New state is incorrect (" + std::to_string(n.size()) +
                  " file lines vs. " + std::to_string(nCov.size()) +
                  " coverage lines)\n";
+        valid = false;
     }
     return valid;
 }
