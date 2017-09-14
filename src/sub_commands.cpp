@@ -263,10 +263,11 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : AutoSubCommand({ "diff", "diff-hits" }, 0U, 3U)
+    DiffCmd() : AutoSubCommand({ "diff", "diff-hits", "regress" }, 0U, 3U)
     {
         describe("diff", "Compares builds, directories or files");
         describe("diff-hits", "Compares builds, directories or files by hits");
+        describe("regress", "Displays regression between builds");
     }
 
 private:
@@ -337,7 +338,9 @@ private:
 
         CompareStrategy strategy = (alias == "diff")
                                  ? CompareStrategy::State
-                                 : CompareStrategy::Hits;
+                                 : (alias == "diff-hits")
+                                 ? CompareStrategy::Hits
+                                 : CompareStrategy::Regress;
 
         if (buildsDiff) {
             diffBuilds(oldBuild, newBuild, path, strategy);

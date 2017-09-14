@@ -127,15 +127,6 @@ This can help make some error messages better, but is it really that useful
 (not sure handling of exceptions will actually differ, so maybe only to
 provide more details about the error).
 
-## A command to show newly introduced missed lines. ##
-
-| ID   |  Status   |  Type      |
-|------|-----------|------------|
-| RSY  |  planned  |  addition  |
-
-Probably an alias of `diff` subcommand.  This should be convenient to see
-what's not covered in new code.
-
 ## Maybe something to exclude files. ##
 
 | ID   |  Status     |  Type      |

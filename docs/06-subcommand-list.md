@@ -212,6 +212,13 @@ Reads coverage information from standard input in the following format:
 
 Any other elements are ignored.
 
+regress
+-------
+
+Same as **diff** subcommand, but displays introduced lines that aren't covered.
+
+See description of **diff** subcommand above for syntax.
+
 show
 ----
 
