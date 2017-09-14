@@ -19,12 +19,20 @@
 #define UNCOV__TESTS__TESTUTILS_HPP__
 
 #include <iosfwd>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
-class Settings;
+#include "Settings.hpp"
+
+class TestSettings : public Settings
+{
+public: // FilePrinterSettings only
+    virtual bool isColorOutputAllowed() const override
+    {
+        return false;
+    }
+};
 
 /**
  * @brief Temporarily redirects specified stream into a string.
@@ -133,6 +141,6 @@ vi(std::vector<int> v)
  *
  * @returns The settings.
  */
-std::shared_ptr<Settings> & getSettings();
+Settings & getSettings();
 
 #endif // UNCOV__TESTS__TESTUTILS_HPP__

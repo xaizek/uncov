@@ -70,9 +70,9 @@ FileRestorer::~FileRestorer()
     fs::rename(to, from);
 }
 
-std::shared_ptr<Settings> &
+Settings &
 getSettings()
 {
-    static auto settings = std::make_shared<Settings>();
+    static TestSettings settings;
     return settings;
 }

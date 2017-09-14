@@ -263,10 +263,11 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
-    DiffCmd() : AutoSubCommand({ "diff", "diff-hits" }, 0U, 3U)
+    DiffCmd() : AutoSubCommand({ "diff", "diff-hits", "regress" }, 0U, 3U)
     {
         describe("diff", "Compares builds, directories or files");
         describe("diff-hits", "Compares builds, directories or files by hits");
+        describe("regress", "Displays regression between builds");
     }
 
 private:
@@ -335,10 +336,16 @@ private:
 
         RedirectToPager redirectToPager;
 
+        CompareStrategy strategy = (alias == "diff")
+                                 ? CompareStrategy::State
+                                 : (alias == "diff-hits")
+                                 ? CompareStrategy::Hits
+                                 : CompareStrategy::Regress;
+
         if (buildsDiff) {
-            diffBuilds(oldBuild, newBuild, path, alias == "diff-hits");
+            diffBuilds(oldBuild, newBuild, path, strategy);
         } else {
-            diffFile(oldBuild, newBuild, path, true, alias == "diff-hits");
+            diffFile(oldBuild, newBuild, path, true, strategy);
         }
 
         filePrinter.reset();
@@ -349,13 +356,13 @@ private:
     /**
      * @brief Prints difference between two builds.
      *
-     * @param oldBuild     Original build.
-     * @param newBuild     Changed build.
-     * @param dirFilter    Prefix to filter paths.
-     * @param considerHits Whether to treat `x1` and `x2` as different.
+     * @param oldBuild  Original build.
+     * @param newBuild  Changed build.
+     * @param dirFilter Prefix to filter paths.
+     * @param strategy  Comparison strategy.
      */
     void diffBuilds(const Build &oldBuild, const Build &newBuild,
-                    const std::string &dirFilter, bool considerHits)
+                    const std::string &dirFilter, CompareStrategy strategy)
     {
         const std::vector<std::string> &oldPaths = oldBuild.getPaths();
         const std::vector<std::string> &newPaths = newBuild.getPaths();
@@ -367,7 +374,7 @@ private:
 
         for (const std::string &path : allFiles) {
             if (pathIsInSubtree(dirFilter, path)) {
-                diffFile(oldBuild, newBuild, path, false, considerHits);
+                diffFile(oldBuild, newBuild, path, false, strategy);
 
                 // Flush output stream so that user can start seeing output
                 // faster than output buffer fills up (this is actually
@@ -385,11 +392,11 @@ private:
      * @param newBuild     Changed build.
      * @param filePath     Path to the file.
      * @param standalone   Whether we're printing just one file.
-     * @param considerHits Whether to treat `x1` and `x2` as different.
+     * @param strategy  Comparison strategy.
      */
     void diffFile(const Build &oldBuild, const Build &newBuild,
                   const std::string &filePath, bool standalone,
-                  bool considerHits)
+                  CompareStrategy strategy)
     {
         boost::optional<File &> oldFile = oldBuild.getFile(filePath);
         boost::optional<File &> newFile = newBuild.getFile(filePath);
@@ -414,7 +421,7 @@ private:
 
         FileComparator comparator(oldVersion.asLines(), oldCov,
                                   newVersion.asLines(), newCov,
-                                  considerHits, *settings);
+                                  strategy, *settings);
 
         if (!comparator.isValidInput()) {
             std::cerr << "Coverage information for file " << filePath

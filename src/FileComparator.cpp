@@ -20,6 +20,8 @@
 #define BOOST_DISABLE_ASSERTS
 #include <boost/multi_array.hpp>
 
+#include <cassert>
+
 #include <deque>
 #include <string>
 #include <vector>
@@ -29,13 +31,13 @@ static bool validate(const std::vector<std::string> &o,
                      const std::vector<std::string> &n,
                      const std::vector<int> &nCov,
                      std::string &error);
-static inline int sign(int i);
+static inline int normalizeHits(int hits, CompareStrategy strategy);
 
 FileComparator::FileComparator(const std::vector<std::string> &o,
                                const std::vector<int> &oCov,
                                const std::vector<std::string> &n,
                                const std::vector<int> &nCov,
-                               bool considerHits,
+                               CompareStrategy strategy,
                                const FileComparatorSettings &settings)
 {
     valid = validate(o, oCov, n, nCov, inputError);
@@ -96,8 +98,9 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         identicalLines = 0U;
     };
 
-    auto maybeConsiderIdentical = [&identicalLines, &foldIdentical](int hits) {
-        if (hits == -1) {
+    auto maybeConsiderIdentical = [&](int hits, bool added) {
+        if (hits == -1 ||
+            (strategy == CompareStrategy::Regress && (!added || hits > 0))) {
             ++identicalLines;
         } else {
             foldIdentical(false);
@@ -105,9 +108,11 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
     };
 
     auto handleSameLines = [&](size_type i, size_type j) {
-        const int oHits = considerHits ? oCov[i] : sign(oCov[i]);
-        const int nHits = considerHits ? nCov[j] : sign(nCov[j]);
-        if (oHits == nHits) {
+        const int oHits = normalizeHits(oCov[i], strategy);
+        const int nHits = normalizeHits(nCov[j], strategy);
+        if (oHits == nHits ||
+            (strategy == CompareStrategy::Regress &&
+             (nHits < 0 || nHits > oHits))) {
             diffSeq.emplace_front(DiffLineType::Identical, o[i], i, j);
             ++identicalLines;
         } else {
@@ -127,16 +132,16 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
     int i = ou - ol, j = nu - nl;
     while (i != 0U || j != 0U) {
         if (i == 0) {
-            maybeConsiderIdentical(nCov[nl + --j]);
+            maybeConsiderIdentical(nCov[nl + --j], true);
             diffSeq.emplace_front(DiffLineType::Added, n[nl + j], -1, nl + j);
         } else if (j == 0) {
-            maybeConsiderIdentical(oCov[ol + --i]);
+            maybeConsiderIdentical(oCov[ol + --i], false);
             diffSeq.emplace_front(DiffLineType::Removed, o[ol + i], ol + i, -1);
         } else if (d[i][j] == d[i][j - 1] + 1) {
-            maybeConsiderIdentical(nCov[nl + --j]);
+            maybeConsiderIdentical(nCov[nl + --j], true);
             diffSeq.emplace_front(DiffLineType::Added, n[nl + j], -1, nl + j);
         } else if (d[i][j] == d[i - 1][j] + 1) {
-            maybeConsiderIdentical(oCov[ol + --i]);
+            maybeConsiderIdentical(oCov[ol + --i], false);
             diffSeq.emplace_front(DiffLineType::Removed, o[ol + i], ol + i, -1);
         } else if (o[ol + --i] == n[nl + --j]) {
             handleSameLines(ol + i, nl + j);
@@ -173,16 +178,28 @@ validate(const std::vector<std::string> &o, const std::vector<int> &oCov,
     return valid;
 }
 
+/**
+ * @brief Normalizes number of hits before comparison according to the strategy.
+ *
+ * @param hits     Number of hits.
+ * @param strategy Comparison strategy.
+ *
+ * @returns Normalized number of hits.
+ */
 static inline int
-sign(int i)
+normalizeHits(int hits, CompareStrategy strategy)
 {
-    if (i < 0) {
-        return -1;
-    } else if (i == 0) {
-        return 0;
-    } else {
-        return +1;
+    switch (strategy) {
+        case CompareStrategy::Hits:
+            return hits;
+
+        case CompareStrategy::State:
+        case CompareStrategy::Regress:
+            return (hits < 0 ? -1 : (hits > 0 ? +1 : 0));
     }
+
+    assert(false && "Unhandled strategy");
+    return hits;
 }
 
 bool

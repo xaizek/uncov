@@ -378,6 +378,11 @@ FilePrinter::highlight(std::stringstream &ss, std::istream &text,
         highlighter.setLineRanges(ranges);
         highlighter.highlight(text, ss, lang);
     } else {
-        ss << text.rdbuf();
+        int lineNo = 1;
+        for (std::string line; std::getline(text, line); ++lineNo) {
+            if (ranges == nullptr || ranges->isInRange(lineNo)) {
+                ss << line << '\n';
+            }
+        }
     }
 }
