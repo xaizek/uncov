@@ -3,7 +3,6 @@
 
 #include <memory>
 
-#include "Settings.hpp"
 #include "decoration.hpp"
 #include "printing.hpp"
 
@@ -12,7 +11,7 @@
 int
 main(int argc, const char *argv[])
 {
-    PrintingSettings::set(getSettings());
+    PrintingSettings::set(std::make_shared<TestSettings>());
 
     decor::disableDecorations();
 
