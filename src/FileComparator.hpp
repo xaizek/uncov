@@ -42,6 +42,15 @@ enum class DiffLineType
 };
 
 /**
+ * @brief Type of file comparison.
+ */
+enum class CompareStrategy
+{
+    State,   //!< Compare lines by states (covered, not covered, not relevant).
+    Hits,    //!< Compare different number of hits as different.
+};
+
+/**
  * @brief Single line of a diff.
  */
 struct DiffLine
@@ -116,18 +125,18 @@ public:
     /**
      * @brief Constructs an instance validating data arguments.
      *
-     * @param o            Old lines.
-     * @param oCov         Coverage of old lines.
-     * @param n            New lines.
-     * @param nCov         Coverage of new lines.
-     * @param considerHits Whether to treat `x1` and `x2` as different.
-     * @param settings     Settings for tweaking the comparison.
+     * @param o        Old lines.
+     * @param oCov     Coverage of old lines.
+     * @param n        New lines.
+     * @param nCov     Coverage of new lines.
+     * @param strategy Comparison strategy.
+     * @param settings Settings for tweaking the comparison.
      */
     FileComparator(const std::vector<std::string> &o,
                    const std::vector<int> &oCov,
                    const std::vector<std::string> &n,
                    const std::vector<int> &nCov,
-                   bool considerHits,
+                   CompareStrategy strategy,
                    const FileComparatorSettings &settings);
 
 public:

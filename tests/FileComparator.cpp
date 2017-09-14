@@ -35,54 +35,56 @@ TEST_CASE("Input is validated correctly", "[FileComparator]")
 
     SECTION("Empty old file")
     {
-        FileComparator comparator({}, {}, file6, cov6, false, *getSettings());
+        FileComparator comparator({}, {}, file6, cov6, CompareStrategy::State,
+                                  *getSettings());
         CHECK(comparator.isValidInput());
         CHECK(comparator.getInputError().empty());
     }
 
     SECTION("Empty new file")
     {
-        FileComparator comparator(file6, cov6, {}, {}, false, *getSettings());
+        FileComparator comparator(file6, cov6, {}, {}, CompareStrategy::State,
+                                  *getSettings());
         CHECK(comparator.isValidInput());
         CHECK(comparator.getInputError().empty());
     }
 
     SECTION("Invalid old information")
     {
-        FileComparator comparator(file4, cov6, file6, cov6, false,
-                                  *getSettings());
+        FileComparator comparator(file4, cov6, file6, cov6,
+                                  CompareStrategy::State, *getSettings());
         CHECK(!comparator.isValidInput());
         CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Invalid new information")
     {
-        FileComparator comparator(file6, cov6, file6, cov5, false,
-                                  *getSettings());
+        FileComparator comparator(file6, cov6, file6, cov5,
+                                  CompareStrategy::State, *getSettings());
         CHECK(!comparator.isValidInput());
         CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Invalid old and new information")
     {
-        FileComparator comparator(file6, cov5, file5, cov6, false,
-                                  *getSettings());
+        FileComparator comparator(file6, cov5, file5, cov6,
+                                  CompareStrategy::State, *getSettings());
         CHECK(!comparator.isValidInput());
         CHECK(!comparator.getInputError().empty());
     }
 
     SECTION("Valid old and new information")
     {
-        FileComparator comparator(file6, cov6, file5, cov5, false,
-                                  *getSettings());
+        FileComparator comparator(file6, cov6, file5, cov5,
+                                  CompareStrategy::State, *getSettings());
         CHECK(comparator.isValidInput());
         CHECK(comparator.getInputError().empty());
     }
 
     SECTION("Coverage with extra line")
     {
-        FileComparator comparator(file5, cov6, file6, cov6, false,
-                                  *getSettings());
+        FileComparator comparator(file5, cov6, file6, cov6,
+                                  CompareStrategy::State, *getSettings());
         CHECK(comparator.isValidInput());
         CHECK(comparator.getInputError().empty());
     }
@@ -94,7 +96,8 @@ TEST_CASE("Context line at beginning of file is folded", "[FileComparator]")
     const std::vector<int> covA = { -1, -1, -1, -1, -1, -1 };
     const std::vector<int> covB = { -1, -1, -1, -1, -1, 0 };
 
-    FileComparator comparator(file, covA, file, covB, false, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::State,
+                              *getSettings());
 
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
     REQUIRE(diff.size() == 3U);
@@ -109,7 +112,8 @@ TEST_CASE("Context line at end of file is folded", "[FileComparator]")
     const std::vector<int> covA = { -1, -1, -1, -1, -1, -1 };
     const std::vector<int> covB = { 0, -1, -1, -1, -1, -1 };
 
-    FileComparator comparator(file, covA, file, covB, false, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::State,
+                              *getSettings());
 
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
     REQUIRE(diff.size() == 3U);
@@ -124,7 +128,8 @@ TEST_CASE("Files are compared by state", "[FileComparator]")
     const std::vector<int> covA = { -1, 10, -1, -1, -1, -1 };
     const std::vector<int> covB = { -1, 15, -1, -1, -1, -1 };
 
-    FileComparator comparator(file, covA, file, covB, false, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::State,
+                              *getSettings());
     CHECK(comparator.areEqual());
     CHECK(comparator.getDiffSequence().size() == 1U);
 }
@@ -135,7 +140,8 @@ TEST_CASE("Files are compared by hits", "[FileComparator]")
     const std::vector<int> covA = { -1, 10, -1, -1, -1, -1 };
     const std::vector<int> covB = { -1, 15, -1, -1, -1, -1 };
 
-    FileComparator comparator(file, covA, file, covB, true, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::Hits,
+                              *getSettings());
     CHECK(!comparator.areEqual());
 
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
@@ -152,7 +158,8 @@ TEST_CASE("Files identical by state are detected", "[FileComparator]")
     const std::vector<int> covA = { -1, -1, -1, -1, -1, -1 };
     const std::vector<int> covB = { -1, -1, -1, -1, -1, -1 };
 
-    FileComparator comparator(file, covA, file, covB, false, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::State,
+                              *getSettings());
     CHECK(comparator.areEqual());
     CHECK(comparator.getDiffSequence().size() == 1U);
 }
@@ -163,7 +170,8 @@ TEST_CASE("Files identical by hits are detected", "[FileComparator]")
     const std::vector<int> covA = { -1, 10, -1, -1, -1, -1 };
     const std::vector<int> covB = { -1, 10, -1, -1, -1, -1 };
 
-    FileComparator comparator(file, covA, file, covB, true, *getSettings());
+    FileComparator comparator(file, covA, file, covB, CompareStrategy::Hits,
+                              *getSettings());
     CHECK(comparator.areEqual());
     CHECK(comparator.getDiffSequence().size() == 1U);
 }
@@ -176,8 +184,8 @@ TEST_CASE("Uninteresting changes are hidden", "[FileComparator]")
         const std::vector<std::string> fileB = { "x", "b", "c", "d", "e", "f" };
         const std::vector<int> cov = { -1, -1, -1, -1, -1, -1 };
 
-        FileComparator comparator(fileA, cov, fileB, cov, false,
-                                  *getSettings());
+        FileComparator comparator(fileA, cov, fileB, cov,
+                                  CompareStrategy::State, *getSettings());
         CHECK(comparator.areEqual());
         CHECK(comparator.getDiffSequence().size() == 1U);
     }
@@ -189,8 +197,8 @@ TEST_CASE("Uninteresting changes are hidden", "[FileComparator]")
         const std::vector<int> covA = { -1, -1, -1, -1, -1 };
         const std::vector<int> covB = { -1, -1, -1, -1, -1, -1 };
 
-        FileComparator comparator(fileA, covA, fileB, covB, false,
-                                  *getSettings());
+        FileComparator comparator(fileA, covA, fileB, covB,
+                                  CompareStrategy::State, *getSettings());
         CHECK(comparator.areEqual());
         CHECK(comparator.getDiffSequence().size() == 1U);
     }
@@ -202,8 +210,8 @@ TEST_CASE("Uninteresting changes are hidden", "[FileComparator]")
         const std::vector<int> covA = { -1, -1, -1, -1, -1, -1 };
         const std::vector<int> covB = { -1, -1, -1, -1, -1 };
 
-        FileComparator comparator(fileA, covA, fileB, covB, false,
-                                  *getSettings());
+        FileComparator comparator(fileA, covA, fileB, covB,
+                                  CompareStrategy::State, *getSettings());
         CHECK(comparator.areEqual());
         CHECK(comparator.getDiffSequence().size() == 1U);
     }
@@ -216,7 +224,8 @@ TEST_CASE("Interesting changes are preserved", "[FileComparator]")
     const std::vector<int> covA = { 0, -1, -1, -1, -1, -1 };
     const std::vector<int> covB = { 20, -1, -1, -1, -1, -1 };
 
-    FileComparator comparator(fileA, covA, fileB, covB, false, *getSettings());
+    FileComparator comparator(fileA, covA, fileB, covB, CompareStrategy::State,
+                              *getSettings());
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
     CHECK(!comparator.areEqual());
     REQUIRE(diff.size() >= 4U);
@@ -234,7 +243,8 @@ TEST_CASE("Changes in the middle", "[FileComparator]")
     const std::vector<int> covA = { -1, -1, -1, 10, -1, -1 };
     const std::vector<int> covB = { -1, -1, -1, -1, -1, -1 };
 
-    FileComparator comparator(fileA, covA, fileB, covB, false, *getSettings());
+    FileComparator comparator(fileA, covA, fileB, covB, CompareStrategy::State,
+                              *getSettings());
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
     CHECK(!comparator.areEqual());
     REQUIRE(diff.size() == 7U);
@@ -254,7 +264,8 @@ TEST_CASE("Identical part in the middle", "[FileComparator]")
     const std::vector<int> covA = { -1, -1, 1, -1, -1, -1 };
     const std::vector<int> covB = { -1, -1, 0, -1, 10, -1 };
 
-    FileComparator comparator(fileA, covA, fileB, covB, false, *getSettings());
+    FileComparator comparator(fileA, covA, fileB, covB, CompareStrategy::State,
+                              *getSettings());
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
     CHECK(!comparator.areEqual());
     REQUIRE(diff.size() == 8U);
