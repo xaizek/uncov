@@ -108,6 +108,60 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
     CHECK(cerrCapture.get() != std::string());
 }
 
+TEST_CASE("Diff fails on wrong negative id", "[subcommands][diff-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    CHECK_THROWS_AS(getCmd("diff")->exec(getSettings(), bh, repo, "diff",
+                                         { "@-100" }),
+                    std::runtime_error);
+}
+
+TEST_CASE("Diff and negative ids work", "[subcommands][diff-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("diff")->exec(getSettings(), bh, repo, "diff",
+                               { "@-2", "@-1" }) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(-------------------------------------------------------------------------------
+Build: #1, 50.00%(2/4), -50.0000%(+2/  +2/  +4), master
+-------------------------------------------------------------------------------
+Build: #2, 50.00%(2/4), 0.0000%(0/   0/   0), master
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+File: test-file1.cpp, 100.00% (2/2), 0.0000% (+2/0/+2)
+-------------------------------------------------------------------------------
+File: test-file1.cpp, 0.00% (0/2), -100.0000% (-2/+2/0)
+-------------------------------------------------------------------------------
+      :      : int
+   x1 :   x0 : main(int argc, char *argv[])
+      :      : {
+   x1 :   x0 :         return 0;
+      :      : }
+
+-------------------------------------------------------------------------------
+File: test-file2.cpp, 0.00% (0/2), -100.0000% (0/+2/+2)
+-------------------------------------------------------------------------------
+File: test-file2.cpp, 100.00% (2/2), +100.0000% (+2/-2/0)
+-------------------------------------------------------------------------------
+      :      : int
+   x0 :   x1 : main(int argc, char *argv[])
+      :      : {
+   x0 :   x1 :         return 0;
+      :      : }
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
 TEST_CASE("Regress detects regression", "[subcommands][regress-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");

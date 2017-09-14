@@ -355,6 +355,20 @@ BuildHistory::getLastBuildId()
 }
 
 int
+BuildHistory::getNToLastBuildId(int n)
+{
+    try {
+        std::tuple<int> vals = db.queryOne("SELECT buildid FROM builds "
+                                           "ORDER BY buildid DESC "
+                                           "LIMIT 1 OFFSET :n",
+                                           { ":n"_b = n } );
+        return std::get<0>(vals);
+    } catch (const std::runtime_error &) {
+        return 0;
+    }
+}
+
+int
 BuildHistory::getPreviousBuildId(int id)
 {
     // TODO: try looking for closest build in terms of commits.

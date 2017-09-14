@@ -96,9 +96,18 @@ public:
     /**
      * @brief Retrieves id of the last build.
      *
-     * @returns The id or @c 0 if there is no builds.
+     * @returns The id or @c 0 if there are no builds.
      */
     int getLastBuildId();
+
+    /**
+     * @brief Retrieves id of the Nth last build.
+     *
+     * @param n Offset from the last build.
+     *
+     * @returns The id or @c 0 if there is no such build.
+     */
+    int getNToLastBuildId(int n);
 
     /**
      * @brief Retrieves id of the build previous to the given one.

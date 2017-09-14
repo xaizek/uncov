@@ -11,6 +11,10 @@ Build numbers start at `1`, this leaves `@0` unused.  It is thus repurposed to
 be a handy shortcut for the latest build.  An alternative form of writing `@0`
 is `@@`.
 
+Build numbers can also be specified in the form of `@-N`, in which case they
+select Nth to the latest build.  For example, to specify range from previous
+build to one build before that one would write `@-1 @-2`.
+
 Resolving ambiguity
 -------------------
 

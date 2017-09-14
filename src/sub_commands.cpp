@@ -840,6 +840,15 @@ getBuild(BuildHistory *bh, int buildId)
         if (buildId == 0) {
             throw std::runtime_error("No last build");
         }
+    } else if (buildId < 0) {
+        const int offset = -buildId;
+        buildId = bh->getNToLastBuildId(offset);
+        if (buildId == 0) {
+            throw std::runtime_error {
+                "Can't find Nth previous build where N = " +
+                std::to_string(offset)
+            };
+        }
     }
 
     boost::optional<Build> build = bh->getBuild(buildId);

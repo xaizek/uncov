@@ -145,6 +145,11 @@ So to refer to build number \f[C]5\f[], one would write \f[C]\@5\f[].
 Build numbers start at \f[C]1\f[], this leaves \f[C]\@0\f[] unused.
 It is thus repurposed to be a handy shortcut for the latest build.
 An alternative form of writing \f[C]\@0\f[] is \f[C]\@\@\f[].
+.PP
+Build numbers can also be specified in the form of \f[C]\@\-N\f[], in
+which case they select Nth to the latest build.
+For example, to specify range from previous build to one build before
+that one would write \f[C]\@\-1\ \@\-2\f[].
 .SS Resolving ambiguity
 .PP
 Some commands can take optional build number, which opens the door for
