@@ -278,3 +278,69 @@ TEST_CASE("Identical part in the middle", "[FileComparator]")
     CHECK(diff[6].type == DiffLineType::Added);
     CHECK(diff[7].type == DiffLineType::Identical);
 }
+
+TEST_CASE("Adding covered line is not a regress", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { };
+    const std::vector<std::string> fileB = { "a" };
+    const std::vector<int> covA = { };
+    const std::vector<int> covB = { 1 };
+
+    FileComparator comparator(fileA, covA, fileB, covB,
+                              CompareStrategy::Regress, *getSettings());
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK(comparator.areEqual());
+}
+
+TEST_CASE("Covering line is not a regress", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { "a", "b" };
+    const std::vector<std::string> fileB = { "a", "b" };
+    const std::vector<int> covA = { -1, 0 };
+    const std::vector<int> covB = { 1, 1 };
+
+    FileComparator comparator(fileA, covA, fileB, covB,
+                              CompareStrategy::Regress, *getSettings());
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK(comparator.areEqual());
+}
+
+TEST_CASE("Making not covered line not relevant is not a  regress",
+          "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { "a" };
+    const std::vector<std::string> fileB = { "a" };
+    const std::vector<int> covA = { 0 };
+    const std::vector<int> covB = { -1 };
+
+    FileComparator comparator(fileA, covA, fileB, covB,
+                              CompareStrategy::Regress, *getSettings());
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK(comparator.areEqual());
+}
+
+TEST_CASE("Making line not covered is a regress", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { "a" };
+    const std::vector<std::string> fileB = { "a" };
+    const std::vector<int> covA = { 1 };
+    const std::vector<int> covB = { 0 };
+
+    FileComparator comparator(fileA, covA, fileB, covB,
+                              CompareStrategy::Regress, *getSettings());
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK_FALSE(comparator.areEqual());
+}
+
+TEST_CASE("Adding not covered line is a regress", "[FileComparator]")
+{
+    const std::vector<std::string> fileA = { };
+    const std::vector<std::string> fileB = { "a" };
+    const std::vector<int> covA = { };
+    const std::vector<int> covB = { 0 };
+
+    FileComparator comparator(fileA, covA, fileB, covB,
+                              CompareStrategy::Regress, *getSettings());
+    const std::deque<DiffLine> &diff = comparator.getDiffSequence();
+    CHECK_FALSE(comparator.areEqual());
+}

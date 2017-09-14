@@ -48,6 +48,7 @@ enum class CompareStrategy
 {
     State,   //!< Compare lines by states (covered, not covered, not relevant).
     Hits,    //!< Compare different number of hits as different.
+    Regress, //!< Display new not covered and old previously covered lines.
 };
 
 /**
