@@ -15,6 +15,9 @@ Build numbers can also be specified in the form of `@-N`, in which case they
 select Nth to the latest build.  For example, to specify range from previous
 build to one build before that one would write `@-1 @-2`.
 
+Lastly, branch names can be used to specify latest build from that branch (e.g.,
+`@master`).
+
 Resolving ambiguity
 -------------------
 

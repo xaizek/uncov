@@ -21,6 +21,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/optional.hpp>
+#include <boost/variant.hpp>
 
 #include <cassert>
 #include <cstddef>
@@ -166,7 +167,7 @@ public:
      *
      * @returns @c *this.
      */
-    BuildRef & operator=(int data)
+    BuildRef & operator=(boost::variant<int, std::string> data)
     {
         this->data = std::move(data);
         return *this;
@@ -176,10 +177,21 @@ public:
      * @brief Retrieves build id.
      *
      * @returns The id.
+     *
+     * @throws std::runtime_error If build reference is incorrect.
      */
     operator int() const
     {
-        return data;
+        if (const int *i = boost::get<int>(&data)) {
+            return *i;
+        }
+
+        const std::string ref = boost::get<std::string>(data);
+        const std::vector<Build> builds = bh->getBuildsOn(ref);
+        if (builds.empty()) {
+            throw std::runtime_error("No builds for reference: " + ref);
+        }
+        return builds.back().getId();
     }
 
     /**
@@ -218,8 +230,8 @@ public:
     }
 
 private:
-    BuildHistory *const bh; //!< Build history.
-    int data;               //!< Build identifier.
+    BuildHistory *const bh;                //!< Build history.
+    boost::variant<int, std::string> data; //!< Build identifier.
 };
 
 }

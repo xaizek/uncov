@@ -57,17 +57,6 @@ Functions to use:
 
 The one which puts contents of child above contents of current one.
 
-## @branch notation to lookup the latest build on that branch. ##
-
-| ID   |  Status     |  Type      |
-|------|-------------|------------|
-| ERY  |  undecided  |  addition  |
-
-At least one use case when it's handy is when you're at `feature` branch
-and want to see how things changed relative to `master` branch:
-
-    uncov changed @master @@
-
 ## Maybe display commit information in `build`. ##
 
 | ID   |  Status     |  Type      |

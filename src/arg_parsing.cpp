@@ -17,6 +17,8 @@
 
 #include "arg_parsing.hpp"
 
+#include <boost/variant.hpp>
+
 #include <cstddef>
 
 #include <string>
@@ -41,10 +43,7 @@ detail::parseArg<BuildId>::parse(const std::vector<std::string> &args,
                     return { i, ParseResult::Accepted };
                 }
             } catch (const std::logic_error &) {
-                throw std::runtime_error {
-                    "Failed to parse subcommand argument #" +
-                    std::to_string(idx + 1) + ": " + arg
-                };
+                return { arg.substr(1), ParseResult::Accepted };
             }
         }
     }

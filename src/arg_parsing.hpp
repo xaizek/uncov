@@ -19,6 +19,7 @@
 #define UNCOV__ARG_PARSING_HPP__
 
 #include <boost/optional.hpp>
+#include <boost/variant/variant_fwd.hpp>
 
 #include <cstddef>
 
@@ -86,7 +87,7 @@ template <>
 struct parseArg<BuildId>
 {
     //! Type of result yielded by this parser.
-    using resultType = int;
+    using resultType = boost::variant<int, std::string>;
 
     /**
      * @brief Parses build id.

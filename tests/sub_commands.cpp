@@ -95,6 +95,42 @@ private:
 
 static SubCommand * getCmd(const std::string &name);
 
+TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK_THROWS_AS(getCmd("build")->exec(getSettings(), bh, repo, "build",
+                                          { "@branch" }),
+                    std::runtime_error);
+}
+
+TEST_CASE("Build information on a branch", "[subcommands][build-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("build")->exec(getSettings(), bh, repo, "build",
+                                { "@master" }) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(Id:                  #3                                      
+Coverage:            100.00%                                 
+C/R Lines:           2 / 2                                   
+Cov Change:          +50.0000%                               
+C/M/R Line Changes:  0 / -2 / -2                             
+Ref:                 master                                  
+Commit:              d1b12454989580b470be93e71cc60c2e32fd5889
+Time:                2017-01-09 15:17:51                     
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
 TEST_CASE("Builds generates full table", "[subcommands][builds-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
