@@ -95,6 +95,45 @@ private:
 
 static SubCommand * getCmd(const std::string &name);
 
+TEST_CASE("Builds generates full table", "[subcommands][builds-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("builds")->exec(getSettings(), bh, repo, "builds",
+                                 {}) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(BUILD  COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES     REF
+   #1    50.00%      2 / 4   -50.0000%    +2 /   +2 /   +4  master
+   #2    50.00%      2 / 4     0.0000%     0 /    0 /    0  master
+   #3   100.00%      2 / 2   +50.0000%     0 /   -2 /   -2  master
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("Builds generates limited table", "[subcommands][builds-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("builds")->exec(getSettings(), bh, repo, "builds",
+                                 { "2" }) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(BUILD  COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES     REF
+   #2    50.00%      2 / 4     0.0000%     0 /    0 /    0  master
+   #3   100.00%      2 / 2   +50.0000%     0 /   -2 /   -2  master
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
 TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
