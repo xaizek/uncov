@@ -517,6 +517,26 @@ TEST_CASE("Files fails on unknown dir path", "[subcommands][files-subcommand]")
     CHECK(cerrCapture.get() != std::string());
 }
 
+TEST_CASE("Files lists files and resolves negative build ids",
+          "[subcommands][files-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("files")->exec(getSettings(), bh, repo, "files",
+                                { "@-2", "@@" }) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(FILE            COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES
+test-file1.cpp   100.00%      0 / 0     0.0000%    -2 /    0 /   -2
+test-file2.cpp   100.00%      2 / 2  +100.0000%    +2 /   -2 /    0
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
 static SubCommand *
 getCmd(const std::string &name)
 {

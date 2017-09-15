@@ -505,12 +505,13 @@ private:
         if (auto parsed = tryParse<BuildId>(args)) {
             buildId = std::get<0>(*parsed);
         } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
-            prevBuild = bh->getBuild(std::get<0>(*parsed));
-            buildId = std::get<1>(*parsed);
+            int prevBuildId;
+            std::tie(prevBuildId, buildId) = *parsed;
+            prevBuild = getBuild(bh, prevBuildId);
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
             int prevBuildId;
             std::tie(prevBuildId, buildId, dirFilter) = *parsed;
-            prevBuild = bh->getBuild(prevBuildId);
+            prevBuild = getBuild(bh, prevBuildId);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildId, dirFilter) = *parsed;
         } else {
