@@ -20,8 +20,13 @@ td, th {
     color: rgb(22, 40, 51);
 }
 
-a.path {
+td a.branch, a.path {
     color: #111;
+    text-decoration: none;
+}
+
+.barelem a.branch {
+    color: #aaa;
     text-decoration: none;
 }
 

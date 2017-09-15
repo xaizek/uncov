@@ -103,6 +103,8 @@ main(int argc, char *argv[]) try
     app.listen(ip, port);
     app.vMapUrl(vhost, "^/$", Maptarget("builds"));
     app.vMapUrl(vhost, "^/builds/?$", Maptarget("builds"));
+    setArgs(app.vMapUrl(vhost, "^/branches/(.+)/?$", Maptarget("builds")),
+            {{ "branch", "$1" }});
     setArgs(app.vMapUrl(vhost, "^/builds/([0-9]+)/?$", Maptarget("build")),
             {{ "buildId", "$1" }});
     setArgs(app.vMapUrl(vhost, "^/builds/([0-9]+)/(.+)/$",

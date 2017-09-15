@@ -29,7 +29,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 </%pre>
 
 <%cpp>
-    static_cast<void>(request);
+    const std::string branch = request.getArg("branch");
 </%cpp>
 
 <html>
@@ -42,10 +42,24 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 <body>
     <div class="sidenav">
-        <a href="/builds">All Builds</a>
+        <a href="/builds">All builds</a>
+%       if (!branch.empty()) {
+            <a class="branch" href="/branches/<$$ branch $>">Current branch</a>
+%       }
     </div>
 
     <div class="rightbar">
+
+    <div class="bargroup">
+        <span class="barelem">
+%       if (branch.empty()) {
+            List of all builds
+%       } else {
+            List of builds on a ref
+%       }
+        </span>
+    </div>
+
     <%include>web/footer.ecpp</%include>
     </div>
 
@@ -62,7 +76,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <th>Ref</th>
     </tr>
 
-%   std::vector<Build> builds = globalBH->getBuilds();
+%   std::vector<Build> builds = branch.empty()
+%                             ? globalBH->getBuilds()
+%                             : globalBH->getBuildsOn(branch);
 %   namespace adaptors = boost::adaptors;
 %   for (const Build &build : adaptors::reverse(builds)) {
         <tr onclick="document.location = '/builds/<$ build.getId() $>'">
@@ -77,7 +93,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
         <td>
             <div class="tooltip">
                 <span class="tooltipobj">
-                    <$$ descr[5] $>
+                    <a class="branch" href="/branches/<$$ descr[5] $>">
+                        <$$ descr[5] $>
+                    </a>
                 </span>
                 <span class="tooltiptext">
                     <$$ descr[6] $>

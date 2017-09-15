@@ -72,8 +72,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                                                      DoSpacing{});
 
     <div class="sidenav">
-    <a href="/builds">All Builds</a>
-    <a href="/builds/<$ build->getId() $>">Current Build</a>
+    <a href="/builds">All builds</a>
+    <a class="branch" href="/branches/<$$ buildInfo[5] $>">Current branch</a>
+    <a href="/builds/<$ build->getId() $>">Current build</a>
     </div>
 
     <div class="rightbar">
@@ -86,7 +87,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
         <span class="barelem">
             <div class="tooltip">
                 <span class="tooltipobj">
-                    <$$ buildInfo[5] $>
+                    <a class="branch" href="/branches/<$$ buildInfo[5] $>">
+                        <$$ buildInfo[5] $>
+                    </a>
                 </span>
                 <span class="tooltiptext">
                     <$$ buildInfo[6] $>
