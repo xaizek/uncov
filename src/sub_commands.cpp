@@ -141,9 +141,89 @@ private:
     std::string path;       //!< Stored path.
 };
 
+/**
+ * @brief Helper class that performs build resolution.
+ */
+class BuildRef
+{
+public:
+    /**
+     * @brief Constructs with reference to build history.
+     *
+     * The default is latest build.
+     *
+     * @param bh Build history.
+     */
+    explicit BuildRef(BuildHistory *bh) : bh(bh), data(LatestBuildMarker)
+    {
+    }
+
+public:
+    /**
+     * @brief Assigns build identifier.
+     *
+     * @param data The identifier.
+     *
+     * @returns @c *this.
+     */
+    BuildRef & operator=(int data)
+    {
+        this->data = std::move(data);
+        return *this;
+    }
+
+    /**
+     * @brief Retrieves build id.
+     *
+     * @returns The id.
+     */
+    operator int() const
+    {
+        return data;
+    }
+
+    /**
+     * @brief Retrieves build object.
+     *
+     * @returns The build.
+     *
+     * @throws std::runtime_error If there are no builds or build id is wrong.
+     */
+    operator Build()
+    {
+        int buildId = *this;
+        if (buildId == LatestBuildMarker) {
+            buildId = bh->getLastBuildId();
+            if (buildId == 0) {
+                throw std::runtime_error("No last build");
+            }
+        } else if (buildId < 0) {
+            const int offset = -buildId;
+            buildId = bh->getNToLastBuildId(offset);
+            if (buildId == 0) {
+                throw std::runtime_error {
+                    "Can't find Nth previous build where N = " +
+                    std::to_string(offset)
+                };
+            }
+        }
+
+        boost::optional<Build> build = bh->getBuild(buildId);
+        if (!build) {
+            throw std::runtime_error {
+                "Can't find build #" + std::to_string(buildId)
+            };
+        }
+        return *build;
+    }
+
+private:
+    BuildHistory *const bh; //!< Build history.
+    int data;               //!< Build identifier.
+};
+
 }
 
-static Build getBuild(BuildHistory *bh, int buildId);
 static File & getFile(const Build &build, const std::string &path);
 static void printFile(BuildHistory *bh, const Repository *repo,
                       const Build &build, const File &file,
@@ -167,9 +247,9 @@ private:
     execImpl(const std::string &/*alias*/,
              const std::vector<std::string> &args) override
     {
-        int buildId;
+        BuildRef buildRef(bh);
         if (auto parsed = tryParse<BuildId>(args)) {
-            std::tie(buildId) = *parsed;
+            std::tie(buildRef) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
@@ -179,7 +259,7 @@ private:
             { "-Name", "-Value" }, getTerminalSize().first, true
         };
 
-        Build build = getBuild(bh, buildId);
+        Build build = buildRef;
 
         const std::vector<std::string> descr = describeBuild(bh, build,
                                                              !DoExtraAlign{},
@@ -277,42 +357,42 @@ private:
     {
         bool findPrev = false;
         bool buildsDiff = false;
-        int oldBuildId, newBuildId;
+        BuildRef oldBuildRef(bh), newBuildRef(bh);
         InRepoPath path(repo);
         if (args.empty()) {
             findPrev = true;
             buildsDiff = true;
-            newBuildId = LatestBuildMarker;
+            newBuildRef = LatestBuildMarker;
         } else if (auto parsed = tryParse<BuildId>(args)) {
             buildsDiff = true;
-            newBuildId = LatestBuildMarker;
-            std::tie(oldBuildId) = *parsed;
+            newBuildRef = LatestBuildMarker;
+            std::tie(oldBuildRef) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
             buildsDiff = true;
-            std::tie(oldBuildId, newBuildId) = *parsed;
+            std::tie(oldBuildRef, newBuildRef) = *parsed;
         } else if (auto parsed = tryParse<FilePath>(args)) {
             findPrev = true;
-            newBuildId = LatestBuildMarker;
+            newBuildRef = LatestBuildMarker;
             std::tie(path) = *parsed;
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
-            std::tie(oldBuildId, newBuildId, path) = *parsed;
+            std::tie(oldBuildRef, newBuildRef, path) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
-        Build newBuild = getBuild(bh, newBuildId);
+        Build newBuild = newBuildRef;
 
         if (findPrev) {
-            oldBuildId = bh->getPreviousBuildId(newBuild.getId());
-            if (oldBuildId == 0) {
+            oldBuildRef = bh->getPreviousBuildId(newBuild.getId());
+            if (oldBuildRef == 0) {
                 std::cerr << "Failed to obtain previous build of #"
                           << newBuild.getId() << '\n';
                 return error();
             }
         }
 
-        Build oldBuild = getBuild(bh, oldBuildId);
+        Build oldBuild = oldBuildRef;
 
         if (!buildsDiff) {
             PathCategory oldType = classifyPath(oldBuild, path);
@@ -499,27 +579,27 @@ private:
     execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
-        int buildId;
+        BuildRef buildRef(bh);
         InRepoPath dirFilter(repo);
         boost::optional<Build> prevBuild;
         if (auto parsed = tryParse<BuildId>(args)) {
-            buildId = std::get<0>(*parsed);
+            buildRef = std::get<0>(*parsed);
         } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
-            int prevBuildId;
-            std::tie(prevBuildId, buildId) = *parsed;
-            prevBuild = getBuild(bh, prevBuildId);
+            BuildRef prevBuildRef(bh);
+            std::tie(prevBuildRef, buildRef) = *parsed;
+            prevBuild = static_cast<Build>(prevBuildRef);
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
-            int prevBuildId;
-            std::tie(prevBuildId, buildId, dirFilter) = *parsed;
-            prevBuild = getBuild(bh, prevBuildId);
+            BuildRef prevBuildRef(bh);
+            std::tie(prevBuildRef, buildRef, dirFilter) = *parsed;
+            prevBuild = static_cast<Build>(prevBuildRef);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
-            std::tie(buildId, dirFilter) = *parsed;
+            std::tie(buildRef, dirFilter) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
-        Build build = getBuild(bh, buildId);
+        Build build = buildRef;
 
         if (!dirFilter.empty()) {
             if (alias == "dirs") {
@@ -576,16 +656,16 @@ private:
     execImpl(const std::string &/*alias*/,
              const std::vector<std::string> &args) override
     {
-        int buildId;
+        BuildRef buildRef(bh);
         InRepoPath filePath(repo);
         if (auto parsed = tryParse<BuildId, FilePath>(args)) {
-            std::tie(buildId, filePath) = *parsed;
+            std::tie(buildRef, filePath) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
-        Build build = getBuild(bh, buildId);
+        Build build = buildRef;
         File &file = getFile(build, filePath);
 
         std::cout << build.getRef() << '\n';
@@ -772,29 +852,28 @@ private:
     execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
-        int buildId;
+        BuildRef buildRef(bh);
         InRepoPath path(repo);
         bool printWholeBuild = false;
         if (auto parsed = tryParse<BuildId>(args)) {
-            buildId = std::get<0>(*parsed);
+            buildRef = std::get<0>(*parsed);
             printWholeBuild = true;
         } else if (auto parsed = tryParse<FilePath>(args)) {
-            buildId = 0;
             path = std::get<0>(*parsed);
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
-            std::tie(buildId, path) = *parsed;
+            std::tie(buildRef, path) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
 
-        Build build = getBuild(bh, buildId);
+        Build build = buildRef;
 
         PathCategory fileType = path.empty() ? PathCategory::Directory
                                              : classifyPath(build, path);
         if (fileType == PathCategory::None) {
             std::cerr << "No such file " << path.str() << " in build #"
-                      << buildId << "\n";
+                      << buildRef << "\n";
             return error();
         }
 
@@ -822,44 +901,6 @@ private:
         }
     }
 };
-
-/**
- * @brief Retrieves build by its id.
- *
- * @param bh      Build history.
- * @param buildId Build id.
- *
- * @returns The build.
- *
- * @throws std::runtime_error If there are no builds or build id is wrong.
- */
-static Build
-getBuild(BuildHistory *bh, int buildId)
-{
-    if (buildId == LatestBuildMarker) {
-        buildId = bh->getLastBuildId();
-        if (buildId == 0) {
-            throw std::runtime_error("No last build");
-        }
-    } else if (buildId < 0) {
-        const int offset = -buildId;
-        buildId = bh->getNToLastBuildId(offset);
-        if (buildId == 0) {
-            throw std::runtime_error {
-                "Can't find Nth previous build where N = " +
-                std::to_string(offset)
-            };
-        }
-    }
-
-    boost::optional<Build> build = bh->getBuild(buildId);
-    if (!build) {
-        throw std::runtime_error {
-            "Can't find build #" + std::to_string(buildId)
-        };
-    }
-    return *build;
-}
 
 /**
  * @brief Retrieves file from a build.
