@@ -149,8 +149,15 @@ $(bin) $(webbin): | $(out_dirs)
 $(bin): $(bin_objects)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
 
+ifndef NO-WEB
 $(webbin): $(web_objects) | $(web_temps)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) -ltntnet -lcxxtools
+else
+$(webbin):
+	@echo '#!/bin/bash' >> $@
+	@echo 'echo "Uncov-web was disabled during build"' >> $@
+	@chmod +x $@
+endif
 
 check: $(target) $(out_dir)/tests/tests reset-coverage
 	@$(out_dir)/tests/tests

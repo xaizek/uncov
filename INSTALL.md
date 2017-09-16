@@ -11,6 +11,12 @@ custom `DESTDIR` when it's used.
 
 By default debug version is build right in the source tree.
 
+#### Configuration ####
+
+**`NO-WEB=y`**
+
+Disables building Web-UI.
+
 #### Targets ####
 
 **`debug`**

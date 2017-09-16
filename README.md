@@ -1,6 +1,6 @@
 **uncov**, _v0.1_, _2016 – 2017_
 
-_This file last updated on 15 September, 2017_
+_This file last updated on 16 September, 2017_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -78,7 +78,7 @@ Expected to work in Unix-like environments.
 * [libsqlite3][sqlite].
 * libsource-highlight from [GNU Source-highlight][srchilite].
 * [zlib][zlib].
-* [tntnet][tntnet] (for Web-UI, example below doesn't need it).
+* (optional) [tntnet][tntnet] for Web-UI.
 * (optional) [pandoc][pandoc] for regenerating man page.
 * (optional) [python][python] for collecting coverage for C and C++ (would be
   nice to get rid of this weird dependency, probably by rewriting the tool).
