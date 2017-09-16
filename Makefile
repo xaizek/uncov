@@ -96,6 +96,8 @@ web_objects := $(web_sources:%.cpp=$(out_dir)/%.o)
 web_objects += $(web_temps:%.cpp=%.o)
 web_objects += $(filter-out %/main.o,$(bin_objects))
 web_depends := $(web_objects:%.o=%.d)
+web_depends += $(patsubst %.ecpp,$(out_dir)/%.ecpp.d, \
+                          $(call rwildcard, web/, *.ecpp))
 
 out_dirs := $(sort $(dir $(bin_objects) $(web_objects) $(tests_objects)))
 
@@ -179,6 +181,7 @@ $(out_dir)/%.o: %.cpp config.h | $(out_dirs)
 
 $(out_dir)/%.cpp: %.ecpp | $(out_dirs)
 	ecppc -o $@ $<
+	ecppc -M -o $(out_dir)/$*.ecpp.d -n $* $<
 
 $(out_dir)/%.cpp: %.css | $(out_dirs)
 	ecppc -b -m text/css -o $@ $<
