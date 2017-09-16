@@ -96,6 +96,8 @@ web_objects := $(web_sources:%.cpp=$(out_dir)/%.o)
 web_objects += $(web_temps:%.cpp=%.o)
 web_objects += $(filter-out %/main.o,$(bin_objects))
 web_depends := $(web_objects:%.o=%.d)
+web_depends += $(patsubst %.ecpp,$(out_dir)/%.ecpp.d, \
+                          $(call rwildcard, web/, *.ecpp))
 
 out_dirs := $(sort $(dir $(bin_objects) $(web_objects) $(tests_objects)))
 
@@ -147,8 +149,15 @@ $(bin) $(webbin): | $(out_dirs)
 $(bin): $(bin_objects)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-$(webbin): $(web_objects)
+ifndef NO-WEB
+$(webbin): $(web_objects) | $(web_temps)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) -ltntnet -lcxxtools
+else
+$(webbin):
+	@echo '#!/bin/bash' >> $@
+	@echo 'echo "Uncov-web was disabled during build"' >> $@
+	@chmod +x $@
+endif
 
 check: $(target) $(out_dir)/tests/tests reset-coverage
 	@$(out_dir)/tests/tests
@@ -179,6 +188,7 @@ $(out_dir)/%.o: %.cpp config.h | $(out_dirs)
 
 $(out_dir)/%.cpp: %.ecpp | $(out_dirs)
 	ecppc -o $@ $<
+	ecppc -M -o $(out_dir)/$*.ecpp.d -n $* $<
 
 $(out_dir)/%.cpp: %.css | $(out_dirs)
 	ecppc -b -m text/css -o $@ $<
@@ -193,6 +203,7 @@ clean:
 	-$(RM) -r coverage/ debug/ release/
 	-$(RM) $(bin_objects) $(tests_objects) $(web_objects) \
 	       $(bin_depends) $(tests_depends) $(web_depends) \
+	       $(web_temps) \
 	       $(bin) $(webbin) $(out_dir)/tests/tests
 
 include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))
