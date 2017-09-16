@@ -193,6 +193,7 @@ clean:
 	-$(RM) -r coverage/ debug/ release/
 	-$(RM) $(bin_objects) $(tests_objects) $(web_objects) \
 	       $(bin_depends) $(tests_depends) $(web_depends) \
+	       $(web_temps) \
 	       $(bin) $(webbin) $(out_dir)/tests/tests
 
 include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))
