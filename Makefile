@@ -147,7 +147,7 @@ $(bin) $(webbin): | $(out_dirs)
 $(bin): $(bin_objects)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-$(webbin): $(web_objects)
+$(webbin): $(web_objects) | $(web_temps)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) -ltntnet -lcxxtools
 
 check: $(target) $(out_dir)/tests/tests reset-coverage
