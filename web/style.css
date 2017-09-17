@@ -80,6 +80,11 @@ span.covered {
     color: #F4F5F0;
 }
 
+span.silentmissed, span.silentcovered {
+    color: #555;
+    font-weight: bold;
+}
+
 span.linesbad, span.covbad {
     font-weight: bold;
     color: #d33;
