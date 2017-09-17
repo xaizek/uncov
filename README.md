@@ -147,7 +147,7 @@ Annotated source code in Web-UI:
 
 ### Web-UI Demo ###
 
-Deployed Web-interface can be seen [here](http://ci.vifm.info:8000/).
+Deployed Web-interface can be seen [here](http://cov.vifm.info/).
 
 ## Credits ##
 
