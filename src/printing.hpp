@@ -167,6 +167,9 @@ using LineAdded = PrintWrapper<std::string, struct LineAddedTag>;
 //! Strong typing of string representing removed line.
 using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
 
+//! Strong typing of string representing a note.
+using NoteMsg = PrintWrapper<std::string, struct NoteMsgTag>;
+
 //! Strong typing of int representing number of hits.
 using HitsCount = PrintWrapper<int, struct HitsCountTag>;
 

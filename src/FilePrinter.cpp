@@ -264,7 +264,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
 
     for (int line : lines) {
         if (line < 0) {
-            os << " <<< " << -line << " lines folded >>>\n";
+            os << NoteMsg{std::to_string(-line) + " lines folded"} << '\n';
             lineNo += -line;
         } else {
             std::string fileLine;
@@ -343,7 +343,7 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
                    << LineRemoved{getLine(fss)};
                 break;
             case DiffLineType::Note:
-                os << " <<< " + line.text + " >>>";
+                os << NoteMsg{line.text};
                 break;
             case DiffLineType::Common:
                 os << oldCovCol.active(line.oldLine) << ':'

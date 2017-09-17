@@ -55,6 +55,7 @@ const std::unordered_map<std::string, decor::Decoration> highlightGroups = {
     { "silentcovered", decor::green_fg + decor::bold },
     { "added",         decor::green_fg + decor::bold },
     { "removed",       decor::red_fg + decor::bold },
+    { "note",          decor::none },
     { "header",        decor::white_fg + decor::black_bg + decor::bold +
                        decor::inv },
     { "error",         decor::red_bg + decor::inv + decor::bold },
@@ -297,6 +298,12 @@ std::ostream &
 operator<<(std::ostream &os, const LineRemoved &line)
 {
     return os << (Highlight("removed") << '-') << line.data;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const NoteMsg &line)
+{
+    return os << (Highlight("note") << " <<< " << line.data << " >>> ");
 }
 
 std::ostream &
