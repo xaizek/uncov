@@ -64,7 +64,8 @@ span.lineno {
 }
 
 span.hitcount {
-    padding-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
 span.missed {
