@@ -31,6 +31,10 @@ td a.branch, a.path {
 }
 
 a.path:hover {
+    margin-left: -4px;
+    margin-right: -4px;
+    border-left: 4px solid #E1E2DD;
+    border-right: 4px solid #E1E2DD;
     background-color: #E1E2DD;
 }
 
