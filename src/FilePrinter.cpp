@@ -159,7 +159,7 @@ private:
      */
     void printBlank(std::ostream &os) const
     {
-        os << std::setw(hitsNumWidth) << "" << ' ';
+        os << std::setw(hitsNumWidth) << HitsCount{-1};
     }
 
     /**
