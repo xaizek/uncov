@@ -73,7 +73,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
     <div class="sidenav">
     <a href="/builds">All builds</a>
-    <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
+    <a href="/branches/<$ buildInfo[5] $>">Current branch</a>
     <a href="/builds/<$ build->getId() $>">Current build</a>
     </div>
 
