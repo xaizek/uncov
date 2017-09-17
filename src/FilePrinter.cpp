@@ -347,13 +347,13 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
                 break;
             case DiffLineType::Common:
                 os << oldCovCol.active(line.oldLine) << ':'
-                   << newCovCol.active(line.newLine) << ": "
-                   << getLine(fss);
+                   << newCovCol.active(line.newLine) << ':'
+                   << LineRetained{getLine(fss)};
                 break;
             case DiffLineType::Identical:
                 os << oldCovCol.inactive(line.oldLine) << ':'
-                   << newCovCol.inactive(line.newLine) << ": "
-                   << getLine(fss);
+                   << newCovCol.inactive(line.newLine) << ':'
+                   << LineRetained{getLine(fss)};
                 break;
         }
         os << '\n';
