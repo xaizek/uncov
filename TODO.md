@@ -132,12 +132,6 @@ Or should this be handled by coverage providers?
 
 It's slow for huge diffs/files (quite understandable).
 
-## More code documentation comments. ##
-
-| ID   |  Status       |  Type  |
-|------|---------------|--------|
-| ZRY  |  in progress  |  task  |
-
 ## Language detection for file highlight relies on file name only. ##
 
 | ID   |  Status     |  Type   |
