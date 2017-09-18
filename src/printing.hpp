@@ -161,11 +161,17 @@ using TableHeader = PrintWrapper<std::string, struct TableHeaderTag>;
 //! Strong typing of int representing line number.
 using LineNo = PrintWrapper<std::size_t, struct LineNoTag>;
 
-//! Strong typing of string representing added line.
+//! Strong typing of string representing common line in diff.
+using LineRetained = PrintWrapper<std::string, struct LineRetainedTag>;
+
+//! Strong typing of string representing added line in diff.
 using LineAdded = PrintWrapper<std::string, struct LineAddedTag>;
 
-//! Strong typing of string representing removed line.
+//! Strong typing of string representing removed line in diff.
 using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
+
+//! Strong typing of string representing a note.
+using NoteMsg = PrintWrapper<std::string, struct NoteMsgTag>;
 
 //! Strong typing of int representing number of hits.
 using HitsCount = PrintWrapper<int, struct HitsCountTag>;

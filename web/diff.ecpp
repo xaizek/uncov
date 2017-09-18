@@ -24,6 +24,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
     #include <tnt/httperror.h>
 
+    #include "utils/Text.hpp"
     #include "BuildHistory.hpp"
     #include "FilePrinter.hpp"
     #include "Repository.hpp"
@@ -57,13 +58,16 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 <html>
 
 <head>
-    <title><$ filePath $> of build #<$ buildId $> | uncov</title>
+    <title>Diff of <$ filePath $> in build #<$ buildId $> | uncov</title>
     <%include>web/header.ecpp</%include>
 </head>
 
 <body>
 %   if (boost::optional<Build> build = globalBH->getBuild(buildId)) {
+%   if (boost::optional<Build> prevBuild =
+%       globalBH->getBuild(globalBH->getPreviousBuildId(buildId))) {
 %   if (boost::optional<File &> file = build->getFile(filePath)) {
+%   boost::optional<File &> prevFile = prevBuild->getFile(filePath);
 
 %   std::vector<std::string> fileInfo = describeFile(globalBH, *build, *file,
 %                                                    DoSpacing{});
@@ -73,11 +77,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
     <div class="sidenav">
     <a href="/builds">All builds</a>
-    <a href="/branches/<$ buildInfo[5] $>">Current branch</a>
+    <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
     <a href="/builds/<$ build->getId() $>">Current build</a>
     <br/>
     <a class="action" href="/changes/<$ buildId $>">Changed files</a>
-    <a class="action" href="/changes/<$ buildId $>/<$ filePath $>">Changes</a>
     </div>
 
     <div class="rightbar">
@@ -112,6 +115,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <%include>web/footer.ecpp</%include>
     </div>
 
+    <h3 class="title">
+    Changes of a file between two builds
+    </h3>
+
     <h4>
     Path: <a class="path" href="/builds/<$ build->getId() $>">&lt;root&gt;</a>
 %   std::string pathPrefix;
@@ -123,23 +130,36 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %   }
     </h4>
 
-%// TODO: add links to file lines (currently we have only anchors)
-%   const std::string &path = file->getPath();
-%   const std::string &ref = build->getRef();
+%   const std::vector<int> &oldCov = prevFile ? prevFile->getCoverage()
+%                                             : std::vector<int>{};
+%   const std::vector<int> &newCov = file ? file->getCoverage()
+%                                         : std::vector<int>{};
+
+%   Text oldVersion(prevFile
+%                 ? globalRepo->readFile(prevBuild->getRef(), filePath)
+%                 : std::string());
+%   Text newVersion(file ? globalRepo->readFile(build->getRef(), filePath)
+%                        : std::string());
+
+%   FileComparator comparator(oldVersion.asLines(), oldCov,
+%                             newVersion.asLines(), newCov,
+%                             CompareStrategy::State, WebSettings());
+
 <pre>
-%   std::stringstream oss;
-%   printer.print(oss, path, globalRepo->readFile(ref, path),
-%                 file->getCoverage());
-%   int line = 0;
-%   for (std::string s; std::getline(oss, s); ) {
-<a name="l<$++line$>"></a><$$ s $>
-%   }
+%   printer.printDiff(reply.out(), filePath,
+%                     oldVersion.asStream(), oldCov,
+%                     newVersion.asStream(), newCov,
+%                     comparator);
 </pre>
 
 %   } else {
 %   log_warn("Can't find requested file " + filePath + " in build #"
 %          + std::to_string(buildId));
     <h1>No such file</h1>
+%   }
+%   } else {
+%   log_warn("Can't build preceding build #" + std::to_string(buildId));
+    <h1>No previous build</h1>
 %   }
 %   } else {
 %   log_warn("Can't find requested build #" + std::to_string(buildId));

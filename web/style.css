@@ -31,6 +31,10 @@ td a.branch, a.path {
 }
 
 a.path:hover {
+    margin-left: -4px;
+    margin-right: -4px;
+    border-left: 4px solid #E1E2DD;
+    border-right: 4px solid #E1E2DD;
     background-color: #E1E2DD;
 }
 
@@ -64,7 +68,8 @@ span.lineno {
 }
 
 span.hitcount {
-    padding-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
 span.missed {
@@ -77,6 +82,11 @@ span.covered {
     background-color: #50b050;
     font-weight: bold;
     color: #F4F5F0;
+}
+
+span.silentmissed, span.silentcovered {
+    color: #555;
+    font-weight: bold;
 }
 
 span.linesbad, span.covbad {
@@ -112,6 +122,41 @@ span.revision {
     font-family: monospace;
 }
 
+span.retained {
+    border: 1px solid transparent;
+}
+
+span.added {
+    border: 1px solid #50d050;
+    background-color: #50d050;
+}
+
+span.removed {
+    border: 1px solid #f06060;
+    background-color: #f06060;
+}
+
+span.retained, span.added, span.removed {
+    color: #fff;
+    margin-right: 2px;
+}
+
+span.note {
+    border-top: 1px solid #666;
+    border-bottom: 1px solid #666;
+    display: block;
+    font-weight: bold;
+    padding-top: 1px;
+    margin-top: 10px;
+    margin-bottom: -6px;
+    text-align: center;
+}
+
+.title {
+    text-align: center;
+    padding-bottom: 2px;
+}
+
 .sidenav {
     height: 100%;
     width: 13%;
@@ -141,6 +186,11 @@ span.revision {
     color: #aaa;
     display: block;
     outline: none;
+}
+
+.sidenav a.action {
+    padding: 8px 8px 8px 1.5vw;
+    font-size: 18px;
 }
 
 .rightbar .bargroup {

@@ -38,14 +38,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
             return 0;
         }
     }();
-    const std::string dirPath = request.getArg("dirPath");
 </%cpp>
 
 <html>
 
 <head>
     <title>
-    <$ dirPath.empty() ? "/" : dirPath $> of build #<$ buildId $> | uncov
+    Changes in build #<$ buildId $> | uncov
     </title>
 
     <%include>web/header.ecpp</%include>
@@ -66,7 +65,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
     <div class="sidenav">
         <a href="/builds">All builds</a>
-        <a href="/branches/<$ buildInfo[5] $>">Current branch</a>
+        <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
         <a href="/builds/<$ buildId $>">Current build</a>
         <br/>
         <a class="action" href="/changes/<$ buildId $>">Changed files</a>
@@ -95,39 +94,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <%include>web/footer.ecpp</%include>
     </div>
 
-    <h4>
-    Path: <a class="path" href="/builds/<$ buildId $>">&lt;root&gt;</a>
-%   std::string prefix;
-%   for (const std::string &entry : split(dirPath, '/')) {
-%       prefix += '/' + entry;
-        / <a class="path"
-             href="/builds/<$ buildId $><$ prefix $>/"><$ entry $></a>
-%   }
-    </h4>
-
-    <table>
-    <tr>
-    <th>Directory</th>
-    <th>Coverage</th>
-    <th>C/R Lines</th>
-    <th>Cov Change</th>
-    <th>C/U/R Line Changes</th>
-    </tr>
-
-%   for (const std::vector<std::string> &row :
-%        describeBuildDirs(globalBH, *build, dirPath)) {
-%       if (row.front() == dirPath + '/') {
-        <tr>
-%       } else {
-        <tr onclick="document.location = '/builds/<$ buildId $>/<$ row.front() $>'">
-%       }
-%       for (const std::string &cell : row) {
-            <td><$$ cell $></td>
-%       }
-        </tr>
-%   }
-
-    </table>
+    <h3 class="title">
+    List of files with changed coverage
+    </h3>
 
     <table>
     <tr>
@@ -139,14 +108,16 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     </tr>
 
 %   for (const std::vector<std::string> &row :
-%        describeBuildFiles(globalBH, *build, dirPath, !ListChangedOnly{},
-%                           ListDirectOnly{})) {
-        <tr onclick="document.location = '/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>'">
+%        describeBuildFiles(globalBH, *build, std::string(), ListChangedOnly{},
+%                           !ListDirectOnly{})) {
+        <tr onclick="document.location = '/changes/<$ buildId $>/<$ row.front() $>'">
 %       for (const std::string &cell : row) {
             <td><$$ cell $></td>
 %       }
         </tr>
 %   }
+
+    </table>
 
 %   } else {
 %   log_warn("Can't find requested build with ID: " + std::to_string(buildId));

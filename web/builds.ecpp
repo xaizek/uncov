@@ -44,7 +44,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <div class="sidenav">
         <a href="/builds">All builds</a>
 %       if (!branch.empty()) {
-            <a class="branch" href="/branches/<$$ branch $>">Current branch</a>
+            <a class="branch" href="/branches/<$ branch $>">Current branch</a>
 %       }
     </div>
 
@@ -93,7 +93,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
         <td>
             <div class="tooltip">
                 <span class="tooltipobj">
-                    <a class="branch" href="/branches/<$$ descr[5] $>">
+                    <a class="branch" href="/branches/<$ descr[5] $>">
                         <$$ descr[5] $>
                     </a>
                 </span>

@@ -77,10 +77,8 @@ public:
      * @brief Constructs an object performing some highlighting preparations.
      *
      * @param settings FilePrinter settings.
-     * @param allowColors Highlight source file.
      */
-    explicit FilePrinter(const FilePrinterSettings &settings,
-                         bool allowColors = true);
+    explicit FilePrinter(const FilePrinterSettings &settings);
 
 public:
     /**
