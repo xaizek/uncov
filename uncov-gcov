@@ -97,7 +97,7 @@ def create_args(params):
                         help='Follow symlinks (default off)')
     parser.add_argument('-c', '--capture-worktree', action='store_true',
                         default=False,
-                        help='Make an dangling commit if working directory is '
+                        help='Make a dangling commit if working directory is '
                              'dirty')
     parser.add_argument('--ref-name', default=None, metavar='REF',
                         help='force custom ref name')

@@ -74,12 +74,6 @@ maybe even when branch ref matches build commit.
 
 Maybe should also indicate "temporary" commits somehow.
 
-## Write manual pages for uncov-gcov and uncov-web. ##
-
-| ID   |  Status   |  Type  |
-|------|-----------|--------|
-| LSY  |  planned  |  task  |
-
 ## Source-highlight hangs if passed in std::istream is at EOF? ##
 
 | ID   |  Status     |  Type   |
@@ -137,12 +131,6 @@ Or should this be handled by coverage providers?
 | YRY  |  planned  |  improvement  |
 
 It's slow for huge diffs/files (quite understandable).
-
-## More code documentation comments. ##
-
-| ID   |  Status       |  Type  |
-|------|---------------|--------|
-| ZRY  |  in progress  |  task  |
 
 ## Language detection for file highlight relies on file name only. ##
 
