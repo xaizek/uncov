@@ -34,7 +34,7 @@ Builds debug version with undefined and address sanitizers enabled in
 
 **`man`**
 
-Rebuilds manual page in `<out>/docs/uncov.1`, requires `pandoc`.
+Rebuilds manual pages in `<out>/docs/`, requires `pandoc`.
 
 **`doxygen`**
 

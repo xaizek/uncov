@@ -74,12 +74,6 @@ maybe even when branch ref matches build commit.
 
 Maybe should also indicate "temporary" commits somehow.
 
-## Write manual pages for uncov-gcov and uncov-web. ##
-
-| ID   |  Status   |  Type  |
-|------|-----------|--------|
-| LSY  |  planned  |  task  |
-
 ## Source-highlight hangs if passed in std::istream is at EOF? ##
 
 | ID   |  Status     |  Type   |

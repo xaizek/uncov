@@ -121,8 +121,8 @@ self-coverage: UNCOV_PREFIX := $(out_dir)/
 self-coverage: GCOV_PREFIX := ./
 self-coverage: coverage
 
-man: docs/uncov.1
-# the next target doesn't depend on $(wildcard docs/*.md) to make pandoc
+man: docs/uncov.1 docs/uncov-gcov.1 docs/uncov-web.1
+# the following targets don't depend on $(wildcard docs/*/*.md) to make pandoc
 # optional
 docs/uncov.1: force | $(out_dir)/docs/uncov
 	pandoc -V title=uncov \
@@ -132,6 +132,22 @@ docs/uncov.1: force | $(out_dir)/docs/uncov
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov/*.md))
+docs/uncov-gcov.1: force | $(out_dir)/docs/uncov-gcov
+	pandoc -V title=uncov-gcov \
+	       -V section=1 \
+	       -V app=uncov-gcov \
+	       -V footer="uncov v0.1" \
+	       -V date="$$(date +'%B %d, %Y')" \
+	       -V author='xaizek <xaizek@posteo.net>' \
+	       -s -o $@ $(sort $(wildcard docs/uncov-gcov/*.md))
+docs/uncov-web.1: force | $(out_dir)/docs/uncov-web
+	pandoc -V title=uncov-web \
+	       -V section=1 \
+	       -V app=uncov-web \
+	       -V footer="uncov v0.1" \
+	       -V date="$$(date +'%B %d, %Y')" \
+	       -V author='xaizek <xaizek@posteo.net>' \
+	       -s -o $@ $(sort $(wildcard docs/uncov-web/*.md))
 
 doxygen:
 	doxygen doxygen/config
@@ -166,11 +182,16 @@ install: release
 	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) $(webbin) uncov-gcov
 	$(INSTALL) -t $(DESTDIR)/usr/share/uncov/srchilight/ data/srchilight/*
 	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(INSTALL) -m 644 docs/uncov-gcov.1 \
+	              $(DESTDIR)/usr/share/man/man1/uncov-gcov.1
+	$(INSTALL) -m 644 docs/uncov-web.1 $(DESTDIR)/usr/share/man/man1/uncov-web.1
 
 uninstall:
 	$(RM) $(DESTDIR)/usr/bin/$(basename $(bin)) \
 	      $(DESTDIR)/usr/bin/$(basename $(webbin)) \
-	      $(DESTDIR)/usr/bin/uncov-gcov $(DESTDIR)/usr/share/man/man1/uncov.1
+	      $(DESTDIR)/usr/bin/uncov-gcov $(DESTDIR)/usr/share/man/man1/uncov.1 \
+	      $(DESTDIR)/usr/share/man/man1/uncov-gcov.1 \
+	      $(DESTDIR)/usr/share/man/man1/uncov-web.1
 	$(RM) -r $(DESTDIR)/usr/share/uncov/
 
 # work around parenthesis warning in tests somehow caused by ccache
