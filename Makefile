@@ -124,14 +124,14 @@ self-coverage: coverage
 man: docs/uncov.1
 # the next target doesn't depend on $(wildcard docs/*.md) to make pandoc
 # optional
-docs/uncov.1: force | $(out_dir)/docs
+docs/uncov.1: force | $(out_dir)/docs/uncov
 	pandoc -V title=uncov \
 	       -V section=1 \
 	       -V app=uncov \
 	       -V footer="uncov v0.1" \
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
-	       -s -o $@ $(sort $(wildcard docs/*.md))
+	       -s -o $@ $(sort $(wildcard docs/uncov/*.md))
 
 doxygen:
 	doxygen doxygen/config
