@@ -124,7 +124,7 @@ self-coverage: coverage
 man: docs/uncov.1 docs/uncov-gcov.1 docs/uncov-web.1
 # the following targets don't depend on $(wildcard docs/*/*.md) to make pandoc
 # optional
-docs/uncov.1: force | $(out_dir)/docs/uncov
+docs/uncov.1: force
 	pandoc -V title=uncov \
 	       -V section=1 \
 	       -V app=uncov \
@@ -132,7 +132,7 @@ docs/uncov.1: force | $(out_dir)/docs/uncov
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov/*.md))
-docs/uncov-gcov.1: force | $(out_dir)/docs/uncov-gcov
+docs/uncov-gcov.1: force
 	pandoc -V title=uncov-gcov \
 	       -V section=1 \
 	       -V app=uncov-gcov \
@@ -140,7 +140,7 @@ docs/uncov-gcov.1: force | $(out_dir)/docs/uncov-gcov
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov-gcov/*.md))
-docs/uncov-web.1: force | $(out_dir)/docs/uncov-web
+docs/uncov-web.1: force
 	pandoc -V title=uncov-web \
 	       -V section=1 \
 	       -V app=uncov-web \
