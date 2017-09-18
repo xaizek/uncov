@@ -191,8 +191,8 @@ private:
 
 }
 
-FilePrinter::FilePrinter(const FilePrinterSettings &settings, bool allowColors)
-    : colorizeOutput(allowColors && settings.isColorOutputAllowed()),
+FilePrinter::FilePrinter(const FilePrinterSettings &settings)
+    : colorizeOutput(settings.isColorOutputAllowed()),
       highlighter(settings.isHtmlOutput() ? DATADIR "/srchilight/html.outlang"
                                           : "esc256.outlang"),
       langMap("lang.map")
