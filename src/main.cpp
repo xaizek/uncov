@@ -62,7 +62,7 @@ main(int argc, char *argv[])
         }
 
         if (invocation.shouldPrintVersion()) {
-            std::cout << "uncov v0.1\n";
+            std::cout << "uncov v0.2\n";
             return EXIT_SUCCESS;
         }
 
