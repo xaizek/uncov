@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2017 September 12
+" Last Change: 2017 November 07
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -136,6 +136,8 @@ function! s:ParseCoverage(coverage, fileLines) abort
 endfunction
 
 function! s:FoldCovered(coverage) abort
+    let l:nLines = line('$')
+
     let l:lineNo = 1
     let l:toFold = 0
     for l:hits in a:coverage
@@ -153,6 +155,16 @@ function! s:FoldCovered(coverage) abort
         endif
 
         let l:lineNo += 1
+
+        " handle case when coverage information contains more lines than the
+        " file gracefully by adjusting line number and number of lines to fold
+        " to do not go past the end of the buffer
+        if l:lineNo > l:nLines + 1
+            let l:lineNo -= 1
+            if l:toFold > 0
+                let l:toFold -= 1
+            endif
+        endif
     endfor
 
     if l:toFold > 3
