@@ -203,6 +203,8 @@ config.h: | config.h.in
 	cp config.h.in $@
 
 $(out_dir)/web/%.o: CXXFLAGS += -I$(abspath web)
+$(out_dir)/web/%.o: $(out_dir)/web/%.cpp config.h | $(out_dirs)
+	$(CXX) -o $@ -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) $<
 
 $(out_dir)/%.o: %.cpp config.h | $(out_dirs)
 	$(CXX) -o $@ -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) $<
