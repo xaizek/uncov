@@ -18,6 +18,7 @@
 #include "TestUtils.hpp"
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/range.hpp>
 
 #include "Settings.hpp"
 
@@ -38,8 +39,10 @@ TempDirCopy::TempDirCopy(const std::string &from, const std::string &to,
 static void
 copyDir(const fs::path &src, const fs::path &dst)
 {
+    using it = fs::directory_iterator;
+
     fs::create_directory(dst);
-    for (fs::directory_entry &e : fs::directory_iterator(src)) {
+    for (fs::directory_entry &e : boost::make_iterator_range(it(src), it())) {
         fs::path path = e.path();
         if (fs::is_directory(path)) {
             copyDir(path, dst/path.filename());
