@@ -155,7 +155,7 @@ doxygen:
 # target that doesn't exist and used to force rebuild
 force:
 
-reset-coverage:
+reset-coverage: | $(out_dirs)
 ifeq ($(with_cov),1)
 	find $(out_dir)/ -name '*.gcda' -delete
 endif
