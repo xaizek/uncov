@@ -4,7 +4,7 @@ _This file last updated on 06 December, 2017_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
-3. [Usage](#usage)
+3. [Usage/example/screenshots](#usage)
 4. [Credits](#credits)
 5. [License](#license)
 
