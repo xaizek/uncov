@@ -1,6 +1,6 @@
 **uncov**, _v0.2_, _2016 – 2017_
 
-_This file last updated on 23 September, 2017_
+_This file last updated on 06 December, 2017_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -10,7 +10,7 @@ _This file last updated on 23 September, 2017_
 
 ## Description ##
 
-`uncov` is a tool that collect and processes coverage reports.
+`uncov` is a tool that collects and processes coverage reports.
 
 By storing history of coverage reports it allows one to view how code coverage
 changes over time, compare changes that happened and view current state of the
