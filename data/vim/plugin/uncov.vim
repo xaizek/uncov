@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2017 November 07
+" Last Change: 2018 February 13
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -27,7 +27,7 @@ sign define UncovMissed text=  texthl=UncovMissed
 function! s:ShowCoverage(reload, ...) abort
     let l:buildid = '@@'
     if a:0 > 0
-        if a:1 !~ '^@\d\+\|@@$'
+        if a:1 !~ '^@-\?\d\+\|@@$'
             echohl ErrorMsg | echo 'Wrong argument:' a:1 | echohl None
             return
         endif
