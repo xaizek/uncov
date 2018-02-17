@@ -475,6 +475,9 @@ def gitrepo(abs_repo_root, capture_worktree, src_files):
         for src_file in src_files:
             abs_src_file = path.join(abs_repo_root, src_file)
             if not path.exists(abs_src_file):
+                parent_dir = path.dirname(abs_src_file)
+                if not path.exists(parent_dir):
+                    os.makedirs(parent_dir)
                 with io.open(abs_src_file, mode='wb') as fobj:
                     fobj.write(repo.git('show', commit + ':' + src_file)[1])
     else:
