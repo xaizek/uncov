@@ -81,12 +81,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                             : globalBH->getBuildsOn(branch);
 %   namespace adaptors = boost::adaptors;
 %   for (const Build &build : adaptors::reverse(builds)) {
-        <tr onclick="document.location = '/builds/<$ build.getId() $>'">
+        <tr>
 %       const std::vector<std::string> descr = describeBuild(globalBH, build,
 %                                                            DoExtraAlign{},
 %                                                            DoSpacing{});
-%       for (const std::string &cell : { descr[0], descr[1], descr[2],
-%                                        descr[3], descr[4] }) {
+        <td><a class="nav" href="/builds/<$ build.getId() $>"><$$ descr[0] $></a></td>
+%       for (const std::string &cell : { descr[1], descr[2], descr[3],
+%                                        descr[4] }) {
             <td><$$ cell $></td>
 %       }
 
@@ -102,6 +103,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
                 </span>
             </div>
         </td>
+        </tr>
 %   }
 
     </table>

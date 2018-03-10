@@ -110,9 +110,18 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %   for (const std::vector<std::string> &row :
 %        describeBuildFiles(globalBH, *build, std::string(), ListChangedOnly{},
 %                           !ListDirectOnly{})) {
-        <tr onclick="document.location = '/changes/<$ buildId $>/<$ row.front() $>'">
+        <tr>
 %       for (const std::string &cell : row) {
-            <td><$$ cell $></td>
+%           if (&cell != &row.front()) {
+                <td><$$ cell $></td>
+%               continue;
+%           }
+
+            <td>
+                <a class="nav" href="/changes/<$ buildId $>/<$ row.front() $>">
+                    <$$ cell $>
+                </a>
+            </td>
 %       }
         </tr>
 %   }

@@ -116,13 +116,18 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 %   for (const std::vector<std::string> &row :
 %        describeBuildDirs(globalBH, *build, dirPath)) {
-%       if (row.front() == dirPath + '/') {
         <tr>
-%       } else {
-        <tr onclick="document.location = '/builds/<$ buildId $>/<$ row.front() $>'">
-%       }
 %       for (const std::string &cell : row) {
-            <td><$$ cell $></td>
+%           if (&cell != &row.front()) {
+                <td><$$ cell $></td>
+%               continue;
+%           }
+
+            <td>
+                <a class="nav" href="/builds/<$ buildId $>/<$ row.front() $>">
+                    <$$ cell $>
+                </a>
+            </td>
 %       }
         </tr>
 %   }
@@ -141,9 +146,18 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %   for (const std::vector<std::string> &row :
 %        describeBuildFiles(globalBH, *build, dirPath, !ListChangedOnly{},
 %                           ListDirectOnly{})) {
-        <tr onclick="document.location = '/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>'">
+        <tr>
 %       for (const std::string &cell : row) {
-            <td><$$ cell $></td>
+%           if (&cell != &row.front()) {
+                <td><$$ cell $></td>
+%               continue;
+%           }
+
+            <td>
+                <a class="nav" href="/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>">
+                    <$$ cell $>
+                </a>
+            </td>
 %       }
         </tr>
 %   }
