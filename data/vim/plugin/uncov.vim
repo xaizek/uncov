@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2018 February 13
+" Last Change: 2018 April 10
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -81,10 +81,7 @@ function! s:MakeBuffer(repo, relFilePath, buildid, reload)
 
     " XXX: insert buildid here?
     execute 'silent!' 'file' escape('uncov:'.a:relFilePath, ' \%')
-    for l:fileLine in l:fileLines
-        call append(line('$'), l:fileLine)
-    endfor
-    0delete
+    call setline(1, l:fileLines)
     setlocal buftype=nofile bufhidden=wipe noswapfile nomodified nomodifiable
 
     execute 'doautocmd BufRead' a:relFilePath
