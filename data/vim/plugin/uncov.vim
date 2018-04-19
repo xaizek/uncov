@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2018 April 10
+" Last Change: 2018 April 19
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -112,7 +112,7 @@ function! s:ParseCoverage(coverage, fileLines) abort
         if l:hits != -1
             let l:group = (l:hits == 0) ? 'UncovMissed' : 'UncovCovered'
             execute 'sign place' l:lineNo
-                  \ 'line='.(l:lineNo + 1)
+                  \ 'line='.l:lineNo
                   \ 'name='.l:group
                   \ 'buffer='.l:bufnr
             if l:hits == 0
