@@ -233,9 +233,6 @@ private:
 };
 
 template <class C>
-const bool AutoSubCommand<C>::invokeRegister = []() {
-    registerCmd<C>();
-    return true;
-}();
+const bool AutoSubCommand<C>::invokeRegister = (registerCmd<C>(), true);
 
 #endif // UNCOV__SUBCOMMAND_HPP__
