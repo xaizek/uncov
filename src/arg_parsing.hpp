@@ -37,6 +37,8 @@
 
 //! Build id parameter (not defined).
 struct BuildId;
+//! Optional build id parameter (not defined).
+struct OptBuildId;
 //! Fiel path parameter (not defined).
 struct FilePath;
 //! Positive number parameter (not defined).
@@ -91,6 +93,27 @@ struct parseArg<BuildId>
 
     /**
      * @brief Parses build id.
+     *
+     * @param args Input arguments.
+     * @param idx  Current position within @p args or just past its end.
+     *
+     * @returns Parsed value and indication whether parsing was successful.
+     */
+    static std::pair<resultType, ParseResult>
+    parse(const std::vector<std::string> &args, std::size_t idx);
+};
+
+/**
+ * @brief Parses optional build id, which is of the form `/@@|@number/`.
+ */
+template <>
+struct parseArg<OptBuildId>
+{
+    //! Type of result yielded by this parser.
+    using resultType = boost::variant<int, std::string>;
+
+    /**
+     * @brief Parses optional build id.
      *
      * @param args Input arguments.
      * @param idx  Current position within @p args or just past its end.

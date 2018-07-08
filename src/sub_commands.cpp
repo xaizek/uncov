@@ -594,7 +594,7 @@ private:
         BuildRef buildRef(bh);
         InRepoPath dirFilter(repo);
         boost::optional<Build> prevBuild;
-        if (auto parsed = tryParse<BuildId>(args)) {
+        if (auto parsed = tryParse<OptBuildId>(args)) {
             buildRef = std::get<0>(*parsed);
         } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
             BuildRef prevBuildRef(bh);

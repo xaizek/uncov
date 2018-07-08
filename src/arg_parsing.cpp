@@ -47,6 +47,17 @@ detail::parseArg<BuildId>::parse(const std::vector<std::string> &args,
             }
         }
     }
+    return { {}, ParseResult::Rejected};
+}
+
+auto
+detail::parseArg<OptBuildId>::parse(const std::vector<std::string> &args,
+                                    std::size_t idx)
+    -> std::pair<resultType, ParseResult>
+{
+    if (idx < args.size()) {
+        return parseArg<BuildId>::parse(args, idx);
+    }
     return { LatestBuildMarker, ParseResult::Skipped };
 }
 

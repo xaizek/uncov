@@ -612,6 +612,58 @@ test-file2.cpp   100.00%      2 / 2  +100.0000%    +2 /   -2 /    0
     CHECK(cerrCapture.get() == std::string());
 }
 
+TEST_CASE("Dirs without arguments uses latest build",
+          "[subcommands][dirs-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("dirs")->exec(getSettings(), bh, repo, "dirs",
+                               {}) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(DIRECTORY  COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES
+/           100.00%      2 / 2   +50.0000%     0 /   -2 /   -2
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("Changed lists files in specified build",
+          "[subcommands][changed-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("changed")->exec(getSettings(), bh, repo, "changed",
+                                  { "@@", "/test-file1.cpp" }) == EXIT_SUCCESS);
+
+    const std::string expectedOut =
+R"(FILE            COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES
+test-file1.cpp   100.00%      0 / 0  +100.0000%     0 /   -2 /   -2
+)";
+    CHECK(coutCapture.get() == expectedOut);
+    CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("Diff fails when given one buildid and path",
+          "[subcommands][diff-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("diff")->exec(getSettings(), bh, repo, "diff",
+                               { "@@", "/test-file1.cpp" }) == EXIT_FAILURE);
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() != std::string());
+}
+
 static SubCommand *
 getCmd(const std::string &name)
 {
