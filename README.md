@@ -1,6 +1,6 @@
-**uncov**, _v0.2_, _2016 – 2017_
+**uncov**, _v0.2_, _2016 – 2018_
 
-_This file last updated on 06 December, 2017_
+_This file last updated on 02 September, 2018_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
