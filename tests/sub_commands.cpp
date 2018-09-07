@@ -107,6 +107,20 @@ TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
                     std::runtime_error);
 }
 
+TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
+{
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("build")->exec(getSettings(), bh, repo, "build",
+                                { "something" }) == EXIT_FAILURE);
+
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+}
+
 TEST_CASE("Build information on a branch", "[subcommands][build-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
