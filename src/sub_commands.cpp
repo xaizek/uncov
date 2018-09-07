@@ -260,7 +260,7 @@ private:
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
-        if (auto parsed = tryParse<BuildId>(args)) {
+        if (auto parsed = tryParse<OptBuildId>(args)) {
             std::tie(buildRef) = *parsed;
         } else {
             std::cerr << "Invalid arguments for subcommand.\n";
