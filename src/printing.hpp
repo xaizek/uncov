@@ -173,11 +173,15 @@ using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
 //! Strong typing of string representing a note.
 using NoteMsg = PrintWrapper<std::string, struct NoteMsgTag>;
 
+//! Information about number of hits.
+struct HitsCountInfo {
+    int hits;  //!< Number of hits.
+    int width; //!< Minimal width.
+};
 //! Strong typing of int representing number of hits.
-using HitsCount = PrintWrapper<int, struct HitsCountTag>;
-
+using HitsCount = PrintWrapper<HitsCountInfo, struct HitsCountTag>;
 //! Int wrapper for number of hits, which shouldn't standout too much.
-using SilentHitsCount = PrintWrapper<int, struct SilentHitsCountTag>;
+using SilentHitsCount = PrintWrapper<HitsCountInfo, struct SilentHitsCountTag>;
 
 //! Strong typing of string representing VCS revision.
 using Revision = PrintWrapper<std::string, struct RevisionTag>;

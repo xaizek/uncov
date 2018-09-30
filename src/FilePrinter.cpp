@@ -159,7 +159,7 @@ private:
      */
     void printBlank(std::ostream &os) const
     {
-        os << std::setw(hitsNumWidth) << HitsCount{-1};
+        os << HitsCount{{-1, hitsNumWidth}};
     }
 
     /**
@@ -173,14 +173,10 @@ private:
     {
         if (lineNo >= coverage.size()) {
             os << std::setw(hitsNumWidth) << ErrorMsg{"ERROR "};
-            return;
-        }
-
-        os << std::setw(hitsNumWidth);
-        if (active) {
-            os << HitsCount{coverage[lineNo]};
+        } else if (active) {
+            os << HitsCount{{coverage[lineNo], hitsNumWidth}};
         } else {
-            os << SilentHitsCount{coverage[lineNo]};
+            os << SilentHitsCount{{coverage[lineNo], hitsNumWidth}};
         }
     }
 

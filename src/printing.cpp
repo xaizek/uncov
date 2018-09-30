@@ -169,14 +169,17 @@ operator<<(std::ostream &os, const Highlight &hi)
  *
  * @param os     Output stream.
  * @param hits   Number of hits.
+ * @param width  Width.
  * @param silent Whether to dim colors.
  *
  * @returns @p os
  */
 std::ostream &
-printHits(std::ostream &os, int hits, bool silent)
+printHits(std::ostream &os, int hits, int width, bool silent)
 {
     std::string prefix = silent ? "silent" : "";
+
+    os << std::setw(width);
 
     if (hits == 0) {
         return os << (Highlight("hitcount") <<
@@ -316,13 +319,13 @@ operator<<(std::ostream &os, const NoteMsg &line)
 std::ostream &
 operator<<(std::ostream &os, const HitsCount &hits)
 {
-    return printHits(os, hits.data, false);
+    return printHits(os, hits.data.hits, hits.data.width, false);
 }
 
 std::ostream &
 operator<<(std::ostream &os, const SilentHitsCount &hits)
 {
-    return printHits(os, hits.data, true);
+    return printHits(os, hits.data.hits, hits.data.width, true);
 }
 
 std::ostream &
