@@ -27,6 +27,8 @@
 #include <utility>
 
 #include "utils/time.hpp"
+#include "ColorCane.hpp"
+#include "colors.hpp"
 #include "decoration.hpp"
 
 namespace {
@@ -195,6 +197,39 @@ printHits(std::ostream &os, int hits, int width, bool silent)
     }
 }
 
+/**
+ * @brief Prints decorated number of hits.
+ *
+ * @param cc     Output.
+ * @param hits   Number of hits.
+ * @param width  Width.
+ * @param silent Whether to dim colors.
+ *
+ * @returns @p cc
+ */
+ColorCane &
+printHits(ColorCane &cc, int hits, int width, bool silent)
+{
+    std::string value;
+    ColorGroup group = ColorGroup::Irrelevant;
+
+    if (hits == 0) {
+        value = "x0";
+        group = (silent ? ColorGroup::SilentMissed : ColorGroup::Missed);
+    } else if (hits > 0) {
+        value = 'x' + std::to_string(hits);
+        group = (silent ? ColorGroup::SilentCovered : ColorGroup::Covered);
+    }
+
+    if (static_cast<int>(value.size()) < width) {
+        value.insert(0U, width - value.size(), ' ');
+    }
+
+    value += ' ';
+    cc.append(value, group);
+    return cc;
+}
+
 }
 
 void
@@ -340,4 +375,103 @@ operator<<(std::ostream &os, const Time &t)
     return os << (Highlight("time")
               << put_time(std::localtime(&t.data),
                           settings->getTimeFormat().c_str()));
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const ErrorMsg &errMsg)
+{
+    cc.append(errMsg.data, ColorGroup::ErrorMsg);
+    return cc;
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const LineRetained &line)
+{
+    cc.append(boost::string_ref(), ColorGroup::RetainedMark);
+    cc.append(line.data, ColorGroup::Pre);
+    return cc;
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const LineAdded &line)
+{
+    cc.append(boost::string_ref(), ColorGroup::AddedMark);
+    cc.append(line.data, ColorGroup::Pre);
+    return cc;
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const LineRemoved &line)
+{
+    cc.append(boost::string_ref(), ColorGroup::RemovedMark);
+    cc.append(line.data, ColorGroup::Pre);
+    return cc;
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const NoteMsg &line)
+{
+    cc.append(line.data, ColorGroup::NoteMsg);
+    return cc;
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const HitsCount &hits)
+{
+    return printHits(cc, hits.data.hits, hits.data.width, false);
+}
+
+ColorCane &
+operator<<(ColorCane &cc, const SilentHitsCount &hits)
+{
+    return printHits(cc, hits.data.hits, hits.data.width, true);
+}
+
+std::ostream &
+operator<<(std::ostream &os, const ColorCane &cc)
+{
+    // The code below sort of repeats code of operators above.  This is due to
+    // types being different, which makes it harder to reuse the code.
+    for (const ColorCanePiece &piece : cc) {
+        switch (piece.hi) {
+            case ColorGroup::Pre:
+                os << piece.text;
+                break;
+            case ColorGroup::AddedMark:
+                os << (Highlight("added") << '+') << piece.text;
+                break;
+            case ColorGroup::RemovedMark:
+                os << (Highlight("removed") << '-') << piece.text;
+                break;
+            case ColorGroup::RetainedMark:
+                os << (Highlight("retained") << ' ') << piece.text;
+                break;
+            case ColorGroup::Missed:
+                os << (Highlight("hitcount") <<
+                       (Highlight("missed") << piece.text));
+                break;
+            case ColorGroup::SilentMissed:
+                os << (Highlight("hitcount") <<
+                       (Highlight("silentmissed") << piece.text));
+                break;
+            case ColorGroup::Covered:
+                os << (Highlight("hitcount") <<
+                       (Highlight("covered") << piece.text));
+                break;
+            case ColorGroup::SilentCovered:
+                os << (Highlight("hitcount") <<
+                       (Highlight("silentcovered") << piece.text));
+                break;
+            case ColorGroup::Irrelevant:
+                os << (Highlight("hitcount") << piece.text);
+                break;
+            case ColorGroup::NoteMsg:
+                os << (Highlight("note") << " <<< " << piece.text << " >>> ");
+                break;
+            case ColorGroup::ErrorMsg:
+                os << (Highlight("error") << piece.text);
+                break;
+        }
+    }
+    return os;
 }

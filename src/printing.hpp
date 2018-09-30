@@ -31,6 +31,8 @@
  * @brief Elements that abstract HTML/ASCII formatting.
  */
 
+class ColorCane;
+
 /**
  * @brief Unit-specific settings.
  */
@@ -107,6 +109,18 @@ class PrintWrapper
      * @returns @p os.
      */
     friend std::ostream & operator<<(std::ostream &os, const PrintWrapper &w);
+
+    /**
+     * @brief Prints wrapped data in a formatted way (depends on type).
+     *
+     * Instantiation of this template declares this function.
+     *
+     * @param cc Output for formatted data.
+     * @param w Data Container.
+     *
+     * @returns @p cc.
+     */
+    friend ColorCane & operator<<(ColorCane &cc, const PrintWrapper &w);
 
 public:
     /**
@@ -188,5 +202,15 @@ using Revision = PrintWrapper<std::string, struct RevisionTag>;
 
 //! Strong typing of time representing build timestamp.
 using Time = PrintWrapper<std::time_t, struct TimeTag>;
+
+/**
+ * @brief Prints ColorCane into a stream.
+ *
+ * @param os Stream to output formatted data to.
+ * @param cc Data to print.
+ *
+ * @returns @p os.
+ */
+std::ostream & operator<<(std::ostream &os, const ColorCane &cc);
 
 #endif // UNCOV__PRINTING_HPP__

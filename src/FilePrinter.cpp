@@ -29,7 +29,9 @@
 #include <string>
 #include <vector>
 
+#include "ColorCane.hpp"
 #include "FileComparator.hpp"
+#include "colors.hpp"
 #include "printing.hpp"
 
 namespace {
@@ -73,15 +75,15 @@ class CoverageColumn
     /**
      * @brief Redirects printing to an instance of CoverageColumn.
      *
-     * @param os    Output stream.
+     * @param cc    Output.
      * @param blank Marker.
      *
-     * @returns @p os.
+     * @returns @p cc.
      */
-    friend std::ostream & operator<<(std::ostream &os, const Blank &blank)
+    friend ColorCane & operator<<(ColorCane &cc, const Blank &blank)
     {
-        blank.cc.printBlank(os);
-        return os;
+        blank.cc.printBlank(cc);
+        return cc;
     }
 
     /**
@@ -96,6 +98,20 @@ class CoverageColumn
     {
         lineAt.cc.printAt(os, lineAt.lineNo, lineAt.active);
         return os;
+    }
+
+    /**
+     * @brief Redirects printing to an instance of CoverageColumn.
+     *
+     * @param cc     Output.
+     * @param lineAt Marker.
+     *
+     * @returns @p cc.
+     */
+    friend ColorCane & operator<<(ColorCane &cc, const LineAt &lineAt)
+    {
+        lineAt.cc.printAt(cc, lineAt.lineNo, lineAt.active);
+        return cc;
     }
 
 public:
@@ -155,11 +171,11 @@ private:
     /**
      * @brief Prints blank entry.
      *
-     * @param os Output stream.
+     * @param cc Output.
      */
-    void printBlank(std::ostream &os) const
+    void printBlank(ColorCane &cc) const
     {
-        os << HitsCount{{-1, hitsNumWidth}};
+        cc << HitsCount{{-1, hitsNumWidth}};
     }
 
     /**
@@ -180,10 +196,43 @@ private:
         }
     }
 
+    /**
+     * @brief Prints entry with number of hits.
+     *
+     * @param cc     Output.
+     * @param lineNo Line number.
+     * @param active Whether number of hits should standout.
+     */
+    void printAt(ColorCane &cc, std::size_t lineNo, bool active) const
+    {
+        if (lineNo >= coverage.size()) {
+            cc << ErrorMsg{"ERROR "};
+        } else if (active) {
+            cc << HitsCount{{coverage[lineNo], hitsNumWidth}};
+        } else {
+            cc << SilentHitsCount{{coverage[lineNo], hitsNumWidth}};
+        }
+    }
+
 private:
     const std::vector<int> &coverage; //!< Coverage information.
     int hitsNumWidth;                 //!< Maximum width of number of hits.
 };
+
+/**
+ * @brief Prints a single character into ColorCane.
+ *
+ * @param cc Output
+ * @param c  Character to print.
+ *
+ * @returns @p cc
+ */
+ColorCane &
+operator<<(ColorCane &cc, char c)
+{
+    cc.append(c);
+    return cc;
+}
 
 }
 
@@ -325,35 +374,38 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
         return line;
     };
 
+    ColorCane cc;
     CoverageColumn oldCovCol(oCov), newCovCol(nCov);
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case DiffLineType::Added:
-                os << oldCovCol.blank() << ':'
+                cc << oldCovCol.blank() << ':'
                    << newCovCol.active(line.newLine) << ':'
                    << LineAdded{getLine(sss)};
                 break;
             case DiffLineType::Removed:
-                os << oldCovCol.active(line.oldLine) << ':'
+                cc << oldCovCol.active(line.oldLine) << ':'
                    << newCovCol.blank() << ':'
                    << LineRemoved{getLine(fss)};
                 break;
             case DiffLineType::Note:
-                os << NoteMsg{line.text};
+                cc << NoteMsg{line.text};
                 break;
             case DiffLineType::Common:
-                os << oldCovCol.active(line.oldLine) << ':'
+                cc << oldCovCol.active(line.oldLine) << ':'
                    << newCovCol.active(line.newLine) << ':'
                    << LineRetained{getLine(fss)};
                 break;
             case DiffLineType::Identical:
-                os << oldCovCol.inactive(line.oldLine) << ':'
+                cc << oldCovCol.inactive(line.oldLine) << ':'
                    << newCovCol.inactive(line.newLine) << ':'
                    << LineRetained{getLine(fss)};
                 break;
         }
-        os << '\n';
+        cc << '\n';
     }
+
+    os << cc;
 }
 
 std::string
