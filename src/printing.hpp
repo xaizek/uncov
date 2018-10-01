@@ -172,8 +172,13 @@ using ErrorMsg = PrintWrapper<std::string, struct ErrorMsgTag>;
 //! Strong typing of string containing header of a table.
 using TableHeader = PrintWrapper<std::string, struct TableHeaderTag>;
 
+//! Information about line number.
+struct LineNoInfo {
+    std::size_t lineNo; //!< Line number.
+    int width;          //!< Minimal width.
+};
 //! Strong typing of int representing line number.
-using LineNo = PrintWrapper<std::size_t, struct LineNoTag>;
+using LineNo = PrintWrapper<LineNoInfo, struct LineNoTag>;
 
 //! Strong typing of string representing common line in diff.
 using LineRetained = PrintWrapper<std::string, struct LineRetainedTag>;

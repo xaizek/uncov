@@ -319,7 +319,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
                 ++extraLines;
             }
 
-            os << std::setw(lineNoWidth) << LineNo{lineNo + 1U}
+            os << LineNo{{lineNo + 1U, lineNoWidth}}
                << covCol.active(lineNo) << ": " << fileLine << '\n';
             ++lineNo;
         }
@@ -327,7 +327,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
 
     // Print extra file lines (with unknown coverage).
     for (std::string fileLine; std::getline(ss, fileLine); ++lineNo) {
-        os << std::setw(lineNoWidth) << LineNo{lineNo + 1U}
+        os << LineNo{{lineNo + 1U, lineNoWidth}}
            << covCol.active(lineNo) << ": " << fileLine << '\n';
     }
 
