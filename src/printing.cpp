@@ -396,8 +396,10 @@ operator<<(ColorCane &cc, const LineNo &lineNo)
         value.insert(0U, lineNo.data.width - value.size(), ' ');
     }
 
+    auto group = lineNo.data.original ? ColorGroup::OldLineNo
+                                      : ColorGroup::NewLineNo;
     value += ' ';
-    cc.append(value, ColorGroup::LineNo);
+    cc.append(value, group);
     return cc;
 }
 
@@ -454,7 +456,8 @@ operator<<(std::ostream &os, const ColorCane &cc)
             case ColorGroup::Pre:
                 os << piece.text;
                 break;
-            case ColorGroup::LineNo:
+            case ColorGroup::OldLineNo:
+            case ColorGroup::NewLineNo:
                 os << (Highlight("lineno") << piece.text);
                 break;
             case ColorGroup::AddedMark:

@@ -119,10 +119,12 @@ public:
      * @brief Constructs from coverage information.
      *
      * @param coverage    Coverage information.
+     * @param original    Whether this is original side.
      * @param printLineNo Whether to print line numbers.
      */
-    CoverageColumn(const std::vector<int> &coverage, bool printLineNo)
-        : coverage(coverage), printLineNo(printLineNo)
+    CoverageColumn(const std::vector<int> &coverage, bool original,
+                   bool printLineNo)
+        : coverage(coverage), original(original), printLineNo(printLineNo)
     {
         const int MinHitsNumWidth = 5;
         // XXX: this could in principle be stored in database.
@@ -181,7 +183,7 @@ private:
     void printBlank(ColorCane &cc) const
     {
         if (printLineNo) {
-            cc << LineNo{{0U, lineNoWidth}};
+            cc << LineNo{{0U, lineNoWidth, original}};
         }
         cc << HitsCount{{-1, hitsNumWidth}};
     }
@@ -201,7 +203,7 @@ private:
         }
 
         if (printLineNo) {
-            os << LineNo{{lineNo + 1U, lineNoWidth}};
+            os << LineNo{{lineNo + 1U, lineNoWidth, original}};
         }
 
         if (active) {
@@ -226,7 +228,7 @@ private:
         }
 
         if (printLineNo) {
-            cc << LineNo{{lineNo + 1U, lineNoWidth}};
+            cc << LineNo{{lineNo + 1U, lineNoWidth, original}};
         }
 
         if (active) {
@@ -238,6 +240,7 @@ private:
 
 private:
     const std::vector<int> &coverage; //!< Coverage information.
+    const bool original;              //!< Whether this is original side.
     const bool printLineNo;           //!< Whether to print line numbers.
     int lineNoWidth;                  //!< Line number width.
     int hitsNumWidth;                 //!< Maximum width of number of hits.
@@ -328,7 +331,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     std::stringstream ss;
     highlight(ss, iss, getLang(path), leaveMissedOnly ? &ranges : nullptr);
 
-    CoverageColumn covCol(coverage, false);
+    CoverageColumn covCol(coverage, true, false);
     std::size_t lineNo = 0U;
     std::size_t extraLines = 0U;
 
@@ -400,7 +403,8 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
     };
 
     ColorCane cc;
-    CoverageColumn oldCovCol(oCov, lineNoInDiff), newCovCol(nCov, lineNoInDiff);
+    CoverageColumn oldCovCol(oCov, true, lineNoInDiff);
+    CoverageColumn newCovCol(nCov, false, lineNoInDiff);
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case DiffLineType::Added:

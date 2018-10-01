@@ -174,8 +174,13 @@ using TableHeader = PrintWrapper<std::string, struct TableHeaderTag>;
 
 //! Information about line number.
 struct LineNoInfo {
+    LineNoInfo(std::size_t lineNo, int width, bool original = true)
+        : lineNo(lineNo), width(width), original(original)
+    { }
+
     std::size_t lineNo; //!< Line number.
     int width;          //!< Minimal width.
+    bool original;      //!< Whether this is line number of original side.
 };
 //! Strong typing of int representing line number.
 using LineNo = PrintWrapper<LineNoInfo, struct LineNoTag>;
