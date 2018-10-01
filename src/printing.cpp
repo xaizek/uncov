@@ -387,6 +387,21 @@ operator<<(ColorCane &cc, const ErrorMsg &errMsg)
 }
 
 ColorCane &
+operator<<(ColorCane &cc, const LineNo &lineNo)
+{
+    std::string value = (lineNo.data.lineNo == 0)
+                      ? "-"
+                      : std::to_string(lineNo.data.lineNo);
+    if (static_cast<int>(value.size()) < lineNo.data.width) {
+        value.insert(0U, lineNo.data.width - value.size(), ' ');
+    }
+
+    value += ' ';
+    cc.append(value, ColorGroup::LineNo);
+    return cc;
+}
+
+ColorCane &
 operator<<(ColorCane &cc, const LineRetained &line)
 {
     cc.append(boost::string_ref(), ColorGroup::RetainedMark);
@@ -438,6 +453,9 @@ operator<<(std::ostream &os, const ColorCane &cc)
         switch (piece.hi) {
             case ColorGroup::Pre:
                 os << piece.text;
+                break;
+            case ColorGroup::LineNo:
+                os << (Highlight("lineno") << piece.text);
                 break;
             case ColorGroup::AddedMark:
                 os << (Highlight("added") << '+') << piece.text;

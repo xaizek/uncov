@@ -23,6 +23,8 @@ enum class ColorGroup
 {
     Pre,           //!< Pre-formatted piece.
 
+    LineNo,        //!< Line number.
+
     AddedMark,     //!< Mark before a added line.
     RemovedMark,   //!< Mark before a removed line.
     RetainedMark,  //!< Mark before an unchanged line.

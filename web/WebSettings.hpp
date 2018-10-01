@@ -28,6 +28,11 @@ public: // FilePrinterSettings only
         return true;
     }
 
+    virtual bool printLineNoInDiff() const override
+    {
+        return true;
+    }
+
 public: // FileComparatorSettings only
     virtual int getMinFoldSize() const override
     {

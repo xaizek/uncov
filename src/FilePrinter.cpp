@@ -118,10 +118,11 @@ public:
     /**
      * @brief Constructs from coverage information.
      *
-     * @param coverage Coverage information.
+     * @param coverage    Coverage information.
+     * @param printLineNo Whether to print line numbers.
      */
-    explicit CoverageColumn(const std::vector<int> &coverage)
-        : coverage(coverage)
+    CoverageColumn(const std::vector<int> &coverage, bool printLineNo)
+        : coverage(coverage), printLineNo(printLineNo)
     {
         const int MinHitsNumWidth = 5;
         // XXX: this could in principle be stored in database.
@@ -130,6 +131,10 @@ public:
             maxHits = *std::max_element(coverage.cbegin(), coverage.cend());
         }
         hitsNumWidth = std::max(MinHitsNumWidth, countWidth(maxHits));
+
+        const int MinLineNoWidth = 5;
+        const int nLines = coverage.size();
+        lineNoWidth = std::max(MinLineNoWidth, countWidth(nLines));
     }
 
 public:
@@ -175,6 +180,9 @@ private:
      */
     void printBlank(ColorCane &cc) const
     {
+        if (printLineNo) {
+            cc << LineNo{{0U, lineNoWidth}};
+        }
         cc << HitsCount{{-1, hitsNumWidth}};
     }
 
@@ -189,7 +197,14 @@ private:
     {
         if (lineNo >= coverage.size()) {
             os << std::setw(hitsNumWidth) << ErrorMsg{"ERROR "};
-        } else if (active) {
+            return;
+        }
+
+        if (printLineNo) {
+            os << LineNo{{lineNo + 1U, lineNoWidth}};
+        }
+
+        if (active) {
             os << HitsCount{{coverage[lineNo], hitsNumWidth}};
         } else {
             os << SilentHitsCount{{coverage[lineNo], hitsNumWidth}};
@@ -207,7 +222,14 @@ private:
     {
         if (lineNo >= coverage.size()) {
             cc << ErrorMsg{"ERROR "};
-        } else if (active) {
+            return;
+        }
+
+        if (printLineNo) {
+            cc << LineNo{{lineNo + 1U, lineNoWidth}};
+        }
+
+        if (active) {
             cc << HitsCount{{coverage[lineNo], hitsNumWidth}};
         } else {
             cc << SilentHitsCount{{coverage[lineNo], hitsNumWidth}};
@@ -216,6 +238,8 @@ private:
 
 private:
     const std::vector<int> &coverage; //!< Coverage information.
+    const bool printLineNo;           //!< Whether to print line numbers.
+    int lineNoWidth;                  //!< Line number width.
     int hitsNumWidth;                 //!< Maximum width of number of hits.
 };
 
@@ -238,6 +262,7 @@ operator<<(ColorCane &cc, char c)
 
 FilePrinter::FilePrinter(const FilePrinterSettings &settings)
     : colorizeOutput(settings.isColorOutputAllowed()),
+      lineNoInDiff(settings.printLineNoInDiff()),
       highlighter(settings.isHtmlOutput() ? DATADIR "/srchilight/html.outlang"
                                           : "esc256.outlang"),
       langMap("lang.map")
@@ -303,7 +328,7 @@ FilePrinter::print(std::ostream &os, const std::string &path,
     std::stringstream ss;
     highlight(ss, iss, getLang(path), leaveMissedOnly ? &ranges : nullptr);
 
-    CoverageColumn covCol(coverage);
+    CoverageColumn covCol(coverage, false);
     std::size_t lineNo = 0U;
     std::size_t extraLines = 0U;
 
@@ -375,7 +400,7 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
     };
 
     ColorCane cc;
-    CoverageColumn oldCovCol(oCov), newCovCol(nCov);
+    CoverageColumn oldCovCol(oCov, lineNoInDiff), newCovCol(nCov, lineNoInDiff);
     for (const DiffLine &line : diff) {
         switch (line.type) {
             case DiffLineType::Added:

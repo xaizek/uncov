@@ -65,6 +65,14 @@ public:
      * @returns @c true if output is HTML, @c false otherwise.
      */
     virtual bool isHtmlOutput() const = 0;
+
+    /**
+     * @brief Retrieves information about printing line numbers in diff.
+     *
+     * @returns @c true if line numbers should appear in diff, @c false
+     *          otherwise.
+     */
+    virtual bool printLineNoInDiff() const = 0;
 };
 
 /**
@@ -144,6 +152,8 @@ private:
 private:
     //! Whether code highlighting is enabled.
     const bool colorizeOutput;
+    //! Whether diff should contain line numbers.
+    const bool lineNoInDiff;
     //! Code highlighting object.
     srchilite::SourceHighlight highlighter;
     //! Loaded language map.
