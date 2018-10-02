@@ -449,52 +449,59 @@ operator<<(ColorCane &cc, const SilentHitsCount &hits)
 std::ostream &
 operator<<(std::ostream &os, const ColorCane &cc)
 {
+    for (const ColorCanePiece &piece : cc) {
+        os << piece;
+    }
+    return os;
+}
+
+std::ostream &
+operator<<(std::ostream &os, const ColorCanePiece &piece)
+{
     // The code below sort of repeats code of operators above.  This is due to
     // types being different, which makes it harder to reuse the code.
-    for (const ColorCanePiece &piece : cc) {
-        switch (piece.hi) {
-            case ColorGroup::Pre:
-                os << piece.text;
-                break;
-            case ColorGroup::OldLineNo:
-            case ColorGroup::NewLineNo:
-                os << (Highlight("lineno") << piece.text);
-                break;
-            case ColorGroup::AddedMark:
-                os << (Highlight("added") << '+') << piece.text;
-                break;
-            case ColorGroup::RemovedMark:
-                os << (Highlight("removed") << '-') << piece.text;
-                break;
-            case ColorGroup::RetainedMark:
-                os << (Highlight("retained") << ' ') << piece.text;
-                break;
-            case ColorGroup::Missed:
-                os << (Highlight("hitcount") <<
-                       (Highlight("missed") << piece.text));
-                break;
-            case ColorGroup::SilentMissed:
-                os << (Highlight("hitcount") <<
-                       (Highlight("silentmissed") << piece.text));
-                break;
-            case ColorGroup::Covered:
-                os << (Highlight("hitcount") <<
-                       (Highlight("covered") << piece.text));
-                break;
-            case ColorGroup::SilentCovered:
-                os << (Highlight("hitcount") <<
-                       (Highlight("silentcovered") << piece.text));
-                break;
-            case ColorGroup::Irrelevant:
-                os << (Highlight("hitcount") << piece.text);
-                break;
-            case ColorGroup::NoteMsg:
-                os << (Highlight("note") << " <<< " << piece.text << " >>> ");
-                break;
-            case ColorGroup::ErrorMsg:
-                os << (Highlight("error") << piece.text);
-                break;
-        }
+    switch (piece.hi) {
+        case ColorGroup::Pre:
+            os << piece.text;
+            break;
+        case ColorGroup::OldLineNo:
+        case ColorGroup::NewLineNo:
+            os << (Highlight("lineno") << piece.text);
+            break;
+        case ColorGroup::AddedMark:
+            os << (Highlight("added") << '+') << piece.text;
+            break;
+        case ColorGroup::RemovedMark:
+            os << (Highlight("removed") << '-') << piece.text;
+            break;
+        case ColorGroup::RetainedMark:
+            os << (Highlight("retained") << ' ') << piece.text;
+            break;
+        case ColorGroup::Missed:
+            os << (Highlight("hitcount") <<
+                   (Highlight("missed") << piece.text));
+            break;
+        case ColorGroup::SilentMissed:
+            os << (Highlight("hitcount") <<
+                   (Highlight("silentmissed") << piece.text));
+            break;
+        case ColorGroup::Covered:
+            os << (Highlight("hitcount") <<
+                   (Highlight("covered") << piece.text));
+            break;
+        case ColorGroup::SilentCovered:
+            os << (Highlight("hitcount") <<
+                   (Highlight("silentcovered") << piece.text));
+            break;
+        case ColorGroup::Irrelevant:
+            os << (Highlight("hitcount") << piece.text);
+            break;
+        case ColorGroup::NoteMsg:
+            os << (Highlight("note") << " <<< " << piece.text << " >>> ");
+            break;
+        case ColorGroup::ErrorMsg:
+            os << (Highlight("error") << piece.text);
+            break;
     }
     return os;
 }

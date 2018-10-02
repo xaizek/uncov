@@ -20,21 +20,30 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <%pre>
+    #include <cstdlib>
+
     #include <boost/optional.hpp>
 
     #include <tnt/httperror.h>
 
     #include "utils/Text.hpp"
     #include "BuildHistory.hpp"
+    #include "ColorCane.hpp"
     #include "FilePrinter.hpp"
     #include "Repository.hpp"
     #include "WebSettings.hpp"
+    #include "colors.hpp"
     #include "listings.hpp"
 
     #include "utils.hpp"
 
     extern Repository *globalRepo;
     extern BuildHistory *globalBH;
+
+    static int toNum(const std::string &s) {
+        char *end;
+        return std::strtol(s.c_str(), &end, 10);
+    }
 </%pre>
 
 <%cpp>
@@ -146,10 +155,28 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                             CompareStrategy::State, WebSettings());
 
 <pre>
-%   printer.printDiff(reply.out(), filePath,
-%                     oldVersion.asStream(), oldCov,
-%                     newVersion.asStream(), newCov,
-%                     comparator);
+%   ColorCane cc = printer.printDiff(filePath,
+%                                    oldVersion.asStream(), oldCov,
+%                                    newVersion.asStream(), newCov,
+%                                    comparator);
+%   int oldId = prevBuild->getId();
+%   int newId = build->getId();
+%   for (const ColorCanePiece &piece : cc) {
+%       if (piece.hi == ColorGroup::OldLineNo ||
+%           piece.hi == ColorGroup::NewLineNo) {
+%           int id = (piece.hi == ColorGroup::OldLineNo ? oldId : newId);
+%           if (int n = toNum(piece.text)) {
+%               reply.out() << "<a href='" << "/builds/" << id << '/'
+%                           << fileInfo[0] << "#l" << std::to_string(n) << "'>"
+%                           << piece
+%                           << "</a>";
+%           } else {
+%               reply.out() << "<span class='blank'>" << piece << "</span>";
+%           }
+%       } else {
+%           reply.out() << piece;
+%       }
+%   }
 </pre>
 
 %   } else {

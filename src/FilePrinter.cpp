@@ -372,6 +372,15 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
                        std::istream &nText, const std::vector<int> &nCov,
                        const FileComparator &comparator)
 {
+    os << printDiff(path, oText, oCov, nText, nCov, comparator);
+}
+
+ColorCane
+FilePrinter::printDiff(const std::string &path,
+                       std::istream &oText, const std::vector<int> &oCov,
+                       std::istream &nText, const std::vector<int> &nCov,
+                       const FileComparator &comparator)
+{
     const std::deque<DiffLine> &diff = comparator.getDiffSequence();
 
     srchilite::LineRanges fLines, sLines;
@@ -434,7 +443,7 @@ FilePrinter::printDiff(std::ostream &os, const std::string &path,
         cc << '\n';
     }
 
-    os << cc;
+    return cc;
 }
 
 std::string

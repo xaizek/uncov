@@ -32,6 +32,7 @@
  */
 
 class ColorCane;
+class ColorCanePiece;
 
 /**
  * @brief Unit-specific settings.
@@ -222,5 +223,15 @@ using Time = PrintWrapper<std::time_t, struct TimeTag>;
  * @returns @p os.
  */
 std::ostream & operator<<(std::ostream &os, const ColorCane &cc);
+
+/**
+ * @brief Prints ColorCanePiece into a stream.
+ *
+ * @param os    Stream to output formatted data to.
+ * @param piece Data to print.
+ *
+ * @returns @p os.
+ */
+std::ostream & operator<<(std::ostream &os, const ColorCanePiece &piece);
 
 #endif // UNCOV__PRINTING_HPP__
