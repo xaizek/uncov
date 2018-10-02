@@ -1,4 +1,4 @@
-// Copyright (C) 2017 xaizek <xaizek@posteo.net>
+// Copyright (C) 2018 xaizek <xaizek@posteo.net>
 //
 // This file is part of uncov.
 //
@@ -15,35 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__WEB__WEBSETTINGS_HPP__
-#define UNCOV__WEB__WEBSETTINGS_HPP__
+#include "ColorCane.hpp"
 
-#include "Settings.hpp"
+#include <boost/utility/string_ref.hpp>
 
-class WebSettings : public Settings
+#include <string>
+#include <vector>
+
+void
+ColorCane::append(boost::string_ref text, ColorGroup hi)
 {
-public: // FilePrinterSettings only
-    virtual bool isColorOutputAllowed() const override
-    {
-        return true;
-    }
+    pieces.emplace_back(text.to_string(), hi);
+}
 
-    virtual bool printLineNoInDiff() const override
-    {
-        return true;
-    }
+void
+ColorCane::append(char text, ColorGroup hi)
+{
+    pieces.emplace_back(std::string(1, text), hi);
+}
 
-public: // FileComparatorSettings only
-    virtual int getMinFoldSize() const override
-    {
-        return 3;
-    }
+ColorCane::Pieces::const_iterator
+ColorCane::begin() const
+{
+    return pieces.begin();
+}
 
-public: // PrintingSettings and FilePrinterSettings
-    virtual bool isHtmlOutput() const override
-    {
-        return true;
-    }
-};
-
-#endif // UNCOV__WEB__WEBSETTINGS_HPP__
+ColorCane::Pieces::const_iterator
+ColorCane::end() const
+{
+    return pieces.end();
+}

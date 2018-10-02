@@ -132,7 +132,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                 file->getCoverage());
 %   int line = 0;
 %   for (std::string s; std::getline(oss, s); ) {
-<a name="l<$++line$>"></a><$$ s $>
+<a name="l<$std::to_string(++line)$>"></a><$$ s $>
 %   }
 </pre>
 

@@ -31,6 +31,7 @@
  * @brief Printing files or their diffs annotated with coverage information.
  */
 
+class ColorCane;
 class FileComparator;
 
 /**
@@ -65,6 +66,14 @@ public:
      * @returns @c true if output is HTML, @c false otherwise.
      */
     virtual bool isHtmlOutput() const = 0;
+
+    /**
+     * @brief Retrieves information about printing line numbers in diff.
+     *
+     * @returns @c true if line numbers should appear in diff, @c false
+     *          otherwise.
+     */
+    virtual bool printLineNoInDiff() const = 0;
 };
 
 /**
@@ -120,6 +129,29 @@ public:
                    std::istream &nText, const std::vector<int> &nCov,
                    const FileComparator &comparator);
 
+    /**
+     * @brief Finds and prints differences between two versions of a file.
+     *
+     * Same as another overload, but doesn't accept stream object and returns
+     * result instead.
+     *
+     * @param path Name of the file (for highlighting detection).
+     * @param oText Old version of the file.
+     * @param oCov Coverage of old version.
+     * @param nText New version of the file.
+     * @param nCov Coverage of new version.
+     * @param comparator Object with loaded file diffing results.
+     *
+     * @returns Result as strings annotated with their types.
+     *
+     * @note `oText.size() == oCov.size() && nText.size() == nCov.size()` is
+     *       assumed.
+     */
+    ColorCane printDiff(const std::string &path,
+                        std::istream &oText, const std::vector<int> &oCov,
+                        std::istream &nText, const std::vector<int> &nCov,
+                        const FileComparator &comparator);
+
 private:
     /**
      * @brief Derives language from path.
@@ -144,6 +176,8 @@ private:
 private:
     //! Whether code highlighting is enabled.
     const bool colorizeOutput;
+    //! Whether diff should contain line numbers.
+    const bool lineNoInDiff;
     //! Code highlighting object.
     srchilite::SourceHighlight highlighter;
     //! Loaded language map.

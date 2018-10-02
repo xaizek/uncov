@@ -66,6 +66,11 @@ public: // FilePrinterSettings only
         return isOutputToTerminal();
     }
 
+    virtual bool printLineNoInDiff() const override
+    {
+        return false;
+    }
+
 public: // FileComparatorSettings only
     virtual int getMinFoldSize() const override
     {

@@ -48,6 +48,20 @@ a.path:hover {
     background-color: #E1E2DD;
 }
 
+pre a {
+    color: #111;
+    text-decoration: none;
+    border-bottom: 1px solid #aaa;
+    background-color: #F6F6CD;
+    padding-right: -10px;
+}
+
+pre span.blank {
+    border-bottom: 1px solid #aaa;
+    background-color: #F6F6CD;
+    padding-right: -10px;
+}
+
 th {
     background-color: #252525;
     color: #eee;
@@ -72,9 +86,13 @@ pre {
     line-height: 125%;
 }
 
-span.lineno {
+pre > span.lineno {
     font-weight: bold;
     padding-right: 5px;
+}
+
+a > span.lineno {
+    font-weight: bold;
 }
 
 span.hitcount {

@@ -31,6 +31,9 @@
  * @brief Elements that abstract HTML/ASCII formatting.
  */
 
+class ColorCane;
+class ColorCanePiece;
+
 /**
  * @brief Unit-specific settings.
  */
@@ -108,6 +111,18 @@ class PrintWrapper
      */
     friend std::ostream & operator<<(std::ostream &os, const PrintWrapper &w);
 
+    /**
+     * @brief Prints wrapped data in a formatted way (depends on type).
+     *
+     * Instantiation of this template declares this function.
+     *
+     * @param cc Output for formatted data.
+     * @param w Data Container.
+     *
+     * @returns @p cc.
+     */
+    friend ColorCane & operator<<(ColorCane &cc, const PrintWrapper &w);
+
 public:
     /**
      * @brief Initializes data field.
@@ -158,8 +173,18 @@ using ErrorMsg = PrintWrapper<std::string, struct ErrorMsgTag>;
 //! Strong typing of string containing header of a table.
 using TableHeader = PrintWrapper<std::string, struct TableHeaderTag>;
 
+//! Information about line number.
+struct LineNoInfo {
+    LineNoInfo(std::size_t lineNo, int width, bool original = true)
+        : lineNo(lineNo), width(width), original(original)
+    { }
+
+    std::size_t lineNo; //!< Line number.
+    int width;          //!< Minimal width.
+    bool original;      //!< Whether this is line number of original side.
+};
 //! Strong typing of int representing line number.
-using LineNo = PrintWrapper<std::size_t, struct LineNoTag>;
+using LineNo = PrintWrapper<LineNoInfo, struct LineNoTag>;
 
 //! Strong typing of string representing common line in diff.
 using LineRetained = PrintWrapper<std::string, struct LineRetainedTag>;
@@ -173,16 +198,40 @@ using LineRemoved = PrintWrapper<std::string, struct LineRemovedTag>;
 //! Strong typing of string representing a note.
 using NoteMsg = PrintWrapper<std::string, struct NoteMsgTag>;
 
+//! Information about number of hits.
+struct HitsCountInfo {
+    int hits;  //!< Number of hits.
+    int width; //!< Minimal width.
+};
 //! Strong typing of int representing number of hits.
-using HitsCount = PrintWrapper<int, struct HitsCountTag>;
-
+using HitsCount = PrintWrapper<HitsCountInfo, struct HitsCountTag>;
 //! Int wrapper for number of hits, which shouldn't standout too much.
-using SilentHitsCount = PrintWrapper<int, struct SilentHitsCountTag>;
+using SilentHitsCount = PrintWrapper<HitsCountInfo, struct SilentHitsCountTag>;
 
 //! Strong typing of string representing VCS revision.
 using Revision = PrintWrapper<std::string, struct RevisionTag>;
 
 //! Strong typing of time representing build timestamp.
 using Time = PrintWrapper<std::time_t, struct TimeTag>;
+
+/**
+ * @brief Prints ColorCane into a stream.
+ *
+ * @param os Stream to output formatted data to.
+ * @param cc Data to print.
+ *
+ * @returns @p os.
+ */
+std::ostream & operator<<(std::ostream &os, const ColorCane &cc);
+
+/**
+ * @brief Prints ColorCanePiece into a stream.
+ *
+ * @param os    Stream to output formatted data to.
+ * @param piece Data to print.
+ *
+ * @returns @p os.
+ */
+std::ostream & operator<<(std::ostream &os, const ColorCanePiece &piece);
 
 #endif // UNCOV__PRINTING_HPP__
