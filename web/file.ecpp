@@ -109,6 +109,56 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
                               <small><$$ fileInfo[4] $></small></span>
     </div>
 
+% if (file->getMissedCount() > 0) {
+
+    <div class="bargroup">
+        <span class="barelem">Missed</span>
+
+        <div class="barmap">
+        <table class="maptable">
+
+%       int runLength = 0;
+%       int runStart;
+%       bool covered = false;
+%       auto spawnRun = [&]() {
+%           if (!covered && runLength != 0) {
+                <tr onclick="document.location = '#l<$ std::to_string(runStart) $>'">
+                    <td class="line">
+                        <a href="#l<$ std::to_string(runStart) $>">
+                            <div><$ std::to_string(runStart) $>.</div>
+                        </a>
+                    </td>
+                    <td class="missedcount">
+                        <a href="#l<$ std::to_string(runStart) $>">
+                            <div><$ runLength $></div>
+                        </a>
+                    </td>
+                </tr>
+%           }
+%       };
+%       int lnum = 0;
+%       for (int c : file->getCoverage()) {
+%           ++lnum;
+%           if (c < 0) {
+%               continue;
+%           }
+%           if (runLength > 0 && (c > 0) == covered) {
+%               ++runLength;
+%           } else {
+%               spawnRun();
+%               covered = (c > 0);
+%               runLength = 1;
+%               runStart = lnum;
+%           }
+%       }
+%       spawnRun();
+
+        </table>
+        </div>
+    </div>
+
+% }
+
     <%include>web/footer.ecpp</%include>
     </div>
 
