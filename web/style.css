@@ -232,7 +232,8 @@ span.note {
 }
 
 .bargroup .barelem, .barfooter a {
-    padding: 4px 32px 4px 1.5vw;
+    padding: 4px 0px 4px 1.5vw;
+    margin-right: 1vw;
     text-decoration: none;
     color: #aaa;
     display: block;
