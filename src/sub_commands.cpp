@@ -867,7 +867,7 @@ private:
         BuildRef buildRef(bh);
         InRepoPath path(repo);
         bool printWholeBuild = false;
-        if (auto parsed = tryParse<BuildId>(args)) {
+        if (auto parsed = tryParse<OptBuildId>(args)) {
             buildRef = std::get<0>(*parsed);
             printWholeBuild = true;
         } else if (auto parsed = tryParse<FilePath>(args)) {

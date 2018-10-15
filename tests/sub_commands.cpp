@@ -693,6 +693,39 @@ TEST_CASE("Diff fails when given one buildid and path",
     CHECK(cerrCapture.get() != std::string());
 }
 
+TEST_CASE("Whole build is printed", "[subcommands][show-subcommand]")
+{
+    const std::string build =
+R"(Build: #3, 100.00%(2/2), +50.0000%(0/  -2/  -2), master
+-------------------------------------------------------------------------------
+File: test-file1.cpp, 100.00%(0/0), +100.0000%(0/-2/-2)
+-------------------------------------------------------------------------------
+    1       : int
+    2       : main(int argc, char *argv[])
+    3       : {
+    4       :         return 0;
+    5       : }
+-------------------------------------------------------------------------------
+File: test-file2.cpp, 100.00%(2/2), 0.0000%(0/0/0)
+-------------------------------------------------------------------------------
+    1       : int
+    2    x1 : main(int argc, char *argv[])
+    3       : {
+    4    x1 :         return 0;
+    5       : }
+)";
+
+    Repository repo("tests/test-repo/subdir");
+    DB db(repo.getGitPath() + "/uncov.sqlite");
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("show")->exec(getSettings(), bh, repo, "show",
+                               { }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == build);
+    CHECK(cerrCapture.get() == std::string());
+}
+
 static SubCommand *
 getCmd(const std::string &name)
 {
