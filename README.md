@@ -1,6 +1,6 @@
 **uncov**, _v0.2_, _2016 – 2018_
 
-_This file last updated on 02 September, 2018_
+_This file last updated on 15 October, 2018_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -143,7 +143,11 @@ Results of comparison (`uncov diff`):
 
 Annotated source code in Web-UI:
 
-![Web-UI](data/screenshots/webui.png)
+![Web-UI](data/screenshots/webui-file.png)
+
+Annotated diff in Web-UI:
+
+![Web-UI](data/screenshots/webui-diff.png)
 
 ### Web-UI Demo ###
 
