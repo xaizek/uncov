@@ -291,7 +291,7 @@ def parse_gcov_file(fobj, filename):
                                  "correct keyword\n" % (filename, line_num))
             ignoring = False
         # XXX: provide an option to disable the second check?
-        if cov_num == '-' or text.strip() == '}':
+        if cov_num == '-' or text.strip() in ['}', '};']:
             coverage.append(None)
         elif cov_num == '#####':
             # Avoid false positives.
