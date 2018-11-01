@@ -297,8 +297,7 @@ def parse_gcov_file(fobj, filename):
             # Avoid false positives.
             if (
                 ignoring or
-                text.lstrip().startswith(('inline', 'static')) or
-                re.search(r'\bLCOV_EXCL_LINE\b', text)
+                re.search(r'\bLCOV_EXCL_LINE\b|^\s*\b(inline|static)\b', text)
             ):
                 coverage.append(None)
             else:
