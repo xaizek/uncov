@@ -10,5 +10,8 @@
 /tests/tests
 /config.h
 
+# vim tags
+/data/vim/doc/tags
+
 # ignore automatically generated cpp-files
 /web/*.cpp
