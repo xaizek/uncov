@@ -17,10 +17,15 @@
 
 #include "utils/fs.hpp"
 
+#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
 #include <algorithm>
+#include <fstream>
 #include <iterator>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 namespace fs = boost::filesystem;
 
@@ -77,4 +82,21 @@ makeRelativePath(fs::path base, fs::path path)
     }
 
     return finalPath;
+}
+
+std::string
+readFile(const std::string &path)
+{
+    if (fs::is_directory(path)) {
+        throw std::runtime_error("Not a regular file: " + path);
+    }
+
+    std::ifstream ifile(path);
+    if (!ifile) {
+        throw std::runtime_error("Can't open file: " + path);
+    }
+
+    std::ostringstream iss;
+    iss << ifile.rdbuf();
+    return iss.str();
 }

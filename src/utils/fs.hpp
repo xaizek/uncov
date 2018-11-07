@@ -20,6 +20,8 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <string>
+
 /**
  * @file fs.hpp
  *
@@ -58,5 +60,17 @@ boost::filesystem::path normalizePath(const boost::filesystem::path &path);
  */
 boost::filesystem::path makeRelativePath(boost::filesystem::path base,
                                          boost::filesystem::path path);
+
+/**
+ * @brief Reads file into a string.
+ *
+ * @param path Path to the file.
+ *
+ * @returns File contents.
+ *
+ * @throws std::runtime_error if @p path specifies a directory or file
+ *                            reading has failed.
+ */
+std::string readFile(const std::string &path);
 
 #endif // UNCOV__UTILS__FS_HPP__
