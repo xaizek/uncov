@@ -307,7 +307,7 @@ def parse_gcov_file(fobj, filename):
             # XXX: this is not the case, see `man gcov`.
             coverage.append(0)
         else:
-            coverage.append(int(cov_num))
+            coverage.append(int(cov_num.rstrip('*')))
     return coverage
 
 
