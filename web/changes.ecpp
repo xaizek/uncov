@@ -22,10 +22,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 <%pre>
     #include <boost/optional.hpp>
 
+    #include "utils/strings.hpp"
     #include "BuildHistory.hpp"
     #include "listings.hpp"
-
-    #include "utils.hpp"
 
     extern BuildHistory *globalBH;
 </%pre>

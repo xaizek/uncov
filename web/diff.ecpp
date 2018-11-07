@@ -27,6 +27,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     #include <tnt/httperror.h>
 
     #include "utils/Text.hpp"
+    #include "utils/strings.hpp"
     #include "BuildHistory.hpp"
     #include "ColorCane.hpp"
     #include "FilePrinter.hpp"
@@ -34,8 +35,6 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     #include "WebSettings.hpp"
     #include "colors.hpp"
     #include "listings.hpp"
-
-    #include "utils.hpp"
 
     extern Repository *globalRepo;
     extern BuildHistory *globalBH;

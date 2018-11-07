@@ -24,13 +24,12 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
     #include <tnt/httperror.h>
 
+    #include "utils/strings.hpp"
     #include "BuildHistory.hpp"
     #include "FilePrinter.hpp"
     #include "Repository.hpp"
     #include "WebSettings.hpp"
     #include "listings.hpp"
-
-    #include "utils.hpp"
 
     extern Repository *globalRepo;
     extern BuildHistory *globalBH;
