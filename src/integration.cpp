@@ -72,7 +72,7 @@ public:
         //! Type of character used by this buffer.
         using char_type = char;
         //! Category of functionality provided by this buffer implementation.
-        using category = boost::iostreams::sink_tag;
+        using category = io::sink_tag;
 
     public:
         /**
@@ -197,7 +197,7 @@ bool
 ScreenPageBuffer::put(char c)
 {
     if (redirectToPager) {
-        return boost::iostreams::put(*out, c);
+        return io::put(*out, c);
     }
 
     if (c == '\n') {
@@ -208,11 +208,11 @@ ScreenPageBuffer::put(char c)
         openPager();
         redirectToPager = true;
         for (char c : buffer) {
-            if (!boost::iostreams::put(*out, c)) {
+            if (!io::put(*out, c)) {
                 return false;
             }
         }
-        return boost::iostreams::put(*out, c);
+        return io::put(*out, c);
     }
 
     buffer.push_back(c);
@@ -244,8 +244,7 @@ ScreenPageBuffer::openPager()
         _Exit(127);
     }
 
-    out->open(io::file_descriptor_sink(pipePair[1],
-                                       boost::iostreams::close_handle));
+    out->open(io::file_descriptor_sink(pipePair[1], io::close_handle));
 }
 
 RedirectToPager::RedirectToPager()
