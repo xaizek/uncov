@@ -115,6 +115,16 @@ private:
     }
 
     /**
+     * @brief Frees @c git_reference.
+     *
+     * @param ptr The pointer.
+     */
+    void deleteObj(git_reference *ptr)
+    {
+        git_reference_free(ptr);
+    }
+
+    /**
      * @brief Catch implicit conversions and unhandled cases at compile-time.
      *
      * @param ptr The pointer.
@@ -160,6 +170,21 @@ Repository::getGitPath() const
 }
 
 std::string
+Repository::getCurrentRef() const
+{
+    GitObjPtr<git_reference> ref;
+    if (git_repository_head(&ref, repo) != 0) {
+        throw std::runtime_error("Failed to read HEAD");
+    }
+
+    const char *branch = git_reference_name(ref);
+    if (const char *slash = std::strrchr(branch, '/')) {
+        branch = slash + 1;
+    }
+    return branch;
+}
+
+std::string
 Repository::resolveRef(const std::string &ref) const
 {
     GitObjPtr<git_object> obj;
@@ -171,6 +196,16 @@ Repository::resolveRef(const std::string &ref) const
     git_oid_tostr(oidStr, sizeof(oidStr), git_object_id(obj));
 
     return oidStr;
+}
+
+bool
+Repository::pathIsIgnored(const std::string &path) const
+{
+    int ignored;
+    if (git_ignore_path_is_ignored(&ignored, repo, path.c_str()) != 0) {
+        throw std::runtime_error("Failed to check if path is ignored: " + path);
+    }
+    return ignored;
 }
 
 std::unordered_map<std::string, std::string>
