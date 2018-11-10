@@ -408,8 +408,20 @@ TEST_CASE("Paths to files can be relative inside repository",
     Chdir chdirInsideRepoSubdir("tests/test-repo/subdir");
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
-    CHECK(getCmd("get")->exec(getSettings(), bh, repo, "get",
-                              { "@@", "../test-file1.cpp" }) == EXIT_SUCCESS);
+
+    SECTION("Relative within repository")
+    {
+        CHECK(getCmd("get")->exec(getSettings(), bh, repo, "get",
+                                  { "@@", "../test-file1.cpp" }) ==
+              EXIT_SUCCESS);
+    }
+    SECTION("Relative outside repository")
+    {
+        CHECK(getCmd("get")->exec(getSettings(), bh, repo, "get",
+                                  { "@@", "../../test-repo/test-file1.cpp" }) ==
+              EXIT_SUCCESS);
+    }
+
     CHECK(coutCapture.get() != std::string());
     CHECK(cerrCapture.get() == std::string());
 }

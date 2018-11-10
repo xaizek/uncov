@@ -100,7 +100,8 @@ public:
         if (path.substr(0, 1) == "/") {
             path.erase(path.begin());
         } else if (pathIsInSubtree(absRepoRoot, fs::current_path())) {
-            path = makeRelativePath(absRepoRoot, fs::absolute(path)).string();
+            fs::path canonicPath = normalizePath(fs::absolute(path));
+            path = makeRelativePath(absRepoRoot, canonicPath).string();
         }
 
         this->path = normalizePath(path).string();
