@@ -5,6 +5,8 @@
 /sanitize-basic/
 *.d
 *.o
+*.gcda
+*.gcno
 /uncov
 /uncov-web
 /tests/tests
