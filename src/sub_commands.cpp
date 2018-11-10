@@ -16,11 +16,13 @@
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/optional.hpp>
+#include <boost/program_options.hpp>
 #include <boost/variant.hpp>
 
 #include <cassert>
@@ -41,6 +43,7 @@
 #include "BuildHistory.hpp"
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
+#include "GcovImporter.hpp"
 #include "Repository.hpp"
 #include "Settings.hpp"
 #include "SubCommand.hpp"
@@ -755,6 +758,234 @@ private:
             printBuildHeader(std::cout, bh, build);
         }
     }
+};
+
+/**
+ * @brief Generates coverage information using gcov and imports it.
+ */
+class NewGcoviCmd : public AutoSubCommand<NewGcoviCmd>
+{
+public:
+    NewGcoviCmd() : AutoSubCommand({ "new-gcovi" },
+                                   0U, std::numeric_limits<std::size_t>::max())
+    {
+        describe("new-gcovi", "Generates coverage via gcov and imports it");
+
+        namespace po = boost::program_options;
+        options.add_options()
+            ("help,h",    "display help message")
+            ("verbose,v", "print output of external commands")
+            ("exclude,e", po::value<std::vector<std::string>>()
+                          ->default_value({}, ""),
+             "specifies a path to exclude (can be repeated)")
+            ("ref-name",  po::value<std::string>(),
+             "forces custom ref name")
+            ("capture-worktree,c",
+             "make a dangling commit if working directory is dirty");
+
+        auto runner = [this](std::vector<std::string> &&cmd,
+                             const std::string &dir) {
+            std::string output = readProc(std::move(cmd), dir, CatchStderr{});
+            if (verbose) {
+                std::cout << output;
+            }
+        };
+        GcovImporter::setRunner(runner);
+    }
+
+private:
+    virtual void
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
+    {
+        namespace fs = boost::filesystem;
+
+        boost::program_options::variables_map varMap = parseOptions(args);
+        if (varMap.count("help")) {
+            std::cout << "Usage: uncov new-gcovi [options...] [covoutroot]\n"
+                      << "\nParameters:\n"
+                      << "  covoutroot -- where to look for generated coverage "
+                         "data\n"
+                      << "\nOptions:\n" << options;
+            return;
+        }
+
+        std::string covoutRoot =
+            fs::absolute(varMap["covoutroot"].as<std::string>()).string();
+        auto exclude = varMap["exclude"].as<std::vector<std::string>>();
+        bool shouldCapture = varMap.count("capture-worktree");
+        verbose = varMap.count("verbose");
+
+        absRepoRoot = fs::absolute(normalizePath(repo->getGitPath()))
+                      .parent_path().string();
+
+        std::vector<File> importedFiles = GcovImporter(absRepoRoot,
+                                                       covoutRoot,
+                                                       exclude).getFiles();
+
+        std::string ref, refName;
+        if (!shouldCapture || !capture(importedFiles, ref, refName)) {
+            ref = repo->resolveRef("HEAD");
+            refName = repo->getCurrentRef();
+        }
+
+        if (varMap.count("ref-name")) {
+            refName = varMap["ref-name"].as<std::string>();
+        }
+
+        const std::unordered_map<std::string, std::string> files =
+            repo->listFiles(ref);
+
+        BuildData bd(ref, refName);
+
+        for (File &imported : importedFiles) {
+            const std::string &path = imported.getPath();
+            const auto file = files.find(path);
+            if (file == files.cend()) {
+                if (!repo->pathIsIgnored(path)) {
+                    std::cerr << "Skipping file missing in " << refName << ": "
+                              << path << '\n';
+                }
+            } else if (!boost::iequals(file->second, imported.getHash())) {
+                std::cerr << path << " file at " << refName
+                          << " doesn't match computed MD5 hash\n";
+                error();
+            } else {
+                bd.addFile(File(std::move(imported)));
+            }
+        }
+
+        if (!isFailed()) {
+            Build build = bh->addBuild(bd);
+            printBuildHeader(std::cout, bh, build);
+        }
+    }
+
+    /**
+     * @brief Parses command line-options.
+     *
+     * @param args Command-line arguments.
+     *
+     * @returns Variables map of option values.
+     */
+    boost::program_options::variables_map
+    parseOptions(const std::vector<std::string> &args)
+    {
+        namespace po = boost::program_options;
+
+        po::options_description allOptions;
+        allOptions.add_options()
+            ("covoutroot", po::value<std::string>()->default_value("."));
+        allOptions.add(options);
+
+        po::positional_options_description positionalOptions;
+        positionalOptions.add("covoutroot", 1);
+
+        auto parsed_from_cmdline =
+            po::command_line_parser(args)
+            .options(allOptions)
+            .positional(positionalOptions)
+            .run();
+
+        po::variables_map varMap;
+        po::store(parsed_from_cmdline, varMap);
+        return varMap;
+    }
+
+    /**
+     * @brief Checks if capturing is needed and performs it if so.
+     *
+     * @param importedFiles List of discovered files.
+     * @param [out] ref Reference to use.
+     * @param [out] refName Ref name to use.
+     *
+     * @returns @c true if something was captured and updates out parameters,
+     *          @c false otherwise.
+     */
+    bool capture(const std::vector<File> &importedFiles,
+                 std::string &ref, std::string &refName) const
+    {
+        if (queryProc({ "git", "diff", "--quiet" },
+                      absRepoRoot) == EXIT_SUCCESS &&
+            !needCaptureUntracked(importedFiles)) {
+            return false;
+        }
+
+        std::unordered_map<std::string, std::string> files =
+            repo->listFiles("HEAD");
+
+        // Compose commands to temporary add relevant untracked to the index.
+        std::vector<std::string> addCmd = { "add", "--" };
+        std::vector<std::string> resetCmd = { "reset", "--" };
+        for (const File &imported : importedFiles) {
+            const std::string &path = imported.getPath();
+            const auto it = files.find(path);
+            if (it == files.end() && !repo->pathIsIgnored(path)) {
+                addCmd.push_back(path);
+                resetCmd.push_back(path);
+            }
+        }
+
+        if (addCmd.size() > 2U) {
+            git(std::move(addCmd));
+        }
+        ref = readProc({ "git", "stash", "create" }, absRepoRoot);
+        boost::trim_if(ref, boost::is_any_of("\r\n \t"));
+        if (resetCmd.size() > 2U) {
+            git(std::move(resetCmd));
+        }
+
+        refName = "WIP on " + repo->getCurrentRef();
+        return true;
+    }
+
+    /**
+     * @brief Checks whether any of the files is untracked.
+     *
+     * @param importedFiles List of discovered files.
+     *
+     * @returns @c true if so, @c false otherwise.
+     */
+    bool needCaptureUntracked(const std::vector<File> &importedFiles) const
+    {
+        const std::unordered_map<std::string, std::string> files =
+            repo->listFiles("HEAD");
+
+        for (const File &imported : importedFiles) {
+            const std::string &path = imported.getPath();
+            if (files.find(path) == files.cend() &&
+                !repo->pathIsIgnored(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @brief Executes a git command in the root of the repository.
+     *
+     * @param cmd Command (should not include "git" prefix).
+     */
+    void git(std::vector<std::string> cmd) const
+    {
+        cmd.insert(cmd.cbegin(), "git");
+        std::string output = readProc(std::move(cmd), absRepoRoot,
+                                      CatchStderr{});
+        if (verbose) {
+            if (!cmd.empty()) {
+                std::cout << "Running `git " << cmd.front() << " [...]`...\n";
+            }
+            std::cout << output;
+        }
+    }
+
+private:
+    //! Options for the subcommand.
+    boost::program_options::options_description options;
+    //! Absolute path to the root of the repository.
+    std::string absRepoRoot;
+    //! Whether verbose output is requested.
+    bool verbose;
 };
 
 /**

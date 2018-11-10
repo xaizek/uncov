@@ -81,7 +81,7 @@ bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
 bin_depends := $(bin_objects:.o=.d)
 
 tests_sources := $(call rwildcard, tests/, *.cpp)
-tests_sources := $(filter-out tests/test-repo/%, $(tests_sources))
+tests_sources := $(filter-out tests/test-repo%, $(tests_sources))
 
 tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o)
 tests_objects += $(filter-out %/main.o,$(bin_objects))
@@ -175,8 +175,12 @@ $(webbin):
 	@chmod +x $@
 endif
 
-check: $(target) $(out_dir)/tests/tests reset-coverage
+check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
+       reset-coverage
 	@$(out_dir)/tests/tests
+
+tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
+	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp
 
 install: release
 	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) $(webbin) uncov-gcov
@@ -227,6 +231,8 @@ clean:
 	-$(RM) $(bin_objects) $(tests_objects) $(web_objects) \
 	       $(bin_depends) $(tests_depends) $(web_depends) \
 	       $(web_temps) \
-	       $(bin) $(webbin) $(out_dir)/tests/tests
+	       $(bin) $(webbin) $(out_dir)/tests/tests \
+	       tests/test-repo-gcno/test-repo-gcno \
+	       tests/test-repo-gcno/main.gcda tests/test-repo-gcno/main.gcno
 
 include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))

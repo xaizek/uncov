@@ -17,18 +17,25 @@
 
 #include "Catch/catch.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/optional.hpp>
+#include <boost/scope_exit.hpp>
 
 #include <cstdlib>
 
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
+#include "utils/strings.hpp"
 #include "BuildHistory.hpp"
 #include "DB.hpp"
+#include "GcovImporter.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
+#include "integration.hpp"
 
 #include "TestUtils.hpp"
 
@@ -965,6 +972,471 @@ TEST_CASE("Nothing is printed for a completely covered file",
                                  { "test-file1.cpp" }) == EXIT_SUCCESS);
     CHECK(coutCapture.get() == file1);
     CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("new-gcovi invokes gcov", "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #1, 100.00%(2/2), 0.0000%(+2/   0/  +2), master\n";
+
+    // Remove destination directory if it exists to account for crashes.
+    TempDirCopy tempDirCopy("tests/test-repo-gcno/_git",
+                            "tests/test-repo-gcno/.git",
+                            true);
+
+    CHECK(queryProc({ "./test-repo-gcno" }, "tests/test-repo-gcno/",
+                    CatchStderr{}) == EXIT_SUCCESS);
+
+    Repository repo("tests/test-repo-gcno");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    BOOST_SCOPE_EXIT_ALL(dbPath) {
+        std::remove(dbPath.c_str());
+    };
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--verbose",
+                                      "tests/test-repo-gcno" }) ==
+          EXIT_SUCCESS);
+    CHECK(split(coutCapture.get(), '\n').size() > 2U);
+    CHECK(boost::ends_with(coutCapture.get(), newBuildInfo));
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(1);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 1U);
+}
+
+TEST_CASE("Empty coverage data is imported",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&cmd,
+                     const std::string &/*dir*/) {
+        REQUIRE(cmd.size() == 4U);
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("Coverage file is discovered",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string gcnoFile = "tests/test-repo/test-file1.gcno";
+    BOOST_SCOPE_EXIT_ALL(gcnoFile) {
+        std::remove(gcnoFile.c_str());
+    };
+    std::ofstream{gcnoFile};
+
+    auto runner = [&gcnoFile](std::vector<std::string> &&cmd,
+                              const std::string &/*dir*/) {
+        REQUIRE(cmd.size() == 5U);
+        CHECK(boost::ends_with(cmd[4], gcnoFile));
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("Unexecuted files can be excluded",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--exclude", "subdir",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 2U);
+}
+
+TEST_CASE("Executed files can be excluded",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &dir) {
+        std::ofstream{dir + "/subdir#file.gcov"}
+            << "file:subdir/file.cpp\n";
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--exclude", "subdir",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 2U);
+}
+
+TEST_CASE("Gcov file is found and parsed",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(2/2), 0.0000%(0/   0/   0), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &dir) {
+        std::ofstream{dir + "/test-file1.gcov"}
+            << "file:test-file1.cpp\n"
+            << "lcount:2,1\n"
+            << "lcount:4,1\n";
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("Gcov file with broken format causes an exception",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &dir) {
+        std::ofstream{dir + "/test-file1.gcov"}
+            << "file:test-file1.cpp\n"
+            << "lcount:2\n";
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK_THROWS_AS(getCmd("new-gcovi")->exec(getSettings(), bh, repo,
+                                              "new-gcovi",
+                                              { "tests/test-repo" }),
+                    std::runtime_error);
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() == std::string());
+
+    REQUIRE_FALSE(bh.getBuild(4));
+}
+
+TEST_CASE("Modified source file is captured",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string sourceFile = "tests/test-repo/subdir/file.cpp";
+    FileRestorer sourceFileRestorer(sourceFile, sourceFile + "_original");
+    std::ofstream{sourceFile} << "int f() { return 666; }";
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--capture-worktree",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("Untracked source file is captured",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string untrackedFile = "tests/test-repo/test-file3.cpp";
+    BOOST_SCOPE_EXIT_ALL(untrackedFile) {
+        std::remove(untrackedFile.c_str());
+    };
+    std::ofstream{untrackedFile};
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--capture-worktree",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 4U);
+}
+
+TEST_CASE("Untracked source file is rejected without capture",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+    const std::string error =
+        "Skipping file missing in master: test-file3.cpp\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string untrackedFile = "tests/test-repo/test-file3.cpp";
+    BOOST_SCOPE_EXIT_ALL(untrackedFile) {
+        std::remove(untrackedFile.c_str());
+    };
+    std::ofstream{untrackedFile};
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == error);
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("Unmatched source fails build addition",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string error =
+        "subdir/file.cpp file at master doesn't match computed MD5 hash\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string sourceFile = "tests/test-repo/subdir/file.cpp";
+    FileRestorer sourceFileRestorer(sourceFile, sourceFile + "_original");
+    std::ofstream{sourceFile} << "int f() { return 666; }";
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "tests/test-repo" }) == EXIT_FAILURE);
+    CHECK(coutCapture.get() == std::string());
+    CHECK(cerrCapture.get() == error);
+
+    REQUIRE_FALSE(bh.getBuild(4));
+}
+
+TEST_CASE("new-gcovi --help", "[subcommands][new-gcovi-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--help",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() != std::string());
+    CHECK(cerrCapture.get() == std::string());
+
+    REQUIRE_FALSE(bh.getBuild(4));
+}
+
+TEST_CASE("new-gcovi --ref-name", "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), test-ref-name\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--ref-name", "test-ref-name",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getRefName() == "test-ref-name");
+}
+
+TEST_CASE("new-gcovi --capture-worktree can be noop",
+          "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--capture-worktree",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() != std::string());
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
+TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    std::string untrackedFile = "tests/test-repo/test-file3.cpp";
+    BOOST_SCOPE_EXIT_ALL(untrackedFile) {
+        std::remove(untrackedFile.c_str());
+    };
+    std::ofstream{untrackedFile};
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &/*dir*/) {
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--verbose", "--capture-worktree",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(split(coutCapture.get(), '\n').size() > 2U);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 4U);
 }
 
 static SubCommand *
