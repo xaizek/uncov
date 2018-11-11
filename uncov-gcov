@@ -459,6 +459,8 @@ def gitrepo(abs_repo_root, capture_worktree, src_files):
     import os
     repo = Repository(abs_repo_root)
 
+    refName = repo.git('rev-parse', '--abbrev-ref', 'HEAD')[1].strip()
+
     if capture_worktree and repo.git('diff', '--quiet')[0] != 0:
         repo.git('stash', 'save', 'uncov: temporary commit object')
         repo.git('stash', 'apply', '--index')
@@ -479,12 +481,14 @@ def gitrepo(abs_repo_root, capture_worktree, src_files):
                     os.makedirs(parent_dir)
                 with io.open(abs_src_file, mode='wb') as fobj:
                     fobj.write(repo.git('show', commit + ':' + src_file)[1])
+
+        refName = 'WIP on ' + refName
     else:
         commit = repo.gitlog('%H')
 
     return {
         'ref': commit,
-        'ref-name': repo.git('rev-parse', '--abbrev-ref', 'HEAD')[1].strip(),
+        'ref-name': refName,
     }
 
 class Repository(object):

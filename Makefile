@@ -81,7 +81,7 @@ bin_objects := $(bin_sources:%.cpp=$(out_dir)/%.o)
 bin_depends := $(bin_objects:.o=.d)
 
 tests_sources := $(call rwildcard, tests/, *.cpp)
-tests_sources := $(filter-out tests/test-repo/%, $(tests_sources))
+tests_sources := $(filter-out tests/test-repo%, $(tests_sources))
 
 tests_objects := $(tests_sources:%.cpp=$(out_dir)/%.o)
 tests_objects += $(filter-out %/main.o,$(bin_objects))
@@ -103,23 +103,22 @@ out_dirs := $(sort $(dir $(bin_objects) $(web_objects) $(tests_objects)))
 
 .PHONY: all check clean debug release sanitize-basic install uninstall
 .PHONY: man doxygen
-.PHONY: coverage self-coverage reset-coverage
+.PHONY: coverage self-coverage self-coverage-release reset-coverage
 
 all: $(bin) $(webbin)
 
 debug release sanitize-basic: all
 
 coverage: check $(bin)
-	find $(out_dir)/ -name '*.o' -exec gcov -p {} + > $(out_dir)/gcov.out \
-	|| (cat $(out_dir)/gcov.out && false)
-	$(GCOV_PREFIX)uncov-gcov --root . --no-gcov --capture-worktree \
-	                         --exclude tests --exclude web \
-	| $(UNCOV_PREFIX)uncov new
-	find . -name '*.gcov' -delete
+	uncov new-gcovi --exclude tests/ --exclude web/ \
+	                --capture-worktree $(out_dir)
 
-self-coverage: UNCOV_PREFIX := $(out_dir)/
-self-coverage: GCOV_PREFIX := ./
-self-coverage: coverage
+self-coverage: check self-coverage-release
+	release/uncov new-gcovi --exclude tests/ --exclude web/ \
+	                        --capture-worktree $(out_dir)
+
+self-coverage-release:
+	+$(MAKE) release
 
 man: docs/uncov.1 docs/uncov-gcov.1 docs/uncov-web.1
 # the following targets don't depend on $(wildcard docs/*/*.md) to make pandoc
@@ -175,8 +174,12 @@ $(webbin):
 	@chmod +x $@
 endif
 
-check: $(target) $(out_dir)/tests/tests reset-coverage
+check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
+       reset-coverage
 	@$(out_dir)/tests/tests
+
+tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
+	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp
 
 install: release
 	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) $(webbin) uncov-gcov
@@ -227,6 +230,8 @@ clean:
 	-$(RM) $(bin_objects) $(tests_objects) $(web_objects) \
 	       $(bin_depends) $(tests_depends) $(web_depends) \
 	       $(web_temps) \
-	       $(bin) $(webbin) $(out_dir)/tests/tests
+	       $(bin) $(webbin) $(out_dir)/tests/tests \
+	       tests/test-repo-gcno/test-repo-gcno \
+	       tests/test-repo-gcno/main.gcda tests/test-repo-gcno/main.gcno
 
 include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))

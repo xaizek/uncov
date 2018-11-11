@@ -88,6 +88,14 @@ public:
      */
     std::string getGitPath() const;
     /**
+     * @brief Retrieves name `HEAD` is currently at.
+     *
+     * @returns Reference name.
+     *
+     * @throws std::runtime_error On error to load `HEAD`.
+     */
+    std::string getCurrentRef() const;
+    /**
      * @brief Converts ref into object ID.
      *
      * @param ref Symbolic reference.
@@ -97,6 +105,16 @@ public:
      * @throws std::invalid_argument If ref couldn't be resolved.
      */
     std::string resolveRef(const std::string &ref) const;
+    /**
+     * @brief Checks whether path is ignored in the repository.
+     *
+     * @param path Path to check.
+     *
+     * @returns @c true if so, @c false otherwise.
+     *
+     * @throws std::runtime_error On error to check the path.
+     */
+    bool pathIsIgnored(const std::string &path) const;
     /**
      * @brief Lists files from tree associated with the ref.
      *

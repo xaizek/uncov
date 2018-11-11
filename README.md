@@ -1,6 +1,6 @@
 **uncov**, _v0.2_, _2016 – 2018_
 
-_This file last updated on 15 October, 2018_
+_This file last updated on 11 November, 2018_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -72,7 +72,7 @@ Expected to work in Unix-like environments.
 ### Prerequisites ###
 
 * [GNU Make][make].
-* C++11 compatible compiler (GCC 4.9 works fine).
+* C++11 compatible compiler.
 * [Boost][boost], tested with 1.55 and 1.59, but older versions might work.
 * [libgit2][libgit2].
 * [libsqlite3][sqlite].
@@ -80,26 +80,15 @@ Expected to work in Unix-like environments.
 * [zlib][zlib].
 * (optional) [tntnet][tntnet] for Web-UI.
 * (optional) [pandoc][pandoc] for regenerating man page.
-* (optional) [python][python] for collecting coverage for C and C++ (would be
-  nice to get rid of this weird dependency, probably by rewriting the tool).
+* (optional) [python][python] for collecting coverage for C and C++ using
+  `uncov-gcov` instead of a subcommand.
 
 ## Usage ##
 
-`uncov-gcov` can be used to generate coverage, but it seems to not play well
-with out-of-tree builds (some coverage is missing, this issue is inherited from
-its origin), so the recommended way of recording coverage information is shown
-in example below:
-
-    # reset coverage counters from previous runs
+    # drop coverage counters from previous run
     find . -name '*.gcda' -delete
-    # < run tests here >
-    # generage coverage for every object file found (change "." to build root)
-    find . -name '*.o' -exec gcov -p {} +
-    # generage and combine coverage reports (--capture-worktree automatically
-    # makes stray commit if repository is dirty)
-    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
-    # remove coverage reports
-    find . -name '*.gcov' -delete
+    # < run tests at this point >
+    uncov new-gcovi --exclude tests/ --exclude web/ --capture-worktree
 
 ### Example ###
 
@@ -108,25 +97,25 @@ you have just built it or just happen to have all the necessary development
 dependencies).
 
 In root of the project run `make self-coverage` and then do
-`coverage/uncov build` to see something similar to:
+`release/uncov build` to see something similar to:
 
 ![build](data/screenshots/example/build.png)
 
-`coverage/uncov dirs` shows coverage per directory:
+`release/uncov dirs` shows coverage per directory:
 
 ![dirs](data/screenshots/example/dirs.png)
 
-`coverage/uncov changed` shows files which have their coverage changed:
+`release/uncov changed` shows files which have their coverage changed:
 
 ![changed](data/screenshots/example/changed.png)
 
-`coverage/uncov show src/SubCommand.cpp` shows annotated `src/SubCommand.cpp`
+`release/uncov show src/SubCommand.cpp` shows annotated `src/SubCommand.cpp`
 file:
 
 ![show](data/screenshots/example/show.png)
 
 When most of a file is covered, one probably wants to see just what's not yet
-covered, this can be done with `coverage/uncov missed` command:
+covered, this can be done with `release/uncov missed` command:
 
 ![missed](data/screenshots/example/missed.png)
 

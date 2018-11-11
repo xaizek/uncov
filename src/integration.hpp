@@ -19,12 +19,16 @@
 #define UNCOV__INTEGRATION_HPP__
 
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
+
+#include "utils/Flag.hpp"
 
 /**
  * @file integration.hpp
  *
- * @brief Several terminal integration utilities.
+ * @brief Several terminal and environment integration utilities.
  */
 
 /**
@@ -57,6 +61,40 @@ private:
     //! Implementation details.
     std::unique_ptr<Impl> impl;
 };
+
+//! Boolean flag type for controlling capturing of @c stderr.
+using CatchStderr = Flag<struct CatchStderrTag>;
+
+/**
+ * @brief Runs external command for its exit code.
+ *
+ * @param cmd Command to run.
+ * @param dir Directory to run the command in.
+ * @param catchStdErr Whether to redirect @c stderr.
+ *
+ * @returns Exit code of the command.
+ *
+ * @throws std::runtime_error On failure to run the command or when it didn't
+ *                            finish properly.
+ */
+int queryProc(std::vector<std::string> &&cmd, const std::string &dir = ".",
+              CatchStderr catchStdErr = CatchStderr(false));
+
+/**
+ * @brief Runs external command for its output.
+ *
+ * @param cmd Command to run.
+ * @param dir Directory to run the command in.
+ * @param catchStdErr Whether to redirect @c stderr.
+ *
+ * @returns Exit code of the command.
+ *
+ * @throws std::runtime_error On failure to run the command or when it didn't
+ *                            finish properly.
+ */
+std::string readProc(std::vector<std::string> &&cmd,
+                     const std::string &dir = ".",
+                     CatchStderr catchStdErr = CatchStderr(false));
 
 /**
  * @brief Queries whether program output is connected to terminal.

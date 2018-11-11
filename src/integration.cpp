@@ -32,12 +32,31 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "utils/memory.hpp"
 
 namespace io = boost::iostreams;
+
+namespace {
+
+/**
+ * @brief Result of running a command.
+ */
+struct ProcResult
+{
+    std::string output; //!< Output @c stdout and optionally @c stderr.
+    int exitCode;       //!< Exit code.
+};
+
+}
+
+static ProcResult runProc(std::vector<std::string> &&cmd,
+                          const std::string &dir, CatchStderr catchStdErr);
+static std::string stringify(const std::vector<std::string> &cmd);
 
 /**
  * @brief Base for hidden internals of RedirectToPager class.
@@ -72,7 +91,7 @@ public:
         //! Type of character used by this buffer.
         using char_type = char;
         //! Category of functionality provided by this buffer implementation.
-        using category = boost::iostreams::sink_tag;
+        using category = io::sink_tag;
 
     public:
         /**
@@ -197,7 +216,7 @@ bool
 ScreenPageBuffer::put(char c)
 {
     if (redirectToPager) {
-        return boost::iostreams::put(*out, c);
+        return io::put(*out, c);
     }
 
     if (c == '\n') {
@@ -208,11 +227,11 @@ ScreenPageBuffer::put(char c)
         openPager();
         redirectToPager = true;
         for (char c : buffer) {
-            if (!boost::iostreams::put(*out, c)) {
+            if (!io::put(*out, c)) {
                 return false;
             }
         }
-        return boost::iostreams::put(*out, c);
+        return io::put(*out, c);
     }
 
     buffer.push_back(c);
@@ -244,8 +263,7 @@ ScreenPageBuffer::openPager()
         _Exit(127);
     }
 
-    out->open(io::file_descriptor_sink(pipePair[1],
-                                       boost::iostreams::close_handle));
+    out->open(io::file_descriptor_sink(pipePair[1], io::close_handle));
 }
 
 RedirectToPager::RedirectToPager()
@@ -256,6 +274,125 @@ RedirectToPager::RedirectToPager()
 RedirectToPager::~RedirectToPager()
 {
     // Destroy impl with complete type.
+}
+
+int
+queryProc(std::vector<std::string> &&cmd, const std::string &dir,
+          CatchStderr catchStdErr)
+{
+    return runProc(std::move(cmd), dir, catchStdErr).exitCode;
+}
+
+std::string
+readProc(std::vector<std::string> &&cmd, const std::string &dir,
+         CatchStderr catchStdErr)
+{
+    ProcResult proc = runProc(std::move(cmd), dir, catchStdErr);
+    if (proc.exitCode != EXIT_SUCCESS) {
+        throw std::runtime_error("Command has failed: " + stringify(cmd) +
+                                 "\nWith output:\n" + proc.output);
+    }
+    return std::move(proc.output);
+}
+
+/**
+ * @brief Runs external command.
+ *
+ * @param cmd Command to run.
+ * @param dir Directory to run the command in.
+ * @param catchStdErr Whether to redirect @c stderr.
+ *
+ * @returns Exit code and output of the command.
+ *
+ * @throws std::runtime_error On failure to run the command or when it didn't
+ *                            finish properly.
+ */
+static ProcResult
+runProc(std::vector<std::string> &&cmd, const std::string &dir,
+        CatchStderr catchStdErr)
+{
+    int pipePair[2];
+    if (pipe(pipePair) != 0) {
+        throw std::runtime_error("Failed to create a pipe");
+    }
+
+    pid_t pid = fork();
+    if (pid == static_cast<pid_t>(-1)) {
+        close(pipePair[0]);
+        close(pipePair[1]);
+        throw std::runtime_error("Fork has failed");
+    }
+    if (pid == static_cast<pid_t>(0)) {
+        if (chdir(dir.c_str()) != 0) {
+            _Exit(EXIT_FAILURE);
+        }
+
+        close(pipePair[0]);
+        if (dup2(pipePair[1], STDOUT_FILENO) == -1) {
+            _Exit(EXIT_FAILURE);
+        }
+        if (catchStdErr && dup2(pipePair[1], STDERR_FILENO) == -1) {
+            _Exit(EXIT_FAILURE);
+        }
+        close(pipePair[1]);
+
+        char *argv[cmd.size() + 1U];
+        for (std::size_t i = 0; i < cmd.size(); ++i) {
+            argv[i] = &cmd[i][0];
+        }
+        argv[cmd.size()] = nullptr;
+
+        execvp(argv[0], argv);
+        _Exit(127);
+    }
+
+    close(pipePair[1]);
+    io::stream_buffer<io::file_descriptor_source> in(pipePair[0],
+                                                     io::close_handle);
+
+    std::ostringstream oss;
+    oss << &in;
+
+    int wstatus;
+    if (waitpid(pid, &wstatus, 0) == -1) {
+        throw std::runtime_error("Failed to wait for process: " +
+                                 stringify(cmd));
+    }
+
+    if (!WIFEXITED(wstatus)) {
+        throw std::runtime_error("Command hasn't finished: " +
+                                 stringify(cmd));
+    }
+
+    return { oss.str(), WEXITSTATUS(wstatus) };
+}
+
+/**
+ * @brief Formats command as a string.
+ *
+ * Shortens it to a reasonable number of arguments if necessary.
+ *
+ * @param cmd Command to format.
+ *
+ * @returns Formatted message.
+ */
+static std::string
+stringify(const std::vector<std::string> &cmd)
+{
+    if (cmd.empty()) {
+        return std::string();
+    }
+
+    std::ostringstream oss;
+    oss << cmd[0];
+    for (unsigned int i = 1U; i < cmd.size(); ++i) {
+        if (i > 5U && cmd.size() - i > 2U) {
+            oss << " {" << cmd.size() - i << " more arguments...}";
+            break;
+        }
+        oss << " {" << cmd[i] << '}';
+    }
+    return oss.str();
 }
 
 bool

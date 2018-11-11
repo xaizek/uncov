@@ -5,9 +5,12 @@
 /sanitize-basic/
 *.d
 *.o
+*.gcda
+*.gcno
 /uncov
 /uncov-web
 /tests/tests
+/tests/test-repo-gcno/test-repo-gcno
 /config.h
 
 # vim tags

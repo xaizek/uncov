@@ -18,11 +18,34 @@
 #ifndef UNCOV__UTILS__STRINGS_HPP__
 #define UNCOV__UTILS__STRINGS_HPP__
 
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+
+/**
+ * @brief Splits string in two parts at the leftmost delimiter.
+ *
+ * @param s String to split.
+ * @param delim Delimiter, which separates left and right parts of the string.
+ *
+ * @returns Pair of left and right string parts.
+ *
+ * @throws std::runtime_error On failure to find delimiter in the string.
+ */
+inline std::pair<std::string, std::string>
+splitAt(const std::string &s, char delim)
+{
+    const std::string::size_type pos = s.find(delim);
+    if (pos == std::string::npos) {
+        throw std::runtime_error("Can't split " + s + " with " + delim);
+    }
+
+    return { s.substr(0, pos), s.substr(pos + 1U) };
+}
 
 /**
  * @brief Splits string in a range-for loop friendly way.
