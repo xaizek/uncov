@@ -1,6 +1,11 @@
 #define CATCH_CONFIG_RUNNER
 #include "Catch/catch.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
+
+#include <cstdlib>
+#include <cstring>
+
 #include <memory>
 
 #include "decoration.hpp"
@@ -11,6 +16,15 @@
 int
 main(int argc, const char *argv[])
 {
+    // Drop all `GIT_*` environment variables as they might interfere with
+    // running some tests.
+    extern char **environ;
+    for (char **e = environ; *e != NULL; ++e) {
+        if (boost::starts_with(*e, "GIT_")) {
+            unsetenv(std::string(*e, std::strchr(*e, '=')).c_str());
+        }
+    }
+
     PrintingSettings::set(std::make_shared<TestSettings>());
 
     decor::disableDecorations();
