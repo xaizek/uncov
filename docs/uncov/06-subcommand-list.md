@@ -181,6 +181,32 @@ Integers have the following meaning:
  * when equal to zero -- line is not covered (missed);
  * when greater than zero -- line is covered and was hit that many times.
 
+new-gcovi
+---------
+
+Generates coverage via `gcov` and imports it.
+
+**Usage: new-gcovi [options...] [covoutroot]**
+
+**Parameters:**
+
+ * **covoutroot** -- where to look for generated coverage data.
+
+**Options:**
+
+ * **-h [ --help ]**             -- display help message;
+ * **-v [ --verbose ]**          -- print output of external commands;
+ * **-e [ --exclude ] arg**      -- specifies a path to exclude (can be
+                                    repeated), paths are taken to be relative to
+                                    the root of the repository;
+ * **--ref-name arg**            -- forces custom ref name;
+ * **-c [ --capture-worktree ]** -- make a dangling commit if working directory
+                                    is dirty.
+
+To do its work this subcommand invokes `gcov` and then parses its output in
+intermediate format, which is only mostly stable so usage with some versions of
+`gcov` might require changes.
+
 new-json
 --------
 

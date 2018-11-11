@@ -85,21 +85,10 @@ Expected to work in Unix-like environments.
 
 ## Usage ##
 
-`uncov-gcov` can be used to generate coverage, but it seems to not play well
-with out-of-tree builds (some coverage is missing, this issue is inherited from
-its origin), so the recommended way of recording coverage information is shown
-in example below:
-
-    # reset coverage counters from previous runs
+    # drop coverage counters from previous run
     find . -name '*.gcda' -delete
-    # < run tests here >
-    # generage coverage for every object file found (change "." to build root)
-    find . -name '*.o' -exec gcov -p {} +
-    # generage and combine coverage reports (--capture-worktree automatically
-    # makes stray commit if repository is dirty)
-    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
-    # remove coverage reports
-    find . -name '*.gcov' -delete
+    # < run tests at this point >
+    uncov new-gcovi --exclude tests/ --exclude web/ --capture-worktree
 
 ### Example ###
 
