@@ -72,7 +72,7 @@ Expected to work in Unix-like environments.
 ### Prerequisites ###
 
 * [GNU Make][make].
-* C++11 compatible compiler (GCC 4.9 works fine).
+* C++11 compatible compiler.
 * [Boost][boost], tested with 1.55 and 1.59, but older versions might work.
 * [libgit2][libgit2].
 * [libsqlite3][sqlite].
@@ -80,8 +80,8 @@ Expected to work in Unix-like environments.
 * [zlib][zlib].
 * (optional) [tntnet][tntnet] for Web-UI.
 * (optional) [pandoc][pandoc] for regenerating man page.
-* (optional) [python][python] for collecting coverage for C and C++ (would be
-  nice to get rid of this weird dependency, probably by rewriting the tool).
+* (optional) [python][python] for collecting coverage for C and C++ using
+  `uncov-gcov` instead of a subcommand.
 
 ## Usage ##
 
