@@ -289,7 +289,8 @@ readProc(std::vector<std::string> &&cmd, const std::string &dir,
 {
     ProcResult proc = runProc(std::move(cmd), dir, catchStdErr);
     if (proc.exitCode != EXIT_SUCCESS) {
-        throw std::runtime_error("Command has failed: " + stringify(cmd));
+        throw std::runtime_error("Command has failed: " + stringify(cmd) +
+                                 "\nWith output:\n" + proc.output);
     }
     return std::move(proc.output);
 }
