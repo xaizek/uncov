@@ -1,6 +1,6 @@
 **uncov**, _v0.2_, _2016 – 2018_
 
-_This file last updated on 15 October, 2018_
+_This file last updated on 11 November, 2018_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -108,25 +108,25 @@ you have just built it or just happen to have all the necessary development
 dependencies).
 
 In root of the project run `make self-coverage` and then do
-`coverage/uncov build` to see something similar to:
+`release/uncov build` to see something similar to:
 
 ![build](data/screenshots/example/build.png)
 
-`coverage/uncov dirs` shows coverage per directory:
+`release/uncov dirs` shows coverage per directory:
 
 ![dirs](data/screenshots/example/dirs.png)
 
-`coverage/uncov changed` shows files which have their coverage changed:
+`release/uncov changed` shows files which have their coverage changed:
 
 ![changed](data/screenshots/example/changed.png)
 
-`coverage/uncov show src/SubCommand.cpp` shows annotated `src/SubCommand.cpp`
+`release/uncov show src/SubCommand.cpp` shows annotated `src/SubCommand.cpp`
 file:
 
 ![show](data/screenshots/example/show.png)
 
 When most of a file is covered, one probably wants to see just what's not yet
-covered, this can be done with `coverage/uncov missed` command:
+covered, this can be done with `release/uncov missed` command:
 
 ![missed](data/screenshots/example/missed.png)
 
