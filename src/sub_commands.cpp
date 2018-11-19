@@ -708,7 +708,17 @@ private:
              const std::vector<std::string> &/*args*/) override
     {
         std::string ref, refName;
-        std::cin >> ref >> refName;
+        if (!std::getline(std::cin, ref)) {
+            std::cerr << "Invalid input format: failed to read reference\n";
+            error();
+            return;
+        }
+        if (!std::getline(std::cin, refName)) {
+            std::cerr << "Invalid input format: failed to read reference "
+                         "name\n";
+            error();
+            return;
+        }
 
         const std::unordered_map<std::string, std::string> files =
             repo->listFiles(ref);
@@ -721,7 +731,9 @@ private:
 
             int nLines;
             if (!(std::cin >> nLines) || nLines < 0) {
-                std::cerr << "Invalid input format\n";
+                std::cerr << "Invalid input format: "
+                             "no or bad coverage size for "
+                          << path << '\n';
                 error();
                 break;
             }
@@ -732,7 +744,9 @@ private:
             while (nLines-- > 0) {
                 int i;
                 if (!(std::cin >> i)) {
-                    std::cerr << "Invalid input format\n";
+                    std::cerr << "Invalid input format: "
+                                 "failed to read coverage count for "
+                              << path << '\n';
                     error();
                     break;
                 }
