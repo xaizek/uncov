@@ -708,7 +708,17 @@ private:
              const std::vector<std::string> &/*args*/) override
     {
         std::string ref, refName;
-        std::cin >> ref >> refName;
+        if (!(std::cin >> ref)) {
+            std::cerr << "Invalid input format: failed to read reference\n";
+            error();
+            return;
+        }
+        if (!(std::cin >> refName)) {
+            std::cerr << "Invalid input format: failed to read reference "
+                         "name\n";
+            error();
+            return;
+        }
 
         const std::unordered_map<std::string, std::string> files =
             repo->listFiles(ref);

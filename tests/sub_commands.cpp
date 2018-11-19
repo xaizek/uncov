@@ -440,6 +440,21 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
 
+    SECTION("Empty input")
+    {
+        StreamSubstitute cinSubst(std::cin, "");
+        CHECK(getCmd("new")->exec(getSettings(), bh, repo, "new",
+                                  {}) == EXIT_FAILURE);
+    }
+
+    SECTION("No reference name")
+    {
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n");
+        CHECK(getCmd("new")->exec(getSettings(), bh, repo, "new",
+                                  {}) == EXIT_FAILURE);
+    }
+
     SECTION("Missing hashsum")
     {
         StreamSubstitute cinSubst(std::cin,
