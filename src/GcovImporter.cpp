@@ -59,7 +59,8 @@ GcovImporter::GcovImporter(const std::string &root,
         ".m", ".mm",
     };
     std::unordered_set<std::string> skipDirs = {
-        ".git", ".hg", ".svn",
+        ".git", ".hg", ".svn", // Various version control systems.
+        ".deps"                // Dependency tracking of automake.
     };
 
     std::vector<std::string> cmd = {
