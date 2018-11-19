@@ -506,6 +506,20 @@ TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
 
+    SECTION("Reference name can contain spaces")
+    {
+        auto sizeWas = bh.getBuilds().size();
+        StreamSubstitute cinSubst(std::cin,
+                                  "8e354da4df664b71e06c764feb29a20d64351a01\n"
+                                  "WIP on master\n");
+        CHECK(getCmd("new")->exec(getSettings(), bh, repo, "new",
+                                  {}) == EXIT_SUCCESS);
+        REQUIRE(bh.getBuilds().size() == sizeWas + 1);
+        REQUIRE(bh.getBuilds().back().getPaths() == vs({}));
+
+        CHECK(cerrCapture.get() == std::string());
+    }
+
     SECTION("File missing from commit is just skipped")
     {
         auto sizeWas = bh.getBuilds().size();
