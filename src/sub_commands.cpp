@@ -721,7 +721,9 @@ private:
 
             int nLines;
             if (!(std::cin >> nLines) || nLines < 0) {
-                std::cerr << "Invalid input format\n";
+                std::cerr << "Invalid input format: "
+                             "no or bad coverage size for "
+                          << path << '\n';
                 error();
                 break;
             }
@@ -732,7 +734,9 @@ private:
             while (nLines-- > 0) {
                 int i;
                 if (!(std::cin >> i)) {
-                    std::cerr << "Invalid input format\n";
+                    std::cerr << "Invalid input format: "
+                                 "failed to read coverage count for "
+                              << path << '\n';
                     error();
                     break;
                 }
