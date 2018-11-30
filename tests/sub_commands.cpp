@@ -1132,6 +1132,36 @@ TEST_CASE("Unexecuted files can be excluded",
     CHECK(build->getPaths().size() == 2U);
 }
 
+TEST_CASE("new-gcovi --prefix", "[subcommands][new-gcovi-subcommand]")
+{
+    const std::string newBuildInfo =
+        "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
+
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    FileRestorer databaseRestorer(dbPath, dbPath + "_original");
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &dir) {
+        std::ofstream{dir + "/subdir#file.gcov"}
+            << "file:file.cpp\n";
+    };
+    GcovImporter::setRunner(runner);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    CHECK(getCmd("new-gcovi")->exec(getSettings(), bh, repo, "new-gcovi",
+                                    { "--prefix=subdir",
+                                      "tests/test-repo" }) == EXIT_SUCCESS);
+    CHECK(coutCapture.get() == newBuildInfo);
+    CHECK(cerrCapture.get() == std::string());
+
+    boost::optional<Build> build = bh.getBuild(4);
+    REQUIRE(build);
+    CHECK(build->getPaths().size() == 3U);
+}
+
 TEST_CASE("Executed files can be excluded",
           "[subcommands][new-gcovi-subcommand]")
 {

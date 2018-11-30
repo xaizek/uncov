@@ -56,9 +56,11 @@ public:
      * @param root Root of the source repository.
      * @param covoutRoot Root of subtree containing coverage data.
      * @param exclude List of paths to exclude.
+     * @param prefix Prefix to be added to relative path of sources.
      */
     GcovImporter(const std::string &root, const std::string &covoutRoot,
-                 const std::vector<std::string> &exclude);
+                 const std::vector<std::string> &exclude,
+                 const std::string &prefix);
 
 public:
     /**
@@ -97,6 +99,8 @@ private:
     std::unordered_map<std::string, std::vector<int>> mapping;
     //! Final coverage information.
     std::vector<File> files;
+    //! Prefix to add to relative paths to source files.
+    std::string prefix;
 };
 
 #endif // UNCOV__GCOVIMPORTER_HPP__

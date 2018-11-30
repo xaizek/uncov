@@ -46,8 +46,10 @@ GcovImporter::setRunner(std::function<runner_f> runner)
 
 GcovImporter::GcovImporter(const std::string &root,
                            const std::string &covoutRoot,
-                           const std::vector<std::string> &exclude)
-    : rootDir(normalizePath(fs::absolute(root)))
+                           const std::vector<std::string> &exclude,
+                           const std::string &prefix)
+    : rootDir(normalizePath(fs::absolute(root))),
+      prefix(prefix)
 {
     for (const fs::path &p : exclude) {
         skipPaths.insert(normalizePath(fs::absolute(p, root)));
@@ -159,7 +161,13 @@ GcovImporter::parseGcov(const std::string &path)
         if (type == "file") {
             coverage = nullptr;
 
-            fs::path sourcePath = normalizePath(fs::absolute(value, rootDir));
+            fs::path filePath = value;
+            if (!filePath.is_absolute()) {
+                filePath = prefix / filePath;
+            }
+
+            fs::path sourcePath = normalizePath(fs::absolute(filePath,
+                                                             rootDir));
             if (!pathIsInSubtree(rootDir, sourcePath) ||
                 isExcluded(sourcePath)) {
                 continue;

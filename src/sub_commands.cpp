@@ -792,6 +792,8 @@ public:
             ("exclude,e", po::value<std::vector<std::string>>()
                           ->default_value({}, ""),
              "specifies a path to exclude (can be repeated)")
+            ("prefix",    po::value<std::string>()->default_value({}, ""),
+             "prefix to be added to relative path of sources")
             ("ref-name",  po::value<std::string>(),
              "forces custom ref name")
             ("capture-worktree,c",
@@ -828,14 +830,17 @@ private:
             fs::absolute(varMap["covoutroot"].as<std::string>()).string();
         auto exclude = varMap["exclude"].as<std::vector<std::string>>();
         bool shouldCapture = varMap.count("capture-worktree");
+        auto prefix = varMap["prefix"].as<std::string>();
         verbose = varMap.count("verbose");
 
+        // XXX: this doesn't account for worktrees.
         absRepoRoot = fs::absolute(normalizePath(repo->getGitPath()))
                       .parent_path().string();
 
         std::vector<File> importedFiles = GcovImporter(absRepoRoot,
                                                        covoutRoot,
-                                                       exclude).getFiles();
+                                                       exclude,
+                                                       prefix).getFiles();
 
         std::string ref, refName;
         if (!shouldCapture || !capture(importedFiles, ref, refName)) {
