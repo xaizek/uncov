@@ -122,6 +122,7 @@ main(int argc, char *argv[]) try
             {{ "branch", "$1" }});
     app.vMapUrl(vhost, "^/style.css", Maptarget("style"));
     app.vMapUrl(vhost, "^/favicon.ico", Maptarget("favicon"));
+    app.vMapUrl(vhost, "^/robots.txt", Maptarget("robots"));
     app.run();
 } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;

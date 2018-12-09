@@ -92,6 +92,7 @@ web_sources := $(call rwildcard, web/, *.cpp)
 web_temps := $(patsubst %.ecpp,$(out_dir)/%.cpp,$(call rwildcard, web/, *.ecpp))
 web_temps += $(patsubst %.css,$(out_dir)/%.cpp,$(call rwildcard, web/, *.css))
 web_temps += $(patsubst %.ico,$(out_dir)/%.cpp,$(call rwildcard, web/, *.ico))
+web_temps += $(patsubst %.txt,$(out_dir)/%.cpp,$(call rwildcard, web/, *.txt))
 web_objects := $(web_sources:%.cpp=$(out_dir)/%.o)
 web_objects += $(web_temps:%.cpp=%.o)
 web_objects += $(filter-out %/main.o,$(bin_objects))
@@ -221,6 +222,9 @@ $(out_dir)/%.cpp: %.css | $(out_dirs)
 
 $(out_dir)/%.cpp: %.ico | $(out_dirs)
 	ecppc -b -m image/x-icon -o $@ $<
+
+$(out_dir)/%.cpp: %.txt | $(out_dirs)
+	ecppc -b -m text/plain -o $@ $<
 
 $(out_dirs) $(out_dir)/docs:
 	mkdir -p $@
