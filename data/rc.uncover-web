@@ -3,6 +3,16 @@
 # chkconfig: 345 20 80
 # description: uncov-web daemon
 
+### BEGIN INIT INFO
+# Provides:          uncov-web
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: uncov-web daemon.
+# Description:       uncov-web daemon.
+### END INIT INFO
+
 echo "Edit USER and DAEMONOPTS below and remove this and the next line!"
 exit 1
 
