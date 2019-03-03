@@ -86,13 +86,19 @@ pre {
     line-height: 125%;
 }
 
-pre > span.lineno {
+pre > span.line > span.lineno {
     font-weight: bold;
     padding-right: 5px;
 }
 
 a > span.lineno {
     font-weight: bold;
+}
+
+span.line:target {
+    background-color: #ff4;
+    display: inline-block;
+    width: 100%;
 }
 
 span.hitcount {
