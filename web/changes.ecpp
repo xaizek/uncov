@@ -30,9 +30,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 </%pre>
 
 <%cpp>
-    const int buildId = [&request]() {
+    const std::string buildIdStr = request.getArg("buildId");
+    const int buildId = [&request, &buildIdStr]() {
         try {
-            return std::stoi(request.getArg("buildId"));
+            return std::stoi(buildIdStr);
         } catch (const std::exception &) {
             return 0;
         }
@@ -43,7 +44,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 <head>
     <title>
-    Changes in build #<$ buildId $> | uncov
+    Changes in build #<$ buildIdStr $> | uncov
     </title>
 
     <%include>web/header.ecpp</%include>
@@ -65,9 +66,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <div class="sidenav">
         <a href="/builds">All builds</a>
         <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
-        <a href="/builds/<$ buildId $>">Current build</a>
+        <a href="/builds/<$ buildIdStr $>">Current build</a>
         <br/>
-        <a class="action" href="/changes/<$ buildId $>">Changed files</a>
+        <a class="action" href="/changes/<$ buildIdStr $>">Changed files</a>
     </div>
 
     <div class="rightbar">
@@ -117,7 +118,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %           }
 
             <td>
-                <a class="nav" href="/changes/<$ buildId $>/<$ row.front() $>">
+                <a class="nav" href="/changes/<$ buildIdStr $>/<$ row.front() $>">
                     <$$ cell $>
                 </a>
             </td>

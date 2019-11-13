@@ -20,6 +20,8 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <%pre>
+    #include <string>
+
     #include <boost/optional.hpp>
 
     #include <tnt/httperror.h>
@@ -36,9 +38,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 </%pre>
 
 <%cpp>
-    const int buildId = [&request]() {
+    const std::string buildIdStr = request.getArg("buildId");
+    const int buildId = [&request, &buildIdStr]() {
         try {
-            return std::stoi(request.getArg("buildId"));
+            return std::stoi(buildIdStr);
         } catch (const std::exception &) {
             return 0;
         }
@@ -56,7 +59,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 <html>
 
 <head>
-    <title><$ filePath $> of build #<$ buildId $> | uncov</title>
+    <title><$ filePath $> of build #<$ buildIdStr $> | uncov</title>
     <%include>web/header.ecpp</%include>
 </head>
 
@@ -73,10 +76,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <div class="sidenav">
     <a href="/builds">All builds</a>
     <a href="/branches/<$ buildInfo[5] $>">Current branch</a>
-    <a href="/builds/<$ build->getId() $>">Current build</a>
+    <a href="/builds/<$ std::to_string(build->getId()) $>">Current build</a>
     <br/>
-    <a class="action" href="/changes/<$ buildId $>">Changed files</a>
-    <a class="action" href="/changes/<$ buildId $>/<$ filePath $>">Changes</a>
+    <a class="action" href="/changes/<$ buildIdStr $>">Changed files</a>
+    <a class="action" href="/changes/<$ buildIdStr $>/<$ filePath $>">Changes</a>
     </div>
 
     <div class="rightbar">
@@ -162,13 +165,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 
     <h4>
-    Path: <a class="path" href="/builds/<$ build->getId() $>">&lt;root&gt;</a>
+    Path: <a class="path" href="/builds/<$ std::to_string(build->getId()) $>">&lt;root&gt;</a>
 %   std::string pathPrefix;
 %   for (const std::string &entry : split(fileInfo[0], '/')) {
 %       pathPrefix += '/' + entry;
 %       const std::string slash = pathPrefix == "/" + fileInfo[0] ? "" : "/";
         / <a class="path"
-             href="/builds/<$ build->getId() $><$ pathPrefix + slash $>"><$ entry $></a>
+             href="/builds/<$ std::to_string(build->getId()) $><$ pathPrefix + slash $>"><$ entry $></a>
 %   }
     </h4>
 

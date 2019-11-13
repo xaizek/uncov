@@ -30,9 +30,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 </%pre>
 
 <%cpp>
-    const int buildId = [&request]() {
+    const std::string buildIdStr = request.getArg("buildId");
+    const int buildId = [&request, &buildIdStr]() {
         try {
-            return std::stoi(request.getArg("buildId"));
+            return std::stoi(buildIdStr);
         } catch (const std::exception &) {
             return 0;
         }
@@ -44,7 +45,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 <head>
     <title>
-    <$ dirPath.empty() ? "/" : dirPath $> of build #<$ buildId $> | uncov
+    <$ dirPath.empty() ? "/" : dirPath $> of build #<$ buildIdStr $> | uncov
     </title>
 
     <%include>web/header.ecpp</%include>
@@ -66,9 +67,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <div class="sidenav">
         <a href="/builds">All builds</a>
         <a href="/branches/<$ buildInfo[5] $>">Current branch</a>
-        <a href="/builds/<$ buildId $>">Current build</a>
+        <a href="/builds/<$ buildIdStr $>">Current build</a>
         <br/>
-        <a class="action" href="/changes/<$ buildId $>">Changed files</a>
+        <a class="action" href="/changes/<$ buildIdStr $>">Changed files</a>
     </div>
 
     <div class="rightbar">
@@ -95,12 +96,12 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     </div>
 
     <h4>
-    Path: <a class="path" href="/builds/<$ buildId $>">&lt;root&gt;</a>
+    Path: <a class="path" href="/builds/<$ buildIdStr $>">&lt;root&gt;</a>
 %   std::string prefix;
 %   for (const std::string &entry : split(dirPath, '/')) {
 %       prefix += '/' + entry;
         / <a class="path"
-             href="/builds/<$ buildId $><$ prefix $>/"><$ entry $></a>
+             href="/builds/<$ buildIdStr $><$ prefix $>/"><$ entry $></a>
 %   }
     </h4>
 
@@ -123,7 +124,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %           }
 
             <td>
-                <a class="nav" href="/builds/<$ buildId $>/<$ row.front() $>">
+                <a class="nav" href="/builds/<$ buildIdStr $>/<$ row.front() $>">
                     <$$ cell $>
                 </a>
             </td>
@@ -153,7 +154,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %           }
 
             <td>
-                <a class="nav" href="/builds/<$ buildId $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>">
+                <a class="nav" href="/builds/<$ buildIdStr $>/<$ (dirPath.empty() ? "" : dirPath + '/') + row.front() $>">
                     <$$ cell $>
                 </a>
             </td>

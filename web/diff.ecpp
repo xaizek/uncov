@@ -46,9 +46,10 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 </%pre>
 
 <%cpp>
-    const int buildId = [&request]() {
+    const std::string buildIdStr = request.getArg("buildId");
+    const int buildId = [&request, &buildIdStr]() {
         try {
-            return std::stoi(request.getArg("buildId"));
+            return std::stoi(buildIdStr);
         } catch (const std::exception &) {
             return 0;
         }
@@ -66,7 +67,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 <html>
 
 <head>
-    <title>Diff of <$ filePath $> in build #<$ buildId $> | uncov</title>
+    <title>Diff of <$ filePath $> in build #<$ buildIdStr $> | uncov</title>
     <%include>web/header.ecpp</%include>
 </head>
 
@@ -88,7 +89,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
     <a href="/builds/<$ build->getId() $>">Current build</a>
     <br/>
-    <a class="action" href="/changes/<$ buildId $>">Changed files</a>
+    <a class="action" href="/changes/<$ buildIdStr $>">Changed files</a>
     </div>
 
     <div class="rightbar">
@@ -158,12 +159,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                                    oldVersion.asStream(), oldCov,
 %                                    newVersion.asStream(), newCov,
 %                                    comparator);
-%   int oldId = prevBuild->getId();
-%   int newId = build->getId();
+%   std::string oldId = std::to_string(prevBuild->getId());
+%   std::string newId = std::to_string(build->getId());
 %   for (const ColorCanePiece &piece : cc) {
 %       if (piece.hi == ColorGroup::OldLineNo ||
 %           piece.hi == ColorGroup::NewLineNo) {
-%           int id = (piece.hi == ColorGroup::OldLineNo ? oldId : newId);
+%           const std::string & id = (piece.hi == ColorGroup::OldLineNo)
+%                                  ? oldId : newId;
 %           if (int n = toNum(piece.text)) {
 %               reply.out() << "<a href='" << "/builds/" << id << '/'
 %                           << fileInfo[0] << "#l" << std::to_string(n) << "'>"
