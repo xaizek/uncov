@@ -80,7 +80,7 @@ public:
      *
      * @throws std::runtime_error on database with too new schema.
      */
-    BuildHistory(DB &db);
+    explicit BuildHistory(DB &db);
 
 public:
     /**
