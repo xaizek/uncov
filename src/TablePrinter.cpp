@@ -16,6 +16,8 @@
 
 #include "TablePrinter.hpp"
 
+#include <cstring>
+
 #include <algorithm>
 #include <functional>
 #include <iomanip>
@@ -28,7 +30,6 @@
 #include <vector>
 
 #include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "printing.hpp"
