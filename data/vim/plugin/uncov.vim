@@ -38,8 +38,8 @@ function! s:ShowCoverage(reload, ...) abort
         let l:repo = b:uncovRepo
         let l:relFilePath = b:uncovRelFilePath
     else
-        let l:repo = fugitive#buffer().repo()
-        let l:relFilePath = fugitive#buffer().path()
+        let l:repo = fugitive#repo()
+        let l:relFilePath = FugitivePath(@%, '')
     endif
 
     call s:MakeBuffer(l:repo, l:relFilePath, l:buildid, a:reload)
