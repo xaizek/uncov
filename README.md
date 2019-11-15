@@ -154,9 +154,9 @@ Deployed Web-interface can be seen [here](http://cov.vifm.info/).
 
 ## License ##
 
-![AGPLv3+](data/agplv3.png)
+![AGPLv3](data/agplv3.png)
 
-GNU Affero General Public License, version 3 or later.
+Version 3 of the GNU Affero General Public License.
 
 
 [lcov]: http://ltp.sourceforge.net/coverage/lcov.php
