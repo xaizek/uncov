@@ -86,7 +86,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     <div class="sidenav">
     <a href="/builds">All builds</a>
     <a class="branch" href="/branches/<$ buildInfo[5] $>">Current branch</a>
-    <a href="/builds/<$ build->getId() $>">Current build</a>
+    <a href="/builds/<$ buildIdStr $>">Current build</a>
     <br/>
     <a class="action" href="/changes/<$ buildIdStr $>">Changed files</a>
     </div>
@@ -128,13 +128,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     </h3>
 
     <h4>
-    Path: <a class="path" href="/builds/<$ build->getId() $>">&lt;root&gt;</a>
+    Path: <a class="path" href="/builds/<$ buildIdStr $>">&lt;root&gt;</a>
 %   std::string pathPrefix;
 %   for (const std::string &entry : split(fileInfo[0], '/')) {
 %       pathPrefix += '/' + entry;
 %       const std::string slash = pathPrefix == "/" + fileInfo[0] ? "" : "/";
         / <a class="path"
-             href="/builds/<$ build->getId() $><$ pathPrefix + slash $>"><$ entry $></a>
+             href="/builds/<$ buildIdStr  $><$ pathPrefix + slash $>"><$ entry $></a>
 %   }
     </h4>
 
@@ -181,15 +181,15 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 %   } else {
 %   log_warn("Can't find requested file " + filePath + " in build #"
-%          + std::to_string(buildId));
+%          + buildIdStr);
     <h1>No such file</h1>
 %   }
 %   } else {
-%   log_warn("Can't build preceding build #" + std::to_string(buildId));
+%   log_warn("Can't build preceding build #" + buildIdStr);
     <h1>No previous build</h1>
 %   }
 %   } else {
-%   log_warn("Can't find requested build #" + std::to_string(buildId));
+%   log_warn("Can't find requested build #" + buildIdStr);
     <h1>No such build</h1>
 %   }
 
