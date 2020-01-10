@@ -43,7 +43,7 @@ function! s:ShowCoverage(reload, ...) abort
     call s:MakeBuffer(l:repo, l:relFilePath, l:buildid, a:reload)
 endfunction
 
-function! s:MakeBuffer(repo, relFilePath, buildid, reload)
+function! s:MakeBuffer(repo, relFilePath, buildid, reload) abort
     let l:coverageInfo = systemlist('uncov '.a:repo.dir().' get '.a:buildid.' /'
                                   \.shellescape(a:relFilePath))
     if v:shell_error != 0
