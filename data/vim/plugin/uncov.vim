@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2018 April 19
+" Last Change: 2020 January 10
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -12,11 +12,9 @@ endif
 let loaded_uncov = 1
 
 augroup Uncov
-    autocmd!
-    autocmd ColorScheme *
-                \ highlight UncovCovered ctermbg=darkgreen guibg=darkgreen
-    autocmd ColorScheme *
-                \ highlight UncovMissed ctermbg=darkred guibg=darkred
+    autocmd! ColorScheme *
+                \  highlight UncovCovered ctermbg=darkgreen guibg=darkgreen
+                \| highlight UncovMissed ctermbg=darkred guibg=darkred
 augroup end
 doautocmd Uncov ColorScheme
 
