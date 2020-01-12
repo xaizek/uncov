@@ -11,17 +11,6 @@ if exists('loaded_uncov')
 endif
 let loaded_uncov = 1
 
-augroup Uncov
-    autocmd! ColorScheme *
-                \  highlight UncovCovered ctermbg=darkgreen guibg=darkgreen
-                \| highlight UncovMissed ctermbg=darkred guibg=darkred
-augroup end
-doautocmd Uncov ColorScheme
-
-" mind that text is set to unbreakable space
-sign define UncovCovered text=  texthl=UncovCovered
-sign define UncovMissed text=  texthl=UncovMissed
-
 command! -nargs=? Uncov call uncov#ShowCoverage(0, <f-args>)
 
 " vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab :

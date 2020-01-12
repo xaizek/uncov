@@ -6,7 +6,14 @@
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+let s:initialized = 0
+
 function! uncov#ShowCoverage(reload, ...) abort
+    if !s:initialized
+        let s:initialized = 1
+        call s:Initialize()
+    endif
+
     let l:buildid = '@@'
     if a:0 > 0
         if a:1 !~ '^@-\?\d\+\|@@$'
@@ -25,6 +32,19 @@ function! uncov#ShowCoverage(reload, ...) abort
     endif
 
     call s:MakeBuffer(l:repo, l:relFilePath, l:buildid, a:reload)
+endfunction
+
+function! s:Initialize()
+    augroup Uncov
+        autocmd! ColorScheme *
+                    \  highlight UncovCovered ctermbg=darkgreen guibg=darkgreen
+                    \| highlight UncovMissed ctermbg=darkred guibg=darkred
+    augroup end
+    doautocmd Uncov ColorScheme
+
+    " mind that text is set to unbreakable space
+    sign define UncovCovered text=  texthl=UncovCovered
+    sign define UncovMissed text=  texthl=UncovMissed
 endfunction
 
 function! s:MakeBuffer(repo, relFilePath, buildid, reload) abort
