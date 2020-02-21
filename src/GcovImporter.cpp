@@ -35,12 +35,10 @@
 
 namespace fs = boost::filesystem;
 
-std::function<GcovImporter::runner_f> GcovImporter::runner;
-
 void
 GcovImporter::setRunner(std::function<runner_f> runner)
 {
-    GcovImporter::runner = std::move(runner);
+    getRunner() = std::move(runner);
 }
 
 GcovImporter::GcovImporter(const std::string &root,
@@ -88,7 +86,7 @@ GcovImporter::GcovImporter(const std::string &root,
 
     TempDir tempDir("gcovi");
     std::string tempDirPath = tempDir;
-    runner(std::move(cmd), tempDirPath);
+    getRunner()(std::move(cmd), tempDirPath);
 
     for (fs::directory_entry &e :
          fs::recursive_directory_iterator(tempDirPath)) {
@@ -203,4 +201,11 @@ GcovImporter::isExcluded(boost::filesystem::path path) const
         }
     }
     return false;
+}
+
+std::function<GcovImporter::runner_f> &
+GcovImporter::getRunner()
+{
+    static std::function<runner_f> runner;
+    return runner;
 }

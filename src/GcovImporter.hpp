@@ -86,8 +86,12 @@ private:
     bool isExcluded(boost::filesystem::path path) const;
 
 private:
-    //! Runner of external commands.
-    static std::function<runner_f> runner;
+    /**
+     * @brief Retrieves variable holding runner of external commands.
+     *
+     * @returns The runner variable.
+     */
+    static std::function<runner_f> & getRunner();
 
 private:
     //! Absolute and normalized path of the source repository.
