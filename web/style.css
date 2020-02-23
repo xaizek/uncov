@@ -335,3 +335,59 @@ span.note {
 .tooltip:hover .tooltiptext {
     display: inline;
 }
+
+@media only all and (max-width: 1100px) {
+
+    body {
+        width: 73%;
+    }
+
+    span.hitcount {
+        padding-left: 1px;
+        padding-right: 1px;
+    }
+
+    .bargroup .barelem, .bargroup .barmap, .barfooter a {
+        padding: 4px 0px 4px 1vw;
+    }
+
+    .bargroup .barelem, .bargroup .barmap {
+        font-size: 16px;
+    }
+
+    .maptable {
+        font-size: 14px;
+    }
+
+}
+
+@media only all and (max-height: 800px) {
+
+    .rightbar .bargroup {
+        padding-top: 20px;
+    }
+
+}
+
+@media only all and (max-width: 1023px) {
+
+    .sidenav a {
+        padding: 4px 4px 10px 1vw;
+        font-size: 18px;
+    }
+
+    .sidenav a.action {
+        padding: 4px 4px 6px 1vw;
+        font-size: 16px;
+    }
+
+    td, th {
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+
+    th {
+        letter-spacing: 0px;
+        font-size: 90%;
+    }
+}
