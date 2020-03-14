@@ -23,14 +23,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     #include <sstream>
 
     #include "BuildHistory.hpp"
-    #include "WebSettings.hpp"
+    #include "Settings.hpp"
 
     extern BuildHistory *globalBH;
+    extern Settings *globalSettings;
 </%pre>
 
 <%cpp>
-    WebSettings settings;
-
     const std::string branch = request.getArg("branch");
 
     reply.setContentType("image/svg+xml");
@@ -54,9 +53,9 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     const std::string label = oss.str();
 
     std::string color;
-    if (rate > settings.getHiLimit()) {
+    if (rate > globalSettings->getHiLimit()) {
         color = "#4b1";
-    } else if (rate > settings.getMedLimit()) {
+    } else if (rate > globalSettings->getMedLimit()) {
         color = "#995";
     } else {
         color = "#b41";

@@ -20,6 +20,7 @@ static po::variables_map parseOptions(const std::vector<std::string> &args);
 
 Repository *globalRepo;
 BuildHistory *globalBH;
+Settings *globalSettings;
 
 static po::options_description cmdlineOptions = []() {
     po::options_description opts;
@@ -94,6 +95,7 @@ main(int argc, char *argv[]) try
 
     globalRepo = &repo;
     globalBH = &bh;
+    globalSettings = settings.get();
 
     using tnt::Maptarget;
 
