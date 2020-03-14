@@ -76,7 +76,7 @@ public: // FileComparatorSettings only
         return 2;
     }
 
-    virtual int getDiffContext() const override
+    virtual int getFoldContext() const override
     {
         return 1;
     }

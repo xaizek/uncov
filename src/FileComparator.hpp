@@ -100,7 +100,7 @@ public:
 
 public:
     /**
-     * @brief Retrieves minimum size of a fold.
+     * @brief Retrieves minimal size of a fold.
      *
      * @returns The size.
      */
@@ -113,7 +113,7 @@ public:
      *
      * @returns The size.
      */
-    virtual int getDiffContext() const = 0;
+    virtual int getFoldContext() const = 0;
 };
 
 /**
