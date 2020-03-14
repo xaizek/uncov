@@ -17,7 +17,43 @@
 
 #include "Settings.hpp"
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
 #include <algorithm>
+#include <string>
+#include <utility>
+
+namespace pt = boost::property_tree;
+
+void
+Settings::loadFromFile(const std::string &path)
+{
+    pt::ptree props;
+
+    try {
+        pt::read_ini(path, props);
+    } catch (pt::ini_parser_error &) {
+        // Silently ignore invalid or nonexistent configuration.
+        return;
+    }
+
+    medLimit = props.get<float>("low-bound", medLimit);
+    hiLimit = props.get<float>("hi-bound", hiLimit);
+    tabSize = props.get<int>("tab-size", tabSize);
+    setMinFoldSize(props.get<int>("min-fold-size", minFoldSize));
+    foldContext = props.get<int>("fold-context", foldContext);
+    setPrintLineNoInDiff(props.get<bool>("diff-show-lineno", diffShowLineNo));
+
+    medLimit = std::max(0.0f, std::min(100.0f, medLimit));
+    hiLimit = std::max(0.0f, std::min(100.0f, hiLimit));
+    if (hiLimit < medLimit) {
+        std::swap(medLimit, hiLimit);
+    }
+
+    tabSize = std::max(1, std::min(25, tabSize));
+    foldContext = std::max(0, std::min(100, foldContext));
+}
 
 void
 Settings::setMinFoldSize(int value)

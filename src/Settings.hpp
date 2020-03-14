@@ -36,7 +36,9 @@
 class Settings : public PrintingSettings, public FilePrinterSettings,
                  public FileComparatorSettings
 {
-    // XXX: hard-coded values.
+public:
+    // Loads some of the settings from file.  Does nothing if it doesn't exist.
+    void loadFromFile(const std::string &path);
 
 public: // PrintingSettings only
     virtual std::string getTimeFormat() const override
