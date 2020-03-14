@@ -75,7 +75,7 @@ main(int argc, char *argv[]) try
     }
 
     if (varMap.count("version")) {
-        std::cout << "uncov-web v0.2\n";
+        std::cout << "uncov-web v0.3\n";
         return EXIT_SUCCESS;
     }
 
