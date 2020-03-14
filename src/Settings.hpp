@@ -70,7 +70,7 @@ public: // FilePrinterSettings only
         return false;
     }
 
-public: // FileComparatorSettings only
+public: // FileComparatorSettings and FilePrinterSettings
     virtual int getMinFoldSize() const override
     {
         return 3;

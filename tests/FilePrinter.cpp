@@ -121,3 +121,21 @@ TEST_CASE("Can leave only missed lines", "[FilePrinter]")
                                  " <<< 4 lines folded >>> \n";
     REQUIRE(oss.str() == expected);
 }
+
+TEST_CASE("Folding at boundaries works correctly", "[FilePrinter]")
+{
+    std::ostringstream oss;
+
+    FilePrinter printer(getSettings());
+    printer.print(oss, "path",
+                  "line1\nline2\nline3\nline4\nline5\nline6\n",
+                  { 0, 0, 0, -1, -1, -1 }, true);
+
+    const std::string expected = "    1    x0 : line1\n"
+                                 "    2    x0 : line2\n"
+                                 "    3    x0 : line3\n"
+                                 "    4       : line4\n"
+                                 "    5       : line5\n"
+                                 "    6       : line6\n";
+    REQUIRE(oss.str() == expected);
+}
