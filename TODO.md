@@ -140,20 +140,6 @@ It's slow for huge diffs/files (quite understandable).
 
 Could examine for shebang or even employ `libmagic`.
 
-## Add configuration. ##
-
-| ID   |  Status   |  Type      |
-|------|-----------|------------|
-| gRY  |  planned  |  addition  |
-
-Could use git config file in repos (or shouldn't?).
-
-Another suitable place is separate table in the database.
-
-And might need a global one at some point too.
-
-There is already Settings class that can be used to provide configuration.
-
 ## Shell completion. ##
 
 | ID   |  Status   |  Type      |
@@ -235,6 +221,22 @@ E.g., an option to don't show files with no relevant lines in output of, say,
 `files`.  Or maybe just a subcommand, like `relevant`?
 
 Maybe a way to sort files which will group such files on one part of the table.
+
+## Think about adding titles to console output. ##
+
+| ID   |  Status     |  Type         |
+|------|-------------|---------------|
+| wSY  |  undecided  |  improvement  |
+
+The reason why it might be useful is this:
+
+ * `uncov diff @master`
+    -- diffs current build with last build on @master branch
+ * `uncov changed @master`
+    -- displays what was changed in build on @master branch
+
+Syntax addresses most common use cases, however it's confusing and a title
+for `changed` saying what it's only one build would be helpful.
 
 ## Maybe print distance between builds (in commits). ##
 
