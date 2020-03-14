@@ -99,7 +99,7 @@ main(int argc, char *argv[]) try
 
     log_init();
     tnt::Tntnet app;
-    app.setAppName("uncover-web");
+    app.setAppName("uncov-web");
     app.listen(ip, port);
     app.vMapUrl(vhost, "^/$", Maptarget("builds"));
     app.vMapUrl(vhost, "^/builds/?$", Maptarget("builds"));
