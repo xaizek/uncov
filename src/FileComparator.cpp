@@ -87,7 +87,7 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
         size_type endContext = (identicalLines == diffSeq.size() ? 0 : ctxSize);
         size_type context = startContext + endContext;
 
-        if (identicalLines >= context && identicalLines - context > minFold) {
+        if (identicalLines >= context && identicalLines - context >= minFold) {
             diffSeq.erase(diffSeq.cbegin() + startContext,
                           diffSeq.cbegin() + (identicalLines - endContext));
             diffSeq.emplace(diffSeq.cbegin() + startContext, DiffLineType::Note,
