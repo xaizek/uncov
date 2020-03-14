@@ -46,18 +46,18 @@ public: // PrintingSettings only
 
     virtual float getMedLimit() const override
     {
-        return 70.0f;
+        return medLimit;
     }
 
     virtual float getHiLimit() const override
     {
-        return 90.0f;
+        return hiLimit;
     }
 
 public: // FilePrinterSettings only
     virtual int getTabSize() const override
     {
-        return 4;
+        return tabSize;
     }
 
     virtual bool isColorOutputAllowed() const override
@@ -67,18 +67,18 @@ public: // FilePrinterSettings only
 
     virtual bool printLineNoInDiff() const override
     {
-        return false;
+        return diffShowLineNo;
     }
 
 public: // FileComparatorSettings and FilePrinterSettings
     virtual int getMinFoldSize() const override
     {
-        return 3;
+        return minFoldSize;
     }
 
     virtual int getFoldContext() const override
     {
-        return 1;
+        return foldContext;
     }
 
 public: // PrintingSettings and FilePrinterSettings
@@ -86,6 +86,35 @@ public: // PrintingSettings and FilePrinterSettings
     {
         return false;
     }
+
+protected:
+    /**
+     * @brief Sets minimal size of a fold.
+     *
+     * @param value New value of the threshold.
+     */
+    void setMinFoldSize(int value);
+
+    /**
+     * @brief Configures printing line numbers in diff.
+     *
+     * @param value New value of the flag.
+     */
+    void setPrintLineNoInDiff(bool value);
+
+private:
+    //! Percentage boundary between low and medium coverage.
+    float medLimit = 70.0f;
+    //! Percentage boundary between medium and high coverage.
+    float hiLimit = 90.0f;
+    //! Number of spaces in a full tabulation.
+    int tabSize = 4;
+    //! Minimal number of lines to be folded.
+    int minFoldSize = 3;
+    //! Whether line numbers are displayed in diffs.
+    bool diffShowLineNo = false;
+    //! Number of visible lines above and below interesting lines.
+    int foldContext = 1;
 };
 
 #endif // UNCOV__SETTINGS_HPP__

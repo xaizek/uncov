@@ -21,21 +21,17 @@
 
 class WebSettings : public Settings
 {
+public:
+    WebSettings()
+    {
+        setMinFoldSize(4);
+        setPrintLineNoInDiff(true);
+    }
+
 public: // FilePrinterSettings only
     virtual bool isColorOutputAllowed() const override
     {
         return true;
-    }
-
-    virtual bool printLineNoInDiff() const override
-    {
-        return true;
-    }
-
-public: // FileComparatorSettings only
-    virtual int getMinFoldSize() const override
-    {
-        return 4;
     }
 
 public: // PrintingSettings and FilePrinterSettings
