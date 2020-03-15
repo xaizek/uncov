@@ -31,12 +31,13 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     #include "ColorCane.hpp"
     #include "FilePrinter.hpp"
     #include "Repository.hpp"
-    #include "WebSettings.hpp"
+    #include "Settings.hpp"
     #include "colors.hpp"
     #include "listings.hpp"
 
     extern Repository *globalRepo;
     extern BuildHistory *globalBH;
+    extern Settings *globalSettings;
 
     static int toNum(const std::string &s) {
         char *end;
@@ -60,7 +61,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     // srchilite::SourceHighlight doesn't seem to be thread safe (in particular
     // it has grammar parsing with global state) and needs to be globally
     // locked
-    FilePrinter printer(WebSettings());
+    FilePrinter printer(*globalSettings);
 </%application>
 
 <html>
@@ -151,7 +152,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 %   FileComparator comparator(oldVersion.asLines(), oldCov,
 %                             newVersion.asLines(), newCov,
-%                             CompareStrategy::State, WebSettings());
+%                             CompareStrategy::State, *globalSettings);
 
 <pre>
 %   ColorCane cc = printer.printDiff(filePath,

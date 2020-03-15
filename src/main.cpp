@@ -73,7 +73,11 @@ main(int argc, char *argv[])
         }
 
         Repository repo(invocation.getRepositoryPath());
-        DB db(repo.getGitPath() + "/uncov.sqlite");
+        std::string gitPath = repo.getGitPath();
+
+        settings->loadFromFile(gitPath + "/uncov.ini");
+
+        DB db(gitPath + "/uncov.sqlite");
         BuildHistory bh(db);
 
         return cmd->second->exec(*settings, bh, repo,

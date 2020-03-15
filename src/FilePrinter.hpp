@@ -73,6 +73,22 @@ public:
      *          otherwise.
      */
     virtual bool printLineNoInDiff() const = 0;
+
+    /**
+     * @brief Retrieves minimal size of a fold.
+     *
+     * @returns The size.
+     */
+    virtual int getMinFoldSize() const = 0;
+
+    /**
+     * @brief Retrieves size of unfolded context.
+     *
+     * Both above and below folded piece.
+     *
+     * @returns The size.
+     */
+    virtual int getFoldContext() const = 0;
 };
 
 /**
@@ -173,6 +189,8 @@ private:
                    srchilite::LineRanges *ranges = nullptr);
 
 private:
+    //! FilePrinter settings.
+    const FilePrinterSettings &settings;
     //! Whether code highlighting is enabled.
     const bool colorizeOutput;
     //! Whether diff should contain line numbers.

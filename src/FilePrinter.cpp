@@ -263,7 +263,8 @@ operator<<(ColorCane &cc, char c)
 }
 
 FilePrinter::FilePrinter(const FilePrinterSettings &settings)
-    : colorizeOutput(settings.isColorOutputAllowed()),
+    : settings(settings),
+      colorizeOutput(settings.isColorOutputAllowed()),
       lineNoInDiff(settings.printLineNoInDiff()),
       highlighter(settings.isHtmlOutput() ? DATADIR "/srchilight/html.outlang"
                                           : "esc256.outlang"),
@@ -279,19 +280,25 @@ FilePrinter::print(std::ostream &os, const std::string &path,
                    const std::string &contents,
                    const std::vector<int> &coverage, bool leaveMissedOnly)
 {
+    // TODO: move this to settings?
     const int MinLineNoWidth = 5;
 
     const int nLines = coverage.size();
     const int lineNoWidth = std::max(MinLineNoWidth, countWidth(nLines));
 
+    const unsigned int minFold = settings.getMinFoldSize();
+    const int ctxSize = settings.getFoldContext();
+
     std::vector<int> lines;
     unsigned int uninterestingLines = 0U;
-    auto foldUninteresting = [&lines, &uninterestingLines](bool last) {
-        if (uninterestingLines > 4) {
-            int startContext = (uninterestingLines == lines.size() ? 0 : 1);
-            int endContext = last ? 0 : 1;
-            int context = startContext + endContext;
+    auto foldUninteresting = [&](bool last) {
+        int startContext =
+            (uninterestingLines == lines.size() ? 0 : ctxSize);
+        int endContext = last ? 0 : ctxSize;
+        unsigned int context = startContext + endContext;
 
+        if (uninterestingLines >= context &&
+            uninterestingLines - context >= minFold) {
             lines.erase(lines.cend() - (uninterestingLines - startContext),
                         lines.cend() - endContext);
             lines.insert(lines.cend() - endContext,

@@ -1,6 +1,6 @@
 **uncov**, _v0.3_, _2016 – 2020_
 
-_This file last updated on 23 February, 2020_
+_This file last updated on 15 March, 2020_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -59,11 +59,6 @@ Overall structure and basic elements are expected to remain in place, however
 they aren't finalized and changes for the sake of improvement are possible.
 Databases will be migrated if schema changes, so previously collected data won't
 be lost.
-
-#### Main things missing ####
-
- * Configuration.  Currently values that could be configurable are hard-coded.
- * Tuning behaviour with command-line parameters.
 
 ## Supported Environment ##
 

@@ -20,6 +20,7 @@ static po::variables_map parseOptions(const std::vector<std::string> &args);
 
 Repository *globalRepo;
 BuildHistory *globalBH;
+Settings *globalSettings;
 
 static po::options_description cmdlineOptions = []() {
     po::options_description opts;
@@ -85,7 +86,11 @@ main(int argc, char *argv[]) try
     PrintingSettings::set(settings);
 
     Repository repo(varMap["repo"].as<std::string>());
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    std::string gitPath = repo.getGitPath();
+
+    settings->loadFromFile(gitPath + "/uncov.ini");
+
+    DB db(gitPath + "/uncov.sqlite");
     BuildHistory bh(db);
 
     std::string vhost = varMap["vhost"].as<std::string>();
@@ -94,6 +99,7 @@ main(int argc, char *argv[]) try
 
     globalRepo = &repo;
     globalBH = &bh;
+    globalSettings = settings.get();
 
     using tnt::Maptarget;
 

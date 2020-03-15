@@ -80,14 +80,14 @@ FileComparator::FileComparator(const std::vector<std::string> &o,
     size_type identicalLines = 0U;
 
     const size_type minFold = settings.getMinFoldSize();
-    const size_type ctxSize = settings.getDiffContext();
+    const size_type ctxSize = settings.getFoldContext();
 
     auto foldIdentical = [this, &identicalLines, minFold, ctxSize](bool last) {
         size_type startContext = (last ? 0 : ctxSize);
         size_type endContext = (identicalLines == diffSeq.size() ? 0 : ctxSize);
         size_type context = startContext + endContext;
 
-        if (identicalLines >= context && identicalLines - context > minFold) {
+        if (identicalLines >= context && identicalLines - context >= minFold) {
             diffSeq.erase(diffSeq.cbegin() + startContext,
                           diffSeq.cbegin() + (identicalLines - endContext));
             diffSeq.emplace(diffSeq.cbegin() + startContext, DiffLineType::Note,
