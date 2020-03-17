@@ -18,6 +18,7 @@
 
 #include <cstddef>
 
+#include <functional>
 #include <iomanip>
 #include <memory>
 #include <ostream>
