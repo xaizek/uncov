@@ -53,9 +53,35 @@ SubCommand::getAllCmds()
 }
 
 int
+SubCommand::exec(Uncov &uncov, const std::string &alias,
+                 const std::vector<std::string> &args)
+{
+    if (!isGeneric()) {
+        throw std::logic_error("Repo-command is invoked using app-command "
+                               "interface");
+    }
+
+    hasErrors = false;
+    checkExec(alias, args);
+
+    if (!hasErrors) {
+        uncovValue = &uncov;
+
+        execImpl(alias, args);
+    }
+
+    return hasErrors ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
+int
 SubCommand::exec(Settings &settings, BuildHistory &bh, Repository &repo,
                  const std::string &alias, const std::vector<std::string> &args)
 {
+    if (isGeneric()) {
+        throw std::logic_error("App-command is invoked using repo-command "
+                               "interface");
+    }
+
     hasErrors = false;
     checkExec(alias, args);
 

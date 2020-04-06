@@ -70,6 +70,12 @@ Uncov::run(Settings &settings)
         return EXIT_FAILURE;
     }
 
+    if (cmd->second->isGeneric()) {
+        return cmd->second->exec(*this,
+                                 invocation.getSubcommandName(),
+                                 invocation.getSubcommandArgs());
+    }
+
     Repository repo(invocation.getRepositoryPath());
     std::string gitPath = repo.getGitPath();
 
