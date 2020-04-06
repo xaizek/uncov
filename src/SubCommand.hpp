@@ -172,6 +172,16 @@ protected:
 
 private:
     /**
+     * @brief Checks correctness of the invocation.
+     *
+     * Calls `error()` and prints error messages to standard output.
+     *
+     * @param alias Alias of the command.
+     * @param args  Arguments.
+     */
+    void checkExec(const std::string &alias,
+                   const std::vector<std::string> &args);
+    /**
      * @brief Formats part of error message about number of expected arguments.
      *
      * @returns The message.
