@@ -36,7 +36,13 @@
 static void describeCommands(const std::map<std::string, SubCommand *> &cmds);
 
 Uncov::Uncov(std::vector<std::string> args) : invocation(std::move(args))
-{ }
+{
+    for (SubCommand *cmd : SubCommand::getAll()) {
+        for (const std::string &name : cmd->getNames()) {
+            cmds.emplace(name, cmd);
+        }
+    }
+}
 
 int
 Uncov::run(Settings &settings)
@@ -47,16 +53,8 @@ Uncov::run(Settings &settings)
         return EXIT_FAILURE;
     }
 
-    std::map<std::string, SubCommand *> cmds;
-    for (SubCommand *cmd : SubCommand::getAll()) {
-        for (const std::string &name : cmd->getNames()) {
-            cmds.emplace(name, cmd);
-        }
-    }
-
     if (invocation.shouldPrintHelp()) {
-        std::cout << invocation.getUsage() << "\n\n";
-        describeCommands(cmds);
+        printHelp();
         return EXIT_SUCCESS;
     }
 
@@ -83,6 +81,13 @@ Uncov::run(Settings &settings)
     return cmd->second->exec(settings, bh, repo,
                              invocation.getSubcommandName(),
                              invocation.getSubcommandArgs());
+}
+
+void
+Uncov::printHelp()
+{
+    std::cout << invocation.getUsage() << "\n\n";
+    describeCommands(cmds);
 }
 
 /**

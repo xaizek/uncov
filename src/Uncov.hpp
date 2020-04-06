@@ -17,12 +17,14 @@
 #ifndef UNCOV__UNCOV_HPP__
 #define UNCOV__UNCOV_HPP__
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "Invocation.hpp"
 
 class Settings;
+class SubCommand;
 
 /**
  * @brief Class that represents application.
@@ -49,8 +51,16 @@ public:
      */
     int run(Settings &settings);
 
+    /**
+     * @brief Prints help on standard output.
+     */
+    void printHelp();
+
 private:
-    Invocation invocation; //!< Processor of command-line arguments.
+    /// Processor of command-line arguments.
+    Invocation invocation;
+    /// List of all commands (sorted due to use of `std::map`).
+    std::map<std::string, SubCommand *> cmds;
 };
 
 #endif // UNCOV__UNCOV_HPP__
