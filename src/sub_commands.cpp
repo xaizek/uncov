@@ -47,6 +47,7 @@
 #include "Settings.hpp"
 #include "SubCommand.hpp"
 #include "TablePrinter.hpp"
+#include "Uncov.hpp"
 #include "arg_parsing.hpp"
 #include "coverage.hpp"
 #include "integration.hpp"
@@ -652,6 +653,32 @@ private:
 
         RedirectToPager redirectToPager;
         tablePrinter.print(std::cout);
+    }
+};
+
+/**
+ * @brief Displays help message.
+ */
+class HelpCmd : public AutoSubCommand<HelpCmd>
+{
+public:
+    HelpCmd() : AutoSubCommand({ "help" })
+    {
+        describe("help", "Displays help message");
+    }
+
+private:
+    virtual bool
+    isGeneric() const override
+    {
+        return true;
+    }
+
+    virtual void
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &/*args*/) override
+    {
+        uncov->printHelp();
     }
 };
 

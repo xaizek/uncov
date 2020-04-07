@@ -34,6 +34,7 @@
 #include "GcovImporter.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
+#include "Uncov.hpp"
 #include "integration.hpp"
 
 #include "TestUtils.hpp"
@@ -1495,6 +1496,24 @@ TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
     boost::optional<Build> build = bh.getBuild(4);
     REQUIRE(build);
     CHECK(build->getPaths().size() == 4U);
+}
+
+TEST_CASE("help", "[subcommands][help-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    Uncov uncov({ "uncov", "help" });
+    CHECK(getCmd("help")->exec(uncov, "help", { }) == EXIT_SUCCESS);
+    CHECK(boost::starts_with(coutCapture.get(),
+                             "Usage: uncov [--help|-h] [--version|-v] [repo] "
+                                    "subcommand [args...]\n"
+                             "\n"
+                             "Subcommands\n"));
+    CHECK(cerrCapture.get() == std::string());
 }
 
 static SubCommand *

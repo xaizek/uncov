@@ -149,6 +149,13 @@ Prints information about the file in this form:
 
 See description of **new** subcommand below for meaning of integer values.
 
+help
+----
+
+Displays generic help information that includes list of all subcommands.
+
+**Usage: help**
+
 missed
 ------
 
