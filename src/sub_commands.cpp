@@ -320,11 +320,13 @@ private:
         // By default limit number of builds to display to 10.
         bool limitBuilds = true;
         unsigned int maxBuildCount = 10;
-        if (auto parsed = tryParse<PositiveNumber>(args)) {
+        if (tryParse<>(args)) {
+            // Nothing needs to be done, variable defaults are getting used.
+        } else if (auto parsed = tryParse<PositiveNumber>(args)) {
             std::tie(maxBuildCount) = *parsed;
         } else if (tryParse<StringLiteral<All>>(args)) {
             limitBuilds = false;
-        } else if (!args.empty()) {
+        } else {
             std::cerr << "Invalid arguments for subcommand.\n";
             return error();
         }
@@ -375,7 +377,7 @@ private:
         bool buildsDiff = false;
         BuildRef oldBuildRef(bh), newBuildRef(bh);
         InRepoPath path(repo);
-        if (args.empty()) {
+        if (tryParse<>(args)) {
             findPrev = true;
             buildsDiff = true;
             newBuildRef = LatestBuildMarker;

@@ -22,6 +22,7 @@
 
 #include <cstddef>
 
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -254,6 +255,27 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
                 return std::tuple_cat(std::make_tuple(parsed.first), *tail);
             }
             break;
+    }
+    return {};
+}
+
+/**
+ * @brief Handles case of empty parameter list.
+ *
+ * @tparam Types Types of expected parameters (might be empty).
+ *
+ * @param args Input arguments.
+ * @param idx  Current position within @p args or just past its end.
+ *
+ * @returns Empty tuple in case of successful parsing.
+ */
+template <typename... Types>
+boost::optional<std::tuple<>>
+tryParse(const std::vector<std::string> &args,
+         typename std::enable_if<sizeof...(Types) == 0, std::size_t>::type idx)
+{
+    if (args.size() == 0 && idx == 0) {
+        return std::make_tuple();
     }
     return {};
 }
