@@ -251,28 +251,4 @@ private:
     Uncov *uncovValue = nullptr;       //!< Application.
 };
 
-/**
- * @brief Helper class that auto-registers its derivative in Commands-list.
- *
- * @tparam C Derived class (as per CRTP).
- */
-template <class C>
-class AutoSubCommand : public SubCommand
-{
-public:
-    // Pull in parent constructor.
-    using SubCommand::SubCommand;
-
-private:
-    //! Static initialization of this variable performs the registration.
-    static const bool invokeRegister;
-
-private:
-    //! Purpose of this field it to make @c invokeRegister used.
-    const bool forceRegistration = invokeRegister;
-};
-
-template <class C>
-const bool AutoSubCommand<C>::invokeRegister = (registerCmd<C>(), true);
-
 #endif // UNCOV__SUBCOMMAND_HPP__
