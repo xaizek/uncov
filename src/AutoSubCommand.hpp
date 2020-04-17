@@ -17,6 +17,8 @@
 #ifndef UNCOV__AUTOSUBCOMMAND_HPP__
 #define UNCOV__AUTOSUBCOMMAND_HPP__
 
+#include <iostream>
+
 #include "SubCommand.hpp"
 
 /**
@@ -31,6 +33,13 @@ public:
     // Pull in parent constructor.
     using SubCommand::SubCommand;
 
+    /**
+     * @brief Signals that an invocation error has occurred.
+     *
+     * @param alias Alias of the command.
+     */
+    void usageError(const std::string &alias);
+
 private:
     //! Static initialization of this variable performs the registration.
     static const bool invokeRegister;
@@ -42,5 +51,13 @@ private:
 
 template <class C>
 const bool AutoSubCommand<C>::invokeRegister = (registerCmd<C>(), true);
+
+template <class C>
+void
+AutoSubCommand<C>::usageError(const std::string &alias)
+{
+    std::cerr << "Failed to parse arguments for `" << alias << "`.\n";
+    error();
+}
 
 #endif // UNCOV__AUTOSUBCOMMAND_HPP__

@@ -200,7 +200,7 @@ TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
                                 { "something" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `build`.\n");
 }
 
 TEST_CASE("Build information on last build", "[subcommands][build-subcommand]")
@@ -242,7 +242,7 @@ TEST_CASE("Invalid arguments for builds", "[subcommands][builds-subcommand]")
                                  { "wrong" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `builds`.\n");
 }
 
 TEST_CASE("Builds generates table", "[subcommands][builds-subcommand]")
@@ -402,7 +402,7 @@ TEST_CASE("Invalid arguments for get", "[subcommands][get-subcommand]")
                               { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `get`.\n");
 }
 
 TEST_CASE("Paths to files can be relative inside repository",
@@ -852,7 +852,7 @@ TEST_CASE("Invalid arguments for show", "[subcommands][show-subcommand]")
                                { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `show`.\n");
 }
 
 TEST_CASE("Whole build is printed", "[subcommands][show-subcommand]")

@@ -260,15 +260,14 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
         if (auto parsed = tryParse<OptBuildId>(args)) {
             std::tie(buildRef) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         TablePrinter tablePrinter {
@@ -314,7 +313,7 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         // By default limit number of builds to display to 10.
@@ -327,8 +326,7 @@ private:
         } else if (tryParse<StringLiteral<All>>(args)) {
             limitBuilds = false;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         TablePrinter tablePrinter {
@@ -395,8 +393,7 @@ private:
         } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
             std::tie(oldBuildRef, newBuildRef, path) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build newBuild = newBuildRef;
@@ -613,8 +610,7 @@ private:
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildRef, dirFilter) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;
@@ -697,7 +693,7 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
@@ -705,8 +701,7 @@ private:
         if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildRef, filePath) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;
@@ -1154,8 +1149,7 @@ private:
         } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
             std::tie(buildRef, path) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;
