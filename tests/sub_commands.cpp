@@ -200,7 +200,9 @@ TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
                                 { "something" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Failed to parse arguments for `build`.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `build`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov build [<build>]\n");
 }
 
 TEST_CASE("Build information on last build", "[subcommands][build-subcommand]")
@@ -242,7 +244,11 @@ TEST_CASE("Invalid arguments for builds", "[subcommands][builds-subcommand]")
                                  { "wrong" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Failed to parse arguments for `builds`.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `builds`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov builds\n"
+                               " * uncov builds <positive-num>\n"
+                               " * uncov builds \"all\"\n");
 }
 
 TEST_CASE("Builds generates table", "[subcommands][builds-subcommand]")
@@ -402,7 +408,9 @@ TEST_CASE("Invalid arguments for get", "[subcommands][get-subcommand]")
                               { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Failed to parse arguments for `get`.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `get`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov get <build> <path>\n");
 }
 
 TEST_CASE("Paths to files can be relative inside repository",
@@ -852,7 +860,11 @@ TEST_CASE("Invalid arguments for show", "[subcommands][show-subcommand]")
                                { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Failed to parse arguments for `show`.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `show`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov show [<build>]\n"
+                               " * uncov show <path>\n"
+                               " * uncov show <build> <path>\n");
 }
 
 TEST_CASE("Whole build is printed", "[subcommands][show-subcommand]")

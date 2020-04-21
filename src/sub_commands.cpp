@@ -254,6 +254,8 @@ class BuildCmd : public AutoSubCommand<BuildCmd>
 {
 public:
     using callForm = Lst<OptBuildId>;
+    using callForms = Lst<callForm>;
+
     BuildCmd() : AutoSubCommand({ "build" }, 0U, 1U)
     {
         describe("build", "Displays information about single build");
@@ -310,6 +312,8 @@ public:
     using noArgsForm = Lst<>;
     using limitForm = Lst<PositiveNumber>;
     using allForm = Lst<StringLiteral<All>>;
+    using callForms = Lst<noArgsForm, limitForm, allForm>;
+
     BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
     {
         describe("builds", "Lists builds");
@@ -368,6 +372,9 @@ public:
     using twoBuildsForm = Lst<BuildId, BuildId>;
     using pathForm = Lst<FilePath>;
     using fullForm = Lst<BuildId, BuildId, FilePath>;
+    using callForms = Lst<noArgsForm, oneBuildForm, twoBuildsForm, pathForm,
+                          fullForm>;
+
     DiffCmd() : AutoSubCommand({ "diff", "diff-hits", "regress" }, 0U, 3U)
     {
         describe("diff", "Compares builds, directories or files");
@@ -595,6 +602,8 @@ public:
     using twoBuildsForm = Lst<BuildId, BuildId>;
     using fullForm = Lst<BuildId, BuildId, FilePath>;
     using pathInBuildForm = Lst<BuildId, FilePath>;
+    using callForms = Lst<buildForm, twoBuildsForm, fullForm, pathInBuildForm>;
+
     FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
     {
         describe("files", "Lists statistics about files");
@@ -673,6 +682,9 @@ private:
 class HelpCmd : public AutoSubCommand<HelpCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     HelpCmd() : AutoSubCommand({ "help" })
     {
         describe("help", "Displays help message");
@@ -700,6 +712,8 @@ class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
     using pathInBuildForm = Lst<BuildId, FilePath>;
+    using callForms = Lst<pathInBuildForm>;
+
     GetCmd() : AutoSubCommand({ "get" }, 2U)
     {
         describe("get", "Dumps coverage information of a file");
@@ -734,6 +748,9 @@ private:
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewCmd() : AutoSubCommand({ "new" })
     {
         describe("new", "Imports new build from stdin");
@@ -817,6 +834,9 @@ private:
 class NewGcoviCmd : public AutoSubCommand<NewGcoviCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewGcoviCmd() : AutoSubCommand({ "new-gcovi" },
                                    0U, std::numeric_limits<std::size_t>::max())
     {
@@ -1050,6 +1070,9 @@ private:
 class NewJsonCmd : public AutoSubCommand<NewJsonCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewJsonCmd() : AutoSubCommand({ "new-json" })
     {
         describe("new-json", "Imports new build in JSON format from stdin");
@@ -1144,6 +1167,8 @@ public:
     using buildForm = Lst<OptBuildId>;
     using pathForm = Lst<FilePath>;
     using pathInBuildForm = Lst<BuildId, FilePath>;
+    using callForms = Lst<buildForm, pathForm, pathInBuildForm>;
+
     ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)
     {
         describe("missed", "Displays missed in a build, directory or file");
