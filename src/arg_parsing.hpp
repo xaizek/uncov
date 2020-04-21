@@ -283,17 +283,27 @@ tryParse(const std::vector<std::string> &args,
 }
 
 /**
+ * @brief Captures list of types.
+ *
+ * @tparam Args List of types.
+ */
+template <typename... Types>
+struct Lst
+{ };
+
+/**
  * @brief Parses argument list guided by format specified in template arguments.
  *
  * @tparam Types Types of expected parameters.
  *
  * @param args Input arguments.
+ * @param form List of types of expected parameters.
  *
  * @returns Tuple of results of parsing if it was successful.
  */
 template <typename... Types>
 boost::optional<std::tuple<detail::ToOutType<Types>...>>
-tryParse(const std::vector<std::string> &args)
+tryParse(const std::vector<std::string> &args, Lst<Types...> /*form*/)
 {
     return detail::tryParse<Types...>(args, 0U);
 }

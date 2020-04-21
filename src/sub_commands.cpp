@@ -253,6 +253,7 @@ static PathCategory classifyPath(const Build &build, const std::string &path);
 class BuildCmd : public AutoSubCommand<BuildCmd>
 {
 public:
+    using callForm = Lst<OptBuildId>;
     BuildCmd() : AutoSubCommand({ "build" }, 0U, 1U)
     {
         describe("build", "Displays information about single build");
@@ -264,7 +265,7 @@ private:
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, callForm{})) {
             std::tie(buildRef) = *parsed;
         } else {
             return usageError(alias);
@@ -306,6 +307,9 @@ class BuildsCmd : public AutoSubCommand<BuildsCmd>
     };
 
 public:
+    using noArgsForm = Lst<>;
+    using limitForm = Lst<PositiveNumber>;
+    using allForm = Lst<StringLiteral<All>>;
     BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
     {
         describe("builds", "Lists builds");
@@ -319,11 +323,11 @@ private:
         // By default limit number of builds to display to 10.
         bool limitBuilds = true;
         unsigned int maxBuildCount = 10;
-        if (tryParse<>(args)) {
+        if (tryParse(args, noArgsForm{})) {
             // Nothing needs to be done, variable defaults are getting used.
-        } else if (auto parsed = tryParse<PositiveNumber>(args)) {
+        } else if (auto parsed = tryParse(args, limitForm{})) {
             std::tie(maxBuildCount) = *parsed;
-        } else if (tryParse<StringLiteral<All>>(args)) {
+        } else if (tryParse(args, allForm{})) {
             limitBuilds = false;
         } else {
             return usageError(alias);
@@ -359,6 +363,11 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using oneBuildForm = Lst<BuildId>;
+    using twoBuildsForm = Lst<BuildId, BuildId>;
+    using pathForm = Lst<FilePath>;
+    using fullForm = Lst<BuildId, BuildId, FilePath>;
     DiffCmd() : AutoSubCommand({ "diff", "diff-hits", "regress" }, 0U, 3U)
     {
         describe("diff", "Compares builds, directories or files");
@@ -375,22 +384,22 @@ private:
         bool buildsDiff = false;
         BuildRef oldBuildRef(bh), newBuildRef(bh);
         InRepoPath path(repo);
-        if (tryParse<>(args)) {
+        if (tryParse(args, noArgsForm{})) {
             findPrev = true;
             buildsDiff = true;
             newBuildRef = LatestBuildMarker;
-        } else if (auto parsed = tryParse<BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, oneBuildForm{})) {
             buildsDiff = true;
             newBuildRef = LatestBuildMarker;
             std::tie(oldBuildRef) = *parsed;
-        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, twoBuildsForm{})) {
             buildsDiff = true;
             std::tie(oldBuildRef, newBuildRef) = *parsed;
-        } else if (auto parsed = tryParse<FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathForm{})) {
             findPrev = true;
             newBuildRef = LatestBuildMarker;
             std::tie(path) = *parsed;
-        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, fullForm{})) {
             std::tie(oldBuildRef, newBuildRef, path) = *parsed;
         } else {
             return usageError(alias);
@@ -582,6 +591,10 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
+    using buildForm = Lst<OptBuildId>;
+    using twoBuildsForm = Lst<BuildId, BuildId>;
+    using fullForm = Lst<BuildId, BuildId, FilePath>;
+    using pathInBuildForm = Lst<BuildId, FilePath>;
     FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
     {
         describe("files", "Lists statistics about files");
@@ -597,17 +610,17 @@ private:
         BuildRef buildRef(bh);
         InRepoPath dirFilter(repo);
         boost::optional<Build> prevBuild;
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, buildForm{})) {
             buildRef = std::get<0>(*parsed);
-        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, twoBuildsForm{})) {
             BuildRef prevBuildRef(bh);
             std::tie(prevBuildRef, buildRef) = *parsed;
             prevBuild = static_cast<Build>(prevBuildRef);
-        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, fullForm{})) {
             BuildRef prevBuildRef(bh);
             std::tie(prevBuildRef, buildRef, dirFilter) = *parsed;
             prevBuild = static_cast<Build>(prevBuildRef);
-        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, dirFilter) = *parsed;
         } else {
             return usageError(alias);
@@ -686,6 +699,7 @@ private:
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
+    using pathInBuildForm = Lst<BuildId, FilePath>;
     GetCmd() : AutoSubCommand({ "get" }, 2U)
     {
         describe("get", "Dumps coverage information of a file");
@@ -698,7 +712,7 @@ private:
     {
         BuildRef buildRef(bh);
         InRepoPath filePath(repo);
-        if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, filePath) = *parsed;
         } else {
             return usageError(alias);
@@ -1127,6 +1141,9 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
+    using buildForm = Lst<OptBuildId>;
+    using pathForm = Lst<FilePath>;
+    using pathInBuildForm = Lst<BuildId, FilePath>;
     ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)
     {
         describe("missed", "Displays missed in a build, directory or file");
@@ -1141,12 +1158,12 @@ private:
         BuildRef buildRef(bh);
         InRepoPath path(repo);
         bool printWholeBuild = false;
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, buildForm{})) {
             buildRef = std::get<0>(*parsed);
             printWholeBuild = true;
-        } else if (auto parsed = tryParse<FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathForm{})) {
             path = std::get<0>(*parsed);
-        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, path) = *parsed;
         } else {
             return usageError(alias);
