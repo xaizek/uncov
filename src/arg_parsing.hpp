@@ -39,7 +39,7 @@
 struct BuildId;
 //! Optional build id parameter (not defined).
 struct OptBuildId;
-//! Fiel path parameter (not defined).
+//! File path parameter (not defined).
 struct FilePath;
 //! Positive number parameter (not defined).
 struct PositiveNumber;
