@@ -43,6 +43,10 @@ public:
                           const std::vector<std::string> &/*args*/) override
     { }
 
+    virtual void printHelp(std::ostream &/*os*/,
+                           const std::string &/*alias*/) const override
+    { }
+
     bool generic = false;
 };
 

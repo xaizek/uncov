@@ -210,6 +210,9 @@ public:
      */
     void usageError(const std::string &alias);
 
+    virtual void printHelp(std::ostream &os,
+                           const std::string &alias) const override;
+
 private:
     //! Static initialization of this variable performs the registration.
     static const bool invokeRegister;
@@ -227,8 +230,15 @@ void
 AutoSubCommand<C>::usageError(const std::string &alias)
 {
     std::cerr << "Failed to parse arguments for `" << alias << "`.\n";
-    detail::printHelpMsg(std::cerr, alias, typename C::callForms{});
+    printHelp(std::cerr, alias);
     error();
+}
+
+template <class C>
+void
+AutoSubCommand<C>::printHelp(std::ostream &os, const std::string &alias) const
+{
+    detail::printHelpMsg(os, alias, typename C::callForms{});
 }
 
 #endif // UNCOV__AUTOSUBCOMMAND_HPP__

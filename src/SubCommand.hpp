@@ -135,6 +135,15 @@ public:
     }
 
     /**
+     * @brief Prints help for this command.
+     *
+     * @param os    Output stream.
+     * @param alias Alias of the command.
+     */
+    virtual void printHelp(std::ostream &os,
+                           const std::string &alias) const = 0;
+
+    /**
      * @brief Runs app sub-command (doesn't require user's data).
      *
      * @param uncov Reference to the application.

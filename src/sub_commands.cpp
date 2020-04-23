@@ -877,19 +877,24 @@ public:
     }
 
 private:
+    virtual void printHelp(std::ostream &os,
+                           const std::string &/*alias*/) const override
+    {
+        os << "Usage: uncov new-gcovi [options...] [covoutroot]\n"
+           << "\nParameters:\n"
+           << "  covoutroot -- where to look for generated coverage data\n"
+           << "\nOptions:\n" << options;
+    }
+
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         namespace fs = boost::filesystem;
 
         boost::program_options::variables_map varMap = parseOptions(args);
         if (varMap.count("help")) {
-            std::cout << "Usage: uncov new-gcovi [options...] [covoutroot]\n"
-                      << "\nParameters:\n"
-                      << "  covoutroot -- where to look for generated coverage "
-                         "data\n"
-                      << "\nOptions:\n" << options;
+            printHelp(std::cout, alias);
             return;
         }
 
