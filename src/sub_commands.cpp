@@ -71,6 +71,16 @@ enum class PathCategory
     None       //!< Path is not in the build.
 };
 
+//! Storage for `"<path>"` literal.
+struct PathParam
+{
+    //! The literal.
+    static constexpr const char *const placeholder = "<path>";
+};
+
+//! File path parameter (not defined).
+using Path = String<PathParam>;
+
 /**
  * @brief Helper class that performs implicit conversions of paths.
  */
@@ -370,8 +380,8 @@ public:
     using noArgsForm = Lst<>;
     using oneBuildForm = Lst<BuildId>;
     using twoBuildsForm = Lst<BuildId, BuildId>;
-    using pathForm = Lst<FilePath>;
-    using fullForm = Lst<BuildId, BuildId, FilePath>;
+    using pathForm = Lst<Path>;
+    using fullForm = Lst<BuildId, BuildId, Path>;
     using callForms = Lst<noArgsForm, oneBuildForm, twoBuildsForm, pathForm,
                           fullForm>;
 
@@ -600,8 +610,8 @@ class FilesCmd : public AutoSubCommand<FilesCmd>
 public:
     using buildForm = Lst<OptBuildId>;
     using twoBuildsForm = Lst<BuildId, BuildId>;
-    using fullForm = Lst<BuildId, BuildId, FilePath>;
-    using pathInBuildForm = Lst<BuildId, FilePath>;
+    using fullForm = Lst<BuildId, BuildId, Path>;
+    using pathInBuildForm = Lst<BuildId, Path>;
     using callForms = Lst<buildForm, twoBuildsForm, fullForm, pathInBuildForm>;
 
     FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
@@ -711,7 +721,7 @@ private:
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
-    using pathInBuildForm = Lst<BuildId, FilePath>;
+    using pathInBuildForm = Lst<BuildId, Path>;
     using callForms = Lst<pathInBuildForm>;
 
     GetCmd() : AutoSubCommand({ "get" }, 2U)
@@ -1165,8 +1175,8 @@ class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
     using buildForm = Lst<OptBuildId>;
-    using pathForm = Lst<FilePath>;
-    using pathInBuildForm = Lst<BuildId, FilePath>;
+    using pathForm = Lst<Path>;
+    using pathInBuildForm = Lst<BuildId, Path>;
     using callForms = Lst<buildForm, pathForm, pathInBuildForm>;
 
     ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)

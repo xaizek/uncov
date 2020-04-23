@@ -39,8 +39,9 @@
 struct BuildId;
 //! Optional build id parameter (not defined).
 struct OptBuildId;
-//! File path parameter (not defined).
-struct FilePath;
+//! Any string parameter (not defined).  `T` can be used to provide extra data.
+template <typename T>
+struct String;
 //! Positive number parameter (not defined).
 struct PositiveNumber;
 //! Overload resolution wrapper for string literal classes (not defined).
@@ -125,10 +126,12 @@ struct parseArg<OptBuildId>
 };
 
 /**
- * @brief Parses file path, which can be any string.
+ * @brief Acccepts any string.
+ *
+ * @tparam T Arbitrary type.
  */
-template <>
-struct parseArg<FilePath>
+template <typename T>
+struct parseArg<String<T>>
 {
     //! Type of result yielded by this parser.
     using resultType = std::string;
@@ -142,7 +145,13 @@ struct parseArg<FilePath>
      * @returns Parsed value and indication whether parsing was successful.
      */
     static std::pair<resultType, ParseResult>
-    parse(const std::vector<std::string> &args, std::size_t idx);
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx < args.size()) {
+            return { args[idx], ParseResult::Accepted };
+        }
+        return { {}, ParseResult::Rejected };
+    }
 };
 
 /**

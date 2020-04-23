@@ -52,13 +52,16 @@ printParam(Lst<OptBuildId> /*param*/)
 { std::cerr << "[<build>]"; }
 
 /**
- * @brief Prints placeholder for FilePath type of parameters.
+ * @brief Prints placeholder for String type of parameters.
+ *
+ * @tparam T Provider of string literal's placeholder (`placeholder` field).
  *
  * @param param Marker for dispatching on type.
  */
-inline void
-printParam(Lst<FilePath> /*param*/)
-{ std::cerr << "<path>"; }
+template <typename T>
+void
+printParam(Lst<String<T>> /*param*/)
+{ std::cerr << T::placeholder; }
 
 /**
  * @brief Prints placeholder for PositiveNumber type of parameters.
