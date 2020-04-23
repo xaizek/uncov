@@ -36,53 +36,58 @@ namespace detail
 /**
  * @brief Prints placeholder for BuildId type of parameters.
  *
+ * @param os    Output stream.
  * @param param Marker for dispatching on type.
  */
 inline void
-printParam(Lst<BuildId> /*param*/)
-{ std::cerr << "<build>"; }
+printParam(std::ostream &os, Lst<BuildId> /*param*/)
+{ os << "<build>"; }
 
 /**
  * @brief Prints placeholder for OptBuildId type of parameters.
  *
+ * @param os    Output stream.
  * @param param Marker for dispatching on type.
  */
 inline void
-printParam(Lst<OptBuildId> /*param*/)
-{ std::cerr << "[<build>]"; }
+printParam(std::ostream &os, Lst<OptBuildId> /*param*/)
+{ os << "[<build>]"; }
 
 /**
  * @brief Prints placeholder for String type of parameters.
  *
  * @tparam T Provider of string literal's placeholder (`placeholder` field).
  *
+ * @param os    Output stream.
  * @param param Marker for dispatching on type.
  */
 template <typename T>
 void
-printParam(Lst<String<T>> /*param*/)
-{ std::cerr << T::placeholder; }
+printParam(std::ostream &os, Lst<String<T>> /*param*/)
+{ os << T::placeholder; }
 
 /**
  * @brief Prints placeholder for PositiveNumber type of parameters.
  *
+ * @param os    Output stream.
  * @param param Marker for dispatching on type.
  */
 inline void
-printParam(Lst<PositiveNumber> /*param*/)
-{ std::cerr << "<positive-num>"; }
+printParam(std::ostream &os, Lst<PositiveNumber> /*param*/)
+{ os << "<positive-num>"; }
 
 /**
  * @brief Prints placeholder for StringLiteral type of parameters.
  *
  * @tparam T Provider of string literal's value.
  *
+ * @param os    Output stream.
  * @param param Marker for dispatching on type.
  */
 template <typename T>
 void
-printParam(Lst<StringLiteral<T>> /*param*/)
-{ std::cerr << '"' << T::text << '"'; }
+printParam(std::ostream &os, Lst<StringLiteral<T>> /*param*/)
+{ os << '"' << T::text << '"'; }
 
 /**
  * @brief Catch all form of printParam to get better error messages.
@@ -92,23 +97,30 @@ printParam(Lst<StringLiteral<T>> /*param*/)
 inline void
 printParam(...) = delete;
 
+/**
+ * @brief Prints empty list of parameters.
+ *
+ * @param os     Output stream.
+ * @param params List of parameters.
+ */
 inline void
-printParams(Lst<>)
-{ std::cerr << '\n'; }
+printParams(std::ostream &os, Lst<> /*params*/)
+{ os << '\n'; }
 
 /**
  * @brief Prints placeholder for list consisting of a single parameter.
  *
  * @tparam T Type of the parameter.
  *
+ * @param os     Output stream.
  * @param params List of parameters.
  */
 template <typename T>
 void
-printParams(Lst<T> /*params*/)
+printParams(std::ostream &os, Lst<T> /*params*/)
 {
-    printParam(Lst<T>{});
-    std::cerr << '\n';
+    printParam(os, Lst<T>{});
+    os << '\n';
 }
 
 /**
@@ -117,17 +129,18 @@ printParams(Lst<T> /*params*/)
  * @tparam T     Type of the first parameter.
  * @tparam Types Types of the rest of the parameters.
  *
+ * @param os     Output stream.
  * @param params List of parameters.
  */
 template <typename T, typename... Types>
 void
-printParams(Lst<T, Types...> /*params*/)
+printParams(std::ostream &os, Lst<T, Types...> /*params*/)
 {
-    printParam(Lst<T>{});
+    printParam(os, Lst<T>{});
     if (sizeof...(Types) != 0) {
-        std::cerr << ' ';
+        os << ' ';
     }
-    printParams(Lst<Types...>{});
+    printParams(os, Lst<Types...>{});
 }
 
 /**
@@ -135,18 +148,20 @@ printParams(Lst<T, Types...> /*params*/)
  *
  * @tparam Types Types of parameters.
  *
+ * @param os     Output stream.
  * @param alias  Alias of the command.
  * @param params List of parameters.
  */
 template <typename... Types>
 void
-printInvocation(const std::string &alias, Lst<Types...> params)
+printInvocation(std::ostream &os, const std::string &alias,
+                Lst<Types...> params)
 {
-    std::cerr << " * uncov " << alias;
+    os << " * uncov " << alias;
     if (sizeof...(Types) != 0) {
-        std::cerr << ' ';
+        os << ' ';
     }
-    printParams(params);
+    printParams(os, params);
 }
 
 /**
@@ -154,18 +169,20 @@ printInvocation(const std::string &alias, Lst<Types...> params)
  *
  * @tparam Lists List of invocations (of type `Lst<...>`).
  *
+ * @param os    Output stream.
  * @param alias Alias of the command.
  * @param lists Invocation forms.
  */
 template <typename... Lists>
 void
-printHelpMsg(const std::string &alias, Lst<Lists...> /*lists*/)
+printHelpMsg(std::ostream &os, const std::string &alias,
+             Lst<Lists...> /*lists*/)
 {
     static_assert(sizeof...(Lists) > 0,
                   "There must be at least one invocation form.");
 
-    std::cerr << "Valid invocation forms:\n";
-    auto initList = { (printInvocation(alias, Lists{}), false)... };
+    os << "Valid invocation forms:\n";
+    auto initList = { (printInvocation(os, alias, Lists{}), false)... };
     (void)initList;
 }
 
@@ -210,7 +227,7 @@ void
 AutoSubCommand<C>::usageError(const std::string &alias)
 {
     std::cerr << "Failed to parse arguments for `" << alias << "`.\n";
-    detail::printHelpMsg(alias, typename C::callForms{});
+    detail::printHelpMsg(std::cerr, alias, typename C::callForms{});
     error();
 }
 
