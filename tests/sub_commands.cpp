@@ -34,6 +34,7 @@
 #include "GcovImporter.hpp"
 #include "Repository.hpp"
 #include "SubCommand.hpp"
+#include "Uncov.hpp"
 #include "integration.hpp"
 
 #include "TestUtils.hpp"
@@ -199,7 +200,9 @@ TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
                                 { "something" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `build`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov build [<build>]\n");
 }
 
 TEST_CASE("Build information on last build", "[subcommands][build-subcommand]")
@@ -241,7 +244,11 @@ TEST_CASE("Invalid arguments for builds", "[subcommands][builds-subcommand]")
                                  { "wrong" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `builds`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov builds\n"
+                               " * uncov builds <positive-num>\n"
+                               " * uncov builds \"all\"\n");
 }
 
 TEST_CASE("Builds generates table", "[subcommands][builds-subcommand]")
@@ -401,7 +408,9 @@ TEST_CASE("Invalid arguments for get", "[subcommands][get-subcommand]")
                               { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `get`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov get <build> <path>\n");
 }
 
 TEST_CASE("Paths to files can be relative inside repository",
@@ -851,7 +860,11 @@ TEST_CASE("Invalid arguments for show", "[subcommands][show-subcommand]")
                                { "/a", "/b" }) == EXIT_FAILURE);
 
     CHECK(coutCapture.get() == std::string());
-    CHECK(cerrCapture.get() == "Invalid arguments for subcommand.\n");
+    CHECK(cerrCapture.get() == "Failed to parse arguments for `show`.\n"
+                               "Valid invocation forms:\n"
+                               " * uncov show [<build>]\n"
+                               " * uncov show <path>\n"
+                               " * uncov show <build> <path>\n");
 }
 
 TEST_CASE("Whole build is printed", "[subcommands][show-subcommand]")
@@ -1495,6 +1508,56 @@ TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
     boost::optional<Build> build = bh.getBuild(4);
     REQUIRE(build);
     CHECK(build->getPaths().size() == 4U);
+}
+
+TEST_CASE("Generic help", "[subcommands][help-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+    Uncov uncov({ "uncov", "help" });
+    CHECK(getCmd("help")->exec(uncov, "help", { }) == EXIT_SUCCESS);
+    CHECK(boost::starts_with(coutCapture.get(),
+                             "Usage: uncov [--help|-h] [--version|-v] [repo] "
+                                    "subcommand [args...]\n"
+                             "\n"
+                             "Subcommands\n"));
+    CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("Specific help", "[subcommands][help-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    SECTION("Correct command")
+    {
+        StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+        Uncov uncov({ "uncov", "help", "new-gcovi" });
+        CHECK(getCmd("help")->exec(uncov, "help",
+                                   { "new-gcovi" }) == EXIT_SUCCESS);
+        CHECK(boost::starts_with(coutCapture.get(),
+                                 "new-gcovi\n\n"
+                                 "Generates coverage via gcov and imports it\n"
+                                 "\n"
+                                 "Usage: uncov new-gcovi [options...] "
+                                        "[covoutroot]\n"));
+        CHECK(cerrCapture.get() == std::string());
+    }
+
+    SECTION("Unknown command")
+    {
+        StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+        Uncov uncov({ "uncov", "help", "wrong-command" });
+        CHECK_THROWS_AS(getCmd("help")->exec(uncov, "help",
+                                             { "wrong-command" }),
+                        std::invalid_argument);
+    }
 }
 
 static SubCommand *

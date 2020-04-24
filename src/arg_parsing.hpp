@@ -22,6 +22,7 @@
 
 #include <cstddef>
 
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -38,8 +39,9 @@
 struct BuildId;
 //! Optional build id parameter (not defined).
 struct OptBuildId;
-//! Fiel path parameter (not defined).
-struct FilePath;
+//! Any string parameter (not defined).  `T` can be used to provide extra data.
+template <typename T>
+struct String;
 //! Positive number parameter (not defined).
 struct PositiveNumber;
 //! Overload resolution wrapper for string literal classes (not defined).
@@ -124,10 +126,12 @@ struct parseArg<OptBuildId>
 };
 
 /**
- * @brief Parses file path, which can be any string.
+ * @brief Acccepts any string.
+ *
+ * @tparam T Arbitrary type.
  */
-template <>
-struct parseArg<FilePath>
+template <typename T>
+struct parseArg<String<T>>
 {
     //! Type of result yielded by this parser.
     using resultType = std::string;
@@ -141,7 +145,13 @@ struct parseArg<FilePath>
      * @returns Parsed value and indication whether parsing was successful.
      */
     static std::pair<resultType, ParseResult>
-    parse(const std::vector<std::string> &args, std::size_t idx);
+    parse(const std::vector<std::string> &args, std::size_t idx)
+    {
+        if (idx < args.size()) {
+            return { args[idx], ParseResult::Accepted };
+        }
+        return { {}, ParseResult::Rejected };
+    }
 };
 
 /**
@@ -258,7 +268,37 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
     return {};
 }
 
+/**
+ * @brief Handles case of empty parameter list.
+ *
+ * @tparam Types Types of expected parameters (might be empty).
+ *
+ * @param args Input arguments.
+ * @param idx  Current position within @p args or just past its end.
+ *
+ * @returns Empty tuple in case of successful parsing.
+ */
+template <typename... Types>
+boost::optional<std::tuple<>>
+tryParse(const std::vector<std::string> &args,
+         typename std::enable_if<sizeof...(Types) == 0, std::size_t>::type idx)
+{
+    if (args.size() == 0 && idx == 0) {
+        return std::make_tuple();
+    }
+    return {};
 }
+
+}
+
+/**
+ * @brief Captures list of types.
+ *
+ * @tparam Args List of types.
+ */
+template <typename... Types>
+struct Lst
+{ };
 
 /**
  * @brief Parses argument list guided by format specified in template arguments.
@@ -266,12 +306,13 @@ tryParse(const std::vector<std::string> &args, std::size_t idx)
  * @tparam Types Types of expected parameters.
  *
  * @param args Input arguments.
+ * @param form List of types of expected parameters.
  *
  * @returns Tuple of results of parsing if it was successful.
  */
 template <typename... Types>
 boost::optional<std::tuple<detail::ToOutType<Types>...>>
-tryParse(const std::vector<std::string> &args)
+tryParse(const std::vector<std::string> &args, Lst<Types...> /*form*/)
 {
     return detail::tryParse<Types...>(args, 0U);
 }

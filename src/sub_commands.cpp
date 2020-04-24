@@ -39,14 +39,15 @@
 #include "utils/Text.hpp"
 #include "utils/fs.hpp"
 #include "utils/md5.hpp"
+#include "AutoSubCommand.hpp"
 #include "BuildHistory.hpp"
 #include "FileComparator.hpp"
 #include "FilePrinter.hpp"
 #include "GcovImporter.hpp"
 #include "Repository.hpp"
 #include "Settings.hpp"
-#include "SubCommand.hpp"
 #include "TablePrinter.hpp"
+#include "Uncov.hpp"
 #include "arg_parsing.hpp"
 #include "coverage.hpp"
 #include "integration.hpp"
@@ -69,6 +70,16 @@ enum class PathCategory
     Directory, //!< Path refers to a directory.
     None       //!< Path is not in the build.
 };
+
+//! Storage for `"<path>"` literal.
+struct PathParam
+{
+    //! The literal.
+    static constexpr const char *const placeholder = "<path>";
+};
+
+//! File path parameter (not defined).
+using Path = String<PathParam>;
 
 /**
  * @brief Helper class that performs implicit conversions of paths.
@@ -252,6 +263,9 @@ static PathCategory classifyPath(const Build &build, const std::string &path);
 class BuildCmd : public AutoSubCommand<BuildCmd>
 {
 public:
+    using callForm = Lst<OptBuildId>;
+    using callForms = Lst<callForm>;
+
     BuildCmd() : AutoSubCommand({ "build" }, 0U, 1U)
     {
         describe("build", "Displays information about single build");
@@ -259,15 +273,14 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, callForm{})) {
             std::tie(buildRef) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         TablePrinter tablePrinter {
@@ -306,6 +319,11 @@ class BuildsCmd : public AutoSubCommand<BuildsCmd>
     };
 
 public:
+    using noArgsForm = Lst<>;
+    using limitForm = Lst<PositiveNumber>;
+    using allForm = Lst<StringLiteral<All>>;
+    using callForms = Lst<noArgsForm, limitForm, allForm>;
+
     BuildsCmd() : AutoSubCommand({ "builds" }, 0U, 1U)
     {
         describe("builds", "Lists builds");
@@ -313,19 +331,20 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         // By default limit number of builds to display to 10.
         bool limitBuilds = true;
         unsigned int maxBuildCount = 10;
-        if (auto parsed = tryParse<PositiveNumber>(args)) {
+        if (tryParse(args, noArgsForm{})) {
+            // Nothing needs to be done, variable defaults are getting used.
+        } else if (auto parsed = tryParse(args, limitForm{})) {
             std::tie(maxBuildCount) = *parsed;
-        } else if (tryParse<StringLiteral<All>>(args)) {
+        } else if (tryParse(args, allForm{})) {
             limitBuilds = false;
-        } else if (!args.empty()) {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+        } else {
+            return usageError(alias);
         }
 
         TablePrinter tablePrinter {
@@ -358,6 +377,14 @@ private:
 class DiffCmd : public AutoSubCommand<DiffCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using oneBuildForm = Lst<BuildId>;
+    using twoBuildsForm = Lst<BuildId, BuildId>;
+    using pathForm = Lst<Path>;
+    using fullForm = Lst<BuildId, BuildId, Path>;
+    using callForms = Lst<noArgsForm, oneBuildForm, twoBuildsForm, pathForm,
+                          fullForm>;
+
     DiffCmd() : AutoSubCommand({ "diff", "diff-hits", "regress" }, 0U, 3U)
     {
         describe("diff", "Compares builds, directories or files");
@@ -374,26 +401,25 @@ private:
         bool buildsDiff = false;
         BuildRef oldBuildRef(bh), newBuildRef(bh);
         InRepoPath path(repo);
-        if (args.empty()) {
+        if (tryParse(args, noArgsForm{})) {
             findPrev = true;
             buildsDiff = true;
             newBuildRef = LatestBuildMarker;
-        } else if (auto parsed = tryParse<BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, oneBuildForm{})) {
             buildsDiff = true;
             newBuildRef = LatestBuildMarker;
             std::tie(oldBuildRef) = *parsed;
-        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, twoBuildsForm{})) {
             buildsDiff = true;
             std::tie(oldBuildRef, newBuildRef) = *parsed;
-        } else if (auto parsed = tryParse<FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathForm{})) {
             findPrev = true;
             newBuildRef = LatestBuildMarker;
             std::tie(path) = *parsed;
-        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, fullForm{})) {
             std::tie(oldBuildRef, newBuildRef, path) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build newBuild = newBuildRef;
@@ -582,6 +608,12 @@ private:
 class FilesCmd : public AutoSubCommand<FilesCmd>
 {
 public:
+    using buildForm = Lst<OptBuildId>;
+    using twoBuildsForm = Lst<BuildId, BuildId>;
+    using fullForm = Lst<BuildId, BuildId, Path>;
+    using pathInBuildForm = Lst<BuildId, Path>;
+    using callForms = Lst<buildForm, twoBuildsForm, fullForm, pathInBuildForm>;
+
     FilesCmd() : AutoSubCommand({ "files", "changed", "dirs" }, 0U, 3U)
     {
         describe("files", "Lists statistics about files");
@@ -597,21 +629,20 @@ private:
         BuildRef buildRef(bh);
         InRepoPath dirFilter(repo);
         boost::optional<Build> prevBuild;
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, buildForm{})) {
             buildRef = std::get<0>(*parsed);
-        } else if (auto parsed = tryParse<BuildId, BuildId>(args)) {
+        } else if (auto parsed = tryParse(args, twoBuildsForm{})) {
             BuildRef prevBuildRef(bh);
             std::tie(prevBuildRef, buildRef) = *parsed;
             prevBuild = static_cast<Build>(prevBuildRef);
-        } else if (auto parsed = tryParse<BuildId, BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, fullForm{})) {
             BuildRef prevBuildRef(bh);
             std::tie(prevBuildRef, buildRef, dirFilter) = *parsed;
             prevBuild = static_cast<Build>(prevBuildRef);
-        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, dirFilter) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;
@@ -656,11 +687,58 @@ private:
 };
 
 /**
+ * @brief Displays help message.
+ */
+class HelpCmd : public AutoSubCommand<HelpCmd>
+{
+    //! Storage for `"<subcommand>"` literal.
+    struct CommandParam
+    {
+        //! The literal.
+        static constexpr const char *const placeholder = "<subcommand>";
+    };
+
+    //! Command name parameter (not defined).
+    using Command = String<CommandParam>;
+
+public:
+    using noArgsForm = Lst<>;
+    using cmdForm = Lst<Command>;
+    using callForms = Lst<noArgsForm, cmdForm>;
+
+    HelpCmd() : AutoSubCommand({ "help" }, 0U, 1U)
+    {
+        describe("help", "Displays help message");
+    }
+
+private:
+    virtual bool
+    isGeneric() const override
+    {
+        return true;
+    }
+
+    virtual void
+    execImpl(const std::string &/*alias*/,
+             const std::vector<std::string> &args) override
+    {
+        if (args.empty()) {
+            uncov->printHelp();
+        } else {
+            uncov->printHelp(args[0]);
+        }
+    }
+};
+
+/**
  * @brief Dumps coverage information of a file.
  */
 class GetCmd : public AutoSubCommand<GetCmd>
 {
 public:
+    using pathInBuildForm = Lst<BuildId, Path>;
+    using callForms = Lst<pathInBuildForm>;
+
     GetCmd() : AutoSubCommand({ "get" }, 2U)
     {
         describe("get", "Dumps coverage information of a file");
@@ -668,16 +746,15 @@ public:
 
 private:
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         BuildRef buildRef(bh);
         InRepoPath filePath(repo);
-        if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, filePath) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;
@@ -696,6 +773,9 @@ private:
 class NewCmd : public AutoSubCommand<NewCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewCmd() : AutoSubCommand({ "new" })
     {
         describe("new", "Imports new build from stdin");
@@ -779,6 +859,9 @@ private:
 class NewGcoviCmd : public AutoSubCommand<NewGcoviCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewGcoviCmd() : AutoSubCommand({ "new-gcovi" },
                                    0U, std::numeric_limits<std::size_t>::max())
     {
@@ -809,19 +892,24 @@ public:
     }
 
 private:
+    virtual void printHelp(std::ostream &os,
+                           const std::string &/*alias*/) const override
+    {
+        os << "Usage: uncov new-gcovi [options...] [covoutroot]\n"
+           << "\nParameters:\n"
+           << "  covoutroot -- where to look for generated coverage data\n"
+           << "\nOptions:\n" << options;
+    }
+
     virtual void
-    execImpl(const std::string &/*alias*/,
+    execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
         namespace fs = boost::filesystem;
 
         boost::program_options::variables_map varMap = parseOptions(args);
         if (varMap.count("help")) {
-            std::cout << "Usage: uncov new-gcovi [options...] [covoutroot]\n"
-                      << "\nParameters:\n"
-                      << "  covoutroot -- where to look for generated coverage "
-                         "data\n"
-                      << "\nOptions:\n" << options;
+            printHelp(std::cout, alias);
             return;
         }
 
@@ -1012,6 +1100,9 @@ private:
 class NewJsonCmd : public AutoSubCommand<NewJsonCmd>
 {
 public:
+    using noArgsForm = Lst<>;
+    using callForms = Lst<noArgsForm>;
+
     NewJsonCmd() : AutoSubCommand({ "new-json" })
     {
         describe("new-json", "Imports new build in JSON format from stdin");
@@ -1103,6 +1194,11 @@ private:
 class ShowCmd : public AutoSubCommand<ShowCmd>
 {
 public:
+    using buildForm = Lst<OptBuildId>;
+    using pathForm = Lst<Path>;
+    using pathInBuildForm = Lst<BuildId, Path>;
+    using callForms = Lst<buildForm, pathForm, pathInBuildForm>;
+
     ShowCmd() : AutoSubCommand({ "missed", "show" }, 0U, 2U)
     {
         describe("missed", "Displays missed in a build, directory or file");
@@ -1117,16 +1213,15 @@ private:
         BuildRef buildRef(bh);
         InRepoPath path(repo);
         bool printWholeBuild = false;
-        if (auto parsed = tryParse<OptBuildId>(args)) {
+        if (auto parsed = tryParse(args, buildForm{})) {
             buildRef = std::get<0>(*parsed);
             printWholeBuild = true;
-        } else if (auto parsed = tryParse<FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathForm{})) {
             path = std::get<0>(*parsed);
-        } else if (auto parsed = tryParse<BuildId, FilePath>(args)) {
+        } else if (auto parsed = tryParse(args, pathInBuildForm{})) {
             std::tie(buildRef, path) = *parsed;
         } else {
-            std::cerr << "Invalid arguments for subcommand.\n";
-            return error();
+            return usageError(alias);
         }
 
         Build build = buildRef;

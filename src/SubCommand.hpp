@@ -34,6 +34,7 @@
 class BuildHistory;
 class Repository;
 class Settings;
+class Uncov;
 
 /**
  * @brief Base class for all sub-commands.
@@ -122,7 +123,42 @@ public:
     }
 
     /**
-     * @brief Runs this sub-command.
+     * @brief Checks whether this command is of application-level.
+     *
+     * Application-commands don't need user's data (repository, etc.).
+     *
+     * @returns @c true if so, @c false otherwise.
+     */
+    virtual bool isGeneric() const
+    {
+        return false;
+    }
+
+    /**
+     * @brief Prints help for this command.
+     *
+     * @param os    Output stream.
+     * @param alias Alias of the command.
+     */
+    virtual void printHelp(std::ostream &os,
+                           const std::string &alias) const = 0;
+
+    /**
+     * @brief Runs app sub-command (doesn't require user's data).
+     *
+     * @param uncov Reference to the application.
+     * @param alias Alias of the command.
+     * @param args  Arguments.
+     *
+     * @returns Either @c EXIT_FAILURE or @c EXIT_SUCCESS.
+     *
+     * @throws std::logic_error If this is a repo sub-command.
+     */
+    int exec(Uncov &uncov, const std::string &alias,
+             const std::vector<std::string> &args);
+
+    /**
+     * @brief Runs repo sub-command (requires user's data).
      *
      * @param settings Configuration.
      * @param bh       Build history.
@@ -131,6 +167,8 @@ public:
      * @param args     Arguments.
      *
      * @returns Either @c EXIT_FAILURE or @c EXIT_SUCCESS.
+     *
+     * @throws std::logic_error If this is an app sub-command.
      */
     int exec(Settings &settings, BuildHistory &bh, Repository &repo,
              const std::string &alias, const std::vector<std::string> &args);
@@ -168,9 +206,20 @@ protected:
     Settings *const &settings = settingsValue; //!< Configuration.
     BuildHistory *const &bh = bhValue;         //!< Build history.
     Repository *const &repo = repoValue;       //!< Repository.
+    Uncov *const &uncov = uncovValue;          //!< Application.
     //! @}
 
 private:
+    /**
+     * @brief Checks correctness of the invocation.
+     *
+     * Calls `error()` and prints error messages to standard output.
+     *
+     * @param alias Alias of the command.
+     * @param args  Arguments.
+     */
+    void checkExec(const std::string &alias,
+                   const std::vector<std::string> &args);
     /**
      * @brief Formats part of error message about number of expected arguments.
      *
@@ -204,34 +253,11 @@ private:
     //! Descriptions of the aliases.
     std::unordered_map<std::string, std::string> descriptions;
 
-    int hasErrors = false;   //!< Whether an error has occurred.
-    Settings *settingsValue; //!< Configuration.
-    BuildHistory *bhValue;   //!< Build history.
-    Repository *repoValue;   //!< Repository.
+    int hasErrors = false;             //!< Whether an error has occurred.
+    Settings *settingsValue = nullptr; //!< Configuration.
+    BuildHistory *bhValue = nullptr;   //!< Build history.
+    Repository *repoValue = nullptr;   //!< Repository.
+    Uncov *uncovValue = nullptr;       //!< Application.
 };
-
-/**
- * @brief Helper class that auto-registers its derivative in Commands-list.
- *
- * @tparam C Derived class (as per CRTP).
- */
-template <class C>
-class AutoSubCommand : public SubCommand
-{
-public:
-    // Pull in parent constructor.
-    using SubCommand::SubCommand;
-
-private:
-    //! Static initialization of this variable performs the registration.
-    static const bool invokeRegister;
-
-private:
-    //! Purpose of this field it to make @c invokeRegister used.
-    const bool forceRegistration = invokeRegister;
-};
-
-template <class C>
-const bool AutoSubCommand<C>::invokeRegister = (registerCmd<C>(), true);
 
 #endif // UNCOV__SUBCOMMAND_HPP__
