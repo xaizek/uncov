@@ -691,11 +691,22 @@ private:
  */
 class HelpCmd : public AutoSubCommand<HelpCmd>
 {
+    //! Storage for `"<subcommand>"` literal.
+    struct CommandParam
+    {
+        //! The literal.
+        static constexpr const char *const placeholder = "<subcommand>";
+    };
+
+    //! Command name parameter (not defined).
+    using Command = String<CommandParam>;
+
 public:
     using noArgsForm = Lst<>;
-    using callForms = Lst<noArgsForm>;
+    using cmdForm = Lst<Command>;
+    using callForms = Lst<noArgsForm, cmdForm>;
 
-    HelpCmd() : AutoSubCommand({ "help" })
+    HelpCmd() : AutoSubCommand({ "help" }, 0U, 1U)
     {
         describe("help", "Displays help message");
     }
@@ -709,9 +720,13 @@ private:
 
     virtual void
     execImpl(const std::string &/*alias*/,
-             const std::vector<std::string> &/*args*/) override
+             const std::vector<std::string> &args) override
     {
-        uncov->printHelp();
+        if (args.empty()) {
+            uncov->printHelp();
+        } else {
+            uncov->printHelp(args[0]);
+        }
     }
 };
 

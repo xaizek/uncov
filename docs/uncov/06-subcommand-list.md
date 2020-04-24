@@ -152,9 +152,15 @@ See description of **new** subcommand below for meaning of integer values.
 help
 ----
 
-Displays generic help information that includes list of all subcommands.
+Displays help information.
 
 **Usage: help**
+
+Displays generic information about all subcommands.
+
+**Usage: help \<subcommand\>**
+
+Displays information about a specific subcommand.
 
 missed
 ------

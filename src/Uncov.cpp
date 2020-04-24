@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -94,6 +95,19 @@ Uncov::printHelp()
 {
     std::cout << invocation.getUsage() << "\n\n";
     describeCommands(cmds);
+}
+
+void
+Uncov::printHelp(const std::string &alias)
+{
+    auto cmd = cmds.find(alias);
+    if (cmd == cmds.end()) {
+        throw std::invalid_argument("Unknown subcommand: " + alias);
+    }
+
+    std::cout << alias << "\n\n"
+              << cmd->second->getDescription(alias) << "\n\n";
+    cmd->second->printHelp(std::cout, alias);
 }
 
 /**

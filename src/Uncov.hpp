@@ -56,6 +56,15 @@ public:
      */
     void printHelp();
 
+    /**
+     * @brief Prints help for a specific command to standard output.
+     *
+     * @param alias Alias of the command.
+     *
+     * @throws std::invalid_argument on unknown command name.
+     */
+    void printHelp(const std::string &alias);
+
 private:
     /// Processor of command-line arguments.
     Invocation invocation;

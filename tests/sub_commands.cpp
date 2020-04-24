@@ -1510,7 +1510,7 @@ TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
     CHECK(build->getPaths().size() == 4U);
 }
 
-TEST_CASE("help", "[subcommands][help-subcommand]")
+TEST_CASE("Generic help", "[subcommands][help-subcommand]")
 {
     Repository repo("tests/test-repo");
     const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
@@ -1526,6 +1526,38 @@ TEST_CASE("help", "[subcommands][help-subcommand]")
                              "\n"
                              "Subcommands\n"));
     CHECK(cerrCapture.get() == std::string());
+}
+
+TEST_CASE("Specific help", "[subcommands][help-subcommand]")
+{
+    Repository repo("tests/test-repo");
+    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    DB db(dbPath);
+    BuildHistory bh(db);
+
+    SECTION("Correct command")
+    {
+        StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+        Uncov uncov({ "uncov", "help", "new-gcovi" });
+        CHECK(getCmd("help")->exec(uncov, "help",
+                                   { "new-gcovi" }) == EXIT_SUCCESS);
+        CHECK(boost::starts_with(coutCapture.get(),
+                                 "new-gcovi\n\n"
+                                 "Generates coverage via gcov and imports it\n"
+                                 "\n"
+                                 "Usage: uncov new-gcovi [options...] "
+                                        "[covoutroot]\n"));
+        CHECK(cerrCapture.get() == std::string());
+    }
+
+    SECTION("Unknown command")
+    {
+        StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
+        Uncov uncov({ "uncov", "help", "wrong-command" });
+        CHECK_THROWS_AS(getCmd("help")->exec(uncov, "help",
+                                             { "wrong-command" }),
+                        std::invalid_argument);
+    }
 }
 
 static SubCommand *
