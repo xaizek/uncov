@@ -151,6 +151,7 @@ docs/uncov-web.1: force
 
 doxygen:
 	doxygen doxygen/config
+	ln -sr data doxygen/html/
 
 # target that doesn't exist and used to force rebuild
 force:
