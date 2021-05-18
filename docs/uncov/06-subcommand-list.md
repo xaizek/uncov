@@ -213,7 +213,7 @@ Generates coverage via `gcov` and imports it.
                                     repeated), paths are taken to be relative to
                                     the root of the repository;
  * **--prefix arg**              -- prefix to be added to relative path of
-                                    sources
+                                    sources;
  * **--ref-name arg**            -- forces custom ref name;
  * **-c [ --capture-worktree ]** -- make a dangling commit if working directory
                                     is dirty.
