@@ -1,6 +1,6 @@
-**uncov**, _v0.3_, _2016 – 2020_
+**uncov**, _v0.3_, _2016 – 2021_
 
-_This file last updated on 15 March, 2020_
+_This file last updated on 26 May, 2021_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -79,6 +79,21 @@ Expected to work in Unix-like environments.
   `uncov-gcov` instead of a subcommand.
 
 ## Usage ##
+
+GCC 8 and newer (json format of intermediate data isn't handled by `new-gcovi`):
+
+    # reset coverage counters from previous runs
+    find . -name '*.gcda' -delete
+    # < run tests here >
+    # generage coverage for every object file found (change "." to build root)
+    find . -name '*.o' -exec gcov -p {} +
+    # generage and combine coverage reports (--capture-worktree automatically
+    # makes stray commit if worktree is dirty)
+    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
+    # remove coverage reports
+    find . -name '*.gcov' -delete
+
+Earlier versions of GCC:
 
     # drop coverage counters from previous run
     find . -name '*.gcda' -delete
