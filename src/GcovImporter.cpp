@@ -48,7 +48,7 @@ GcovImporter::GcovImporter(const std::string &root,
     : rootDir(normalizePath(fs::absolute(root))),
       prefix(prefix)
 {
-    for (const fs::path &p : exclude) {
+    for (const std::string &p : exclude) {
         skipPaths.insert(normalizePath(fs::absolute(p, root)));
     }
 
