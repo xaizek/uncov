@@ -26,7 +26,7 @@
 
 TEST_CASE("Constructor throws on empty argument list", "[Invocation]")
 {
-    REQUIRE_THROWS_AS(Invocation invocation({}), std::invalid_argument);
+    REQUIRE_THROWS_AS(Invocation invocation({}), const std::invalid_argument &);
 }
 
 TEST_CASE("Invocation errors on too few arguments", "[Invocation]")

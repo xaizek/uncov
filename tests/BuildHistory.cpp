@@ -32,7 +32,7 @@ TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
     DB db(dbPath);
     db.execute("pragma user_version = 99999");
 
-    REQUIRE_THROWS_AS(BuildHistory bh(db), std::runtime_error);
+    REQUIRE_THROWS_AS(BuildHistory bh(db), const std::runtime_error &);
 }
 
 TEST_CASE("List of builds on unknown branch is empty", "[BuildHistory]")

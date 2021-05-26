@@ -26,8 +26,9 @@ TEST_CASE("Throws on wrong items", "[TablePrinter][format]")
 {
     TablePrinter table({ "col" }, 80);
 
-    REQUIRE_THROWS_AS(table.append({}), std::invalid_argument);
-    REQUIRE_THROWS_AS(table.append({ "col1", "col2" }), std::invalid_argument);
+    REQUIRE_THROWS_AS(table.append({}), const std::invalid_argument &);
+    REQUIRE_THROWS_AS(table.append({ "col1", "col2" }),
+                      const std::invalid_argument &);
 }
 
 TEST_CASE("Invisible columns turn into dots", "[TablePrinter][sizing]")

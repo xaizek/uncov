@@ -27,5 +27,6 @@ TEST_CASE("Repository is discovered by nested path", "[Repository]")
 
 TEST_CASE("Repository throws on wrong path", "[Repository]")
 {
-    REQUIRE_THROWS_AS(Repository repo("/no-such-path"), std::invalid_argument);
+    REQUIRE_THROWS_AS(Repository repo("/no-such-path"),
+                      const std::invalid_argument &);
 }
