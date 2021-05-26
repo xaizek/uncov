@@ -88,9 +88,9 @@ GcovImporter::GcovImporter(const std::string &root,
     std::string tempDirPath = tempDir;
     getRunner()(std::move(cmd), tempDirPath);
 
-    for (fs::directory_entry &e :
-         fs::recursive_directory_iterator(tempDirPath)) {
-        fs::path path = e.path();
+    for (fs::recursive_directory_iterator it(tempDirPath), end;
+         it != end; ++it) {
+        fs::path path = it->path();
         if (fs::is_regular(path) && path.extension() == ".gcov") {
             parseGcov(path.string());
         }
