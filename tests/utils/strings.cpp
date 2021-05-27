@@ -24,7 +24,7 @@
 
 TEST_CASE("splitAt throws on absent delimiter", "[utils-strings]")
 {
-    CHECK_THROWS_AS(splitAt("a b", ','), std::runtime_error);
+    CHECK_THROWS_AS(splitAt("a b", ','), const std::runtime_error &);
 }
 
 TEST_CASE("split() handles empty string", "[utils-strings]")

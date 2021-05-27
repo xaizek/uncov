@@ -115,7 +115,7 @@ public:
             os << highlightGroups.at(groupName);
         }
 
-        for (const auto app : apps) {
+        for (const auto &app : apps) {
             app(os);
         }
 

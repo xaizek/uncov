@@ -34,10 +34,10 @@ TEST_CASE("readFile reads a file", "[utils-fs]")
 
 TEST_CASE("readFile throws on a directory", "[utils-fs]")
 {
-    CHECK_THROWS_AS(readFile("tests"), std::runtime_error);
+    CHECK_THROWS_AS(readFile("tests"), const std::runtime_error &);
 }
 
 TEST_CASE("readFile throws on a nonexisting file", "[utils-fs]")
 {
-    CHECK_THROWS_AS(readFile("no-such-file"), std::runtime_error);
+    CHECK_THROWS_AS(readFile("no-such-file"), const std::runtime_error &);
 }

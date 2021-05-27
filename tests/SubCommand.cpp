@@ -54,14 +54,15 @@ TEST_CASE("Description for unregistered alias is rejected", "[SubCommand]")
 {
     TestSubCommand cmd({ "name" });
     CHECK_NOTHROW(cmd.describe("name", "descr"));
-    CHECK_THROWS_AS(cmd.describe("not-an-alias", "descr"), std::logic_error);
+    CHECK_THROWS_AS(cmd.describe("not-an-alias", "descr"),
+                    const std::logic_error &);
 }
 
 TEST_CASE("Alias can be described only once", "[SubCommand]")
 {
     TestSubCommand cmd({ "name" });
     CHECK_NOTHROW(cmd.describe("name", "descr"));
-    CHECK_THROWS_AS(cmd.describe("name", "descr"), std::logic_error);
+    CHECK_THROWS_AS(cmd.describe("name", "descr"), const std::logic_error &);
 }
 
 TEST_CASE("Repo command must be called using repo method", "[SubCommand]")
@@ -72,7 +73,7 @@ TEST_CASE("Repo command must be called using repo method", "[SubCommand]")
     cmd.describe("repo", "descr");
     cmd.generic = false;
 
-    CHECK_THROWS_AS(cmd.exec(uncov, "repo", { }), std::logic_error);
+    CHECK_THROWS_AS(cmd.exec(uncov, "repo", { }), const std::logic_error &);
 }
 
 TEST_CASE("Generic command must be called using generic method", "[SubCommand]")
@@ -86,5 +87,5 @@ TEST_CASE("Generic command must be called using generic method", "[SubCommand]")
     cmd.generic = true;
 
     CHECK_THROWS_AS(cmd.exec(getSettings(), bh, repo, "generic", { }),
-                    std::logic_error);
+                    const std::logic_error &);
 }

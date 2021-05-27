@@ -24,14 +24,15 @@
 
 TEST_CASE("readProc handles empty command", "[integartion]")
 {
-    CHECK_THROWS_AS(readProc({ }, ".", CatchStderr{}), std::runtime_error);
+    CHECK_THROWS_AS(readProc({ }, ".", CatchStderr{}),
+                    const std::runtime_error &);
 }
 
 TEST_CASE("readProc throws if program fails", "[integartion]")
 {
     CHECK_THROWS_AS(readProc(std::vector<std::string>(10, "bad-command"), ".",
                              CatchStderr{}),
-                    std::runtime_error);
+                    const std::runtime_error &);
 }
 
 TEST_CASE("queryProc fails on bad path", "[integartion]")

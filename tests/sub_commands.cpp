@@ -174,7 +174,7 @@ TEST_CASE("Description can be queried", "[subcommands]")
     CHECK(cmd->getDescription("show") == "Displays a build, directory or file");
     CHECK(cmd->getDescription("missed") == "Displays missed in a build, "
                                            "directory or file");
-    CHECK_THROWS_AS(cmd->getDescription("wrong"), std::out_of_range);
+    CHECK_THROWS_AS(cmd->getDescription("wrong"), const std::out_of_range &);
 }
 
 TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
@@ -186,7 +186,7 @@ TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
     CHECK_THROWS_AS(getCmd("build")->exec(getSettings(), bh, repo, "build",
                                           { "@branch" }),
-                    std::runtime_error);
+                    const std::runtime_error &);
 }
 
 TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
@@ -319,7 +319,7 @@ TEST_CASE("Diff fails on wrong negative id", "[subcommands][diff-subcommand]")
 
     CHECK_THROWS_AS(getCmd("diff")->exec(getSettings(), bh, repo, "diff",
                                          { "@-100" }),
-                    std::runtime_error);
+                    const std::runtime_error &);
 }
 
 TEST_CASE("Diff and negative ids work", "[subcommands][diff-subcommand]")
@@ -612,7 +612,7 @@ TEST_CASE("New-json handles input gracefully",
 
         CHECK_THROWS_AS(getCmd("new-json")->exec(getSettings(), bh, repo,
                                                  "new-json", {}),
-                        std::exception);
+                        const std::exception &);
         CHECK(cerrCapture.get() == std::string());
     }
 
@@ -1258,7 +1258,7 @@ TEST_CASE("Gcov file with broken format causes an exception",
     CHECK_THROWS_AS(getCmd("new-gcovi")->exec(getSettings(), bh, repo,
                                               "new-gcovi",
                                               { "tests/test-repo" }),
-                    std::runtime_error);
+                    const std::runtime_error &);
     CHECK(coutCapture.get() == std::string());
     CHECK(cerrCapture.get() == std::string());
 
@@ -1556,7 +1556,7 @@ TEST_CASE("Specific help", "[subcommands][help-subcommand]")
         Uncov uncov({ "uncov", "help", "wrong-command" });
         CHECK_THROWS_AS(getCmd("help")->exec(uncov, "help",
                                              { "wrong-command" }),
-                        std::invalid_argument);
+                        const std::invalid_argument &);
     }
 }
 
