@@ -110,7 +110,7 @@ Cov Change:          +50.0000%
 C/M/R Line Changes:  0 / -2 / -2                             
 Ref:                 master                                  
 Commit:              d1b12454989580b470be93e71cc60c2e32fd5889
-Time:                2017-01-09 15:17:51                     
+Time:                2017-01-09 13:17:51                     
 )";
 
 const std::string allBuilds =

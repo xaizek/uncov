@@ -25,6 +25,9 @@ main(int argc, const char *argv[])
         }
     }
 
+    // Fix timezone used by the tests.
+    setenv("TZ", "UTC", true);
+
     PrintingSettings::set(std::make_shared<TestSettings>());
 
     decor::disableDecorations();
