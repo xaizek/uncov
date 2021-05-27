@@ -261,9 +261,16 @@ def run_gcov(args):
                                       path.join(root, files))
 
 
+# data type to represent a collected line
+class Line():
+    """Describes the state of a collected source line"""
+    def __init__(self, count=0, relevant=False):
+        self.count = count
+        self.relevant = relevant
+
 def parse_gcov_file(fobj, filename):
     """Parses the content of .gcov file"""
-    coverage = []
+    coverage = {}
     ignoring = False
     for line in fobj:
         report_fields = line.decode('utf-8', 'replace').split(':', 2)
@@ -293,24 +300,29 @@ def parse_gcov_file(fobj, filename):
                 sys.stderr.write("Warning: %s:%d: LCOV_EXCL_STOP is the "
                                  "correct keyword\n" % (filename, line_num))
             ignoring = False
+
+        # parse current line data
+        if line_num not in coverage:
+            coverage[line_num] = Line(0, False)
         # XXX: provide an option to disable the second check?
-        if cov_num == '-' or text.strip() in ['}', '};']:
-            coverage.append(None)
-        elif cov_num == '#####':
+        # FIXME: [fabianw@mavt.ethz.ch; 2021-05-27] why is the second check
+        # relevant?
+        # if cov_num == '-' or text.strip() in ['}', '};']:
+        if cov_num == '-':
+            coverage[line_num].relevant = False
+        elif cov_num in ['#####', '=====', '$$$$$', '%%%%%'] :
             # Avoid false positives.
             if (
                 ignoring or
                 re.search(r'\bLCOV_EXCL_LINE\b|^\s*\b(inline|static)\b', text)
             ):
-                coverage.append(None)
+                coverage[line_num].relevant = False
             else:
-                coverage.append(0)
-        elif cov_num == '=====':
-            # This is indicitive of a gcov output parse error.
-            # XXX: this is not the case, see `man gcov`.
-            coverage.append(0)
+                # no count added here since line was missed but is relevant
+                coverage[line_num].relevant = True
         else:
-            coverage.append(int(cov_num.rstrip('*')))
+            coverage[line_num].count += int(cov_num.rstrip('*'))
+            coverage[line_num].relevant = True
     return coverage
 
 
@@ -324,19 +336,14 @@ def combine_reports(original, new):
     report = {}
     report['name'] = original['name']
     report['source_digest'] = original['source_digest']
-    coverage = []
-    for original_num, new_num in zip(original['coverage'], new['coverage']):
-        if original_num is None:
-            coverage.append(new_num)
-        elif new_num is None:
-            coverage.append(original_num)
-        else:
-            coverage.append(original_num + new_num)
-
-    covered = 0
-    for c in coverage:
-        if c is not None:
-            covered = covered + c
+    assert original['coverage'].keys() == new['coverage'].keys()
+    line_numbers = original['coverage'].keys()
+    coverage = {}
+    for lnum, orig_line, new_line in zip(line_numbers, original['coverage'].values(), new['coverage'].values()):
+        coverage[lnum] = Line(0, False)
+        if orig_line.relevant or new_line.relevant:
+            coverage[lnum].relevant = True
+            coverage[lnum].count = orig_line.count + new_line.count
 
     report['coverage'] = coverage
     return report
@@ -361,10 +368,12 @@ def collect_non_report_files(args, discovered_files):
             if filepath not in discovered_files:
                 src_report = {}
                 src_report['name'] = posix_path(filepath)
-                coverage = []
+                coverage = {}
                 with io.open(abs_filepath, mode='rb') as fobj:
+                    line_num = 1
                     for _ in fobj:
-                        coverage.append(None)
+                        coverage[line_num] = Line(0, False)
+                        line_num += 1
                     fobj.seek(0)
                     data = fobj.read()
                     src_report['source_digest'] = hashlib.md5(data).hexdigest()
@@ -559,11 +568,11 @@ def run():
         print(rec['name'])
         print(rec['source_digest'])
         print(len(rec['coverage']))
-        for c in rec['coverage']:
-            if c is None:
+        for line in rec['coverage'].values():
+            if not line.relevant:
                 print(-1, end=" ")
             else:
-                print(c, end=" ")
+                print(line.count, end=" ")
         print()
 
 # TODO: consider checking that working directory is clean in a try to make sure
