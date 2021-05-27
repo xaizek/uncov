@@ -6,6 +6,8 @@ LDFLAGS  += -lboost_system
 
 INSTALL := install -D
 
+PREFIX := /usr
+
 ifneq ($(OS),Windows_NT)
     bin_suffix :=
 else
@@ -184,20 +186,20 @@ tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
 	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp
 
 install: release
-	$(INSTALL) -t $(DESTDIR)/usr/bin/ $(bin) $(webbin) uncov-gcov
-	$(INSTALL) -t $(DESTDIR)/usr/share/uncov/srchilight/ data/srchilight/*
-	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)/usr/share/man/man1/uncov.1
+	$(INSTALL) -t $(DESTDIR)$(PREFIX)/bin/ $(bin) $(webbin) uncov-gcov
+	$(INSTALL) -t $(DESTDIR)$(PREFIX)/share/uncov/srchilight/ data/srchilight/*
+	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)$(PREFIX)/share/man/man1/uncov.1
 	$(INSTALL) -m 644 docs/uncov-gcov.1 \
-	              $(DESTDIR)/usr/share/man/man1/uncov-gcov.1
-	$(INSTALL) -m 644 docs/uncov-web.1 $(DESTDIR)/usr/share/man/man1/uncov-web.1
+	              $(DESTDIR)$(PREFIX)/share/man/man1/uncov-gcov.1
+	$(INSTALL) -m 644 docs/uncov-web.1 $(DESTDIR)$(PREFIX)/share/man/man1/uncov-web.1
 
 uninstall:
-	$(RM) $(DESTDIR)/usr/bin/$(basename $(bin)) \
-	      $(DESTDIR)/usr/bin/$(basename $(webbin)) \
-	      $(DESTDIR)/usr/bin/uncov-gcov $(DESTDIR)/usr/share/man/man1/uncov.1 \
-	      $(DESTDIR)/usr/share/man/man1/uncov-gcov.1 \
-	      $(DESTDIR)/usr/share/man/man1/uncov-web.1
-	$(RM) -r $(DESTDIR)/usr/share/uncov/
+	$(RM) $(DESTDIR)$(PREFIX)/bin/$(basename $(bin)) \
+	      $(DESTDIR)$(PREFIX)/bin/$(basename $(webbin)) \
+	      $(DESTDIR)$(PREFIX)/bin/uncov-gcov $(DESTDIR)$(PREFIX)/share/man/man1/uncov.1 \
+	      $(DESTDIR)$(PREFIX)/share/man/man1/uncov-gcov.1 \
+	      $(DESTDIR)$(PREFIX)/share/man/man1/uncov-web.1
+	$(RM) -r $(DESTDIR)$(PREFIX)/share/uncov/
 
 # work around parenthesis warning in tests somehow caused by ccache
 $(out_dir)/tests/tests: EXTRA_CXXFLAGS += -Wno-error=parentheses -Itests/
