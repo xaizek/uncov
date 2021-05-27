@@ -191,12 +191,14 @@ install: release
 	$(INSTALL) -m 644 docs/uncov.1 $(DESTDIR)$(PREFIX)/share/man/man1/uncov.1
 	$(INSTALL) -m 644 docs/uncov-gcov.1 \
 	              $(DESTDIR)$(PREFIX)/share/man/man1/uncov-gcov.1
-	$(INSTALL) -m 644 docs/uncov-web.1 $(DESTDIR)$(PREFIX)/share/man/man1/uncov-web.1
+	$(INSTALL) -m 644 docs/uncov-web.1 \
+	              $(DESTDIR)$(PREFIX)/share/man/man1/uncov-web.1
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/bin/$(basename $(bin)) \
 	      $(DESTDIR)$(PREFIX)/bin/$(basename $(webbin)) \
-	      $(DESTDIR)$(PREFIX)/bin/uncov-gcov $(DESTDIR)$(PREFIX)/share/man/man1/uncov.1 \
+	      $(DESTDIR)$(PREFIX)/bin/uncov-gcov \
+	      $(DESTDIR)$(PREFIX)/share/man/man1/uncov.1 \
 	      $(DESTDIR)$(PREFIX)/share/man/man1/uncov-gcov.1 \
 	      $(DESTDIR)$(PREFIX)/share/man/man1/uncov-web.1
 	$(RM) -r $(DESTDIR)$(PREFIX)/share/uncov/
