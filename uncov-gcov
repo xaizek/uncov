@@ -336,14 +336,13 @@ def combine_reports(original, new):
     report = {}
     report['name'] = original['name']
     report['source_digest'] = original['source_digest']
-    assert original['coverage'].keys() == new['coverage'].keys()
-    line_numbers = original['coverage'].keys()
-    coverage = {}
-    for lnum, orig_line, new_line in zip(line_numbers, original['coverage'].values(), new['coverage'].values()):
-        coverage[lnum] = Line(0, False)
-        if orig_line.relevant or new_line.relevant:
-            coverage[lnum].relevant = True
-            coverage[lnum].count = orig_line.count + new_line.count
+    coverage = original['coverage']
+    for line_num, line in new['coverage'].items():
+        if line_num not in coverage:
+            coverage[line_num] = line
+        else:
+            if line.relevant:
+                coverage[line_num] += line.count
 
     report['coverage'] = coverage
     return report
