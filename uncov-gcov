@@ -55,6 +55,8 @@ def create_args(params):
                         help='print verbose messages')
     parser.add_argument('--dryrun', action='store_true',
                         help='run the script without printing report')
+    parser.add_argument('--cpp-dtor-invocations', action='store_true',
+                        help='count coverage for C++ destructor invocations')
     parser.add_argument('--gcov', metavar='FILE', default='gcov',
                         help='set the location of gcov')
     parser.add_argument('--gcov-options', metavar='GCOV_OPTS', default='',
@@ -268,7 +270,7 @@ class Line():
         self.count = count
         self.relevant = relevant
 
-def parse_gcov_file(fobj, filename):
+def parse_gcov_file(fobj, filename, args):
     """Parses the content of .gcov file"""
     coverage = {}
     ignoring = False
@@ -302,13 +304,12 @@ def parse_gcov_file(fobj, filename):
             ignoring = False
 
         # parse current line data
+        disposal = []
+        if not args.cpp_dtor_invocations:
+            disposal.extend(['}', '};'])
         if line_num not in coverage:
             coverage[line_num] = Line(0, False)
-        # XXX: provide an option to disable the second check?
-        # FIXME: [fabianw@mavt.ethz.ch; 2021-05-27] why is the second check
-        # relevant?
-        # if cov_num == '-' or text.strip() in ['}', '};']:
-        if cov_num == '-':
+        if cov_num == '-' or text.strip() in disposal:
             coverage[line_num].relevant = False
         elif cov_num in ['#####', '=====', '$$$$$', '%%%%%'] :
             # Avoid false positives.
@@ -441,7 +442,8 @@ def collect(args):
                         src_report['source_digest'] = \
                                 hashlib.md5(data).hexdigest()
 
-                    src_report['coverage'] = parse_gcov_file(fobj, gcov_path)
+                    src_report['coverage'] = \
+                            parse_gcov_file(fobj, gcov_path, args)
                     if src_path in src_files:
                         src_files[src_path] = \
                                 combine_reports(src_files[src_path], src_report)
