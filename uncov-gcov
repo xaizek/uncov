@@ -55,6 +55,8 @@ def create_args(params):
                         help='print verbose messages')
     parser.add_argument('--dryrun', action='store_true',
                         help='run the script without printing report')
+    parser.add_argument('--cpp-dtor-invocations', action='store_true',
+                        help='count coverage for C++ destructor invocations')
     parser.add_argument('--gcov', metavar='FILE', default='gcov',
                         help='set the location of gcov')
     parser.add_argument('--gcov-options', metavar='GCOV_OPTS', default='',
@@ -261,10 +263,22 @@ def run_gcov(args):
                                       path.join(root, files))
 
 
-def parse_gcov_file(fobj, filename):
+# data type to represent a collected line
+class Line():
+    """Describes the state of a collected source line"""
+    def __init__(self, count=0, relevant=False):
+        self.count = count
+        self.relevant = relevant
+
+def parse_gcov_file(fobj, filename, args):
     """Parses the content of .gcov file"""
-    coverage = []
+    coverage = {}
     ignoring = False
+
+    disposal = []
+    if not args.cpp_dtor_invocations:
+        disposal.extend(['}', '};'])
+
     for line in fobj:
         report_fields = line.decode('utf-8', 'replace').split(':', 2)
         if len(report_fields) == 1:
@@ -293,24 +307,26 @@ def parse_gcov_file(fobj, filename):
                 sys.stderr.write("Warning: %s:%d: LCOV_EXCL_STOP is the "
                                  "correct keyword\n" % (filename, line_num))
             ignoring = False
-        # XXX: provide an option to disable the second check?
-        if cov_num == '-' or text.strip() in ['}', '};']:
-            coverage.append(None)
-        elif cov_num == '#####':
+
+        if line_num not in coverage:
+            coverage[line_num] = Line(0, False)
+
+        # parse current line data
+        if cov_num == '-' or text.strip() in disposal:
+            coverage[line_num].relevant = False
+        elif cov_num in ['#####', '=====', '$$$$$', '%%%%%']:
             # Avoid false positives.
             if (
                 ignoring or
                 re.search(r'\bLCOV_EXCL_LINE\b|^\s*\b(inline|static)\b', text)
             ):
-                coverage.append(None)
+                coverage[line_num].relevant = False
             else:
-                coverage.append(0)
-        elif cov_num == '=====':
-            # This is indicitive of a gcov output parse error.
-            # XXX: this is not the case, see `man gcov`.
-            coverage.append(0)
+                # no count added here since line was missed but is relevant
+                coverage[line_num].relevant = True
         else:
-            coverage.append(int(cov_num.rstrip('*')))
+            coverage[line_num].count += int(cov_num.rstrip('*'))
+            coverage[line_num].relevant = True
     return coverage
 
 
@@ -324,19 +340,14 @@ def combine_reports(original, new):
     report = {}
     report['name'] = original['name']
     report['source_digest'] = original['source_digest']
-    coverage = []
-    for original_num, new_num in zip(original['coverage'], new['coverage']):
-        if original_num is None:
-            coverage.append(new_num)
-        elif new_num is None:
-            coverage.append(original_num)
+    coverage = original['coverage']
+    for line_num, line in new['coverage'].items():
+        if line_num not in coverage:
+            coverage[line_num] = line
         else:
-            coverage.append(original_num + new_num)
-
-    covered = 0
-    for c in coverage:
-        if c is not None:
-            covered = covered + c
+            if line.relevant:
+                coverage[line_num].relevant = True
+                coverage[line_num].count += line.count
 
     report['coverage'] = coverage
     return report
@@ -361,10 +372,12 @@ def collect_non_report_files(args, discovered_files):
             if filepath not in discovered_files:
                 src_report = {}
                 src_report['name'] = posix_path(filepath)
-                coverage = []
+                coverage = {}
                 with io.open(abs_filepath, mode='rb') as fobj:
+                    line_num = 1
                     for _ in fobj:
-                        coverage.append(None)
+                        coverage[line_num] = Line(0, False)
+                        line_num += 1
                     fobj.seek(0)
                     data = fobj.read()
                     src_report['source_digest'] = hashlib.md5(data).hexdigest()
@@ -433,7 +446,8 @@ def collect(args):
                         src_report['source_digest'] = \
                                 hashlib.md5(data).hexdigest()
 
-                    src_report['coverage'] = parse_gcov_file(fobj, gcov_path)
+                    src_report['coverage'] = \
+                            parse_gcov_file(fobj, gcov_path, args)
                     if src_path in src_files:
                         src_files[src_path] = \
                                 combine_reports(src_files[src_path], src_report)
@@ -559,11 +573,11 @@ def run():
         print(rec['name'])
         print(rec['source_digest'])
         print(len(rec['coverage']))
-        for c in rec['coverage']:
-            if c is None:
+        for line in rec['coverage'].values():
+            if not line.relevant:
                 print(-1, end=" ")
             else:
-                print(c, end=" ")
+                print(line.count, end=" ")
         print()
 
 # TODO: consider checking that working directory is clean in a try to make sure
