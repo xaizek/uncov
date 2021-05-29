@@ -343,7 +343,8 @@ def combine_reports(original, new):
             coverage[line_num] = line
         else:
             if line.relevant:
-                coverage[line_num] += line.count
+                coverage[line_num].relevant = True
+                coverage[line_num].count += line.count
 
     report['coverage'] = coverage
     return report
