@@ -99,3 +99,9 @@ Make a dangling commit if working directory is dirty.
 ------------------------------
 
 Force custom ref name.
+
+**--cpp-dtor-invocations**
+--------------------------
+
+Count coverage for C++ destructor invocations, which tends to show up at lines
+that have the closing brace (`{`).
