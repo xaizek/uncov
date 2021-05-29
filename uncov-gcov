@@ -274,6 +274,11 @@ def parse_gcov_file(fobj, filename, args):
     """Parses the content of .gcov file"""
     coverage = {}
     ignoring = False
+
+    disposal = []
+    if not args.cpp_dtor_invocations:
+        disposal.extend(['}', '};'])
+
     for line in fobj:
         report_fields = line.decode('utf-8', 'replace').split(':', 2)
         if len(report_fields) == 1:
@@ -303,15 +308,13 @@ def parse_gcov_file(fobj, filename, args):
                                  "correct keyword\n" % (filename, line_num))
             ignoring = False
 
-        # parse current line data
-        disposal = []
-        if not args.cpp_dtor_invocations:
-            disposal.extend(['}', '};'])
         if line_num not in coverage:
             coverage[line_num] = Line(0, False)
+
+        # parse current line data
         if cov_num == '-' or text.strip() in disposal:
             coverage[line_num].relevant = False
-        elif cov_num in ['#####', '=====', '$$$$$', '%%%%%'] :
+        elif cov_num in ['#####', '=====', '$$$$$', '%%%%%']:
             # Avoid false positives.
             if (
                 ignoring or
