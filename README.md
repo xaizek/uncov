@@ -1,6 +1,6 @@
 **uncov**, _v0.3_, _2016 – 2021_
 
-_This file last updated on 26 May, 2021_
+_This file last updated on 6 June, 2021_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -80,25 +80,27 @@ Expected to work in Unix-like environments.
 
 ## Usage ##
 
-GCC 8 and newer (json format of intermediate data isn't handled by `new-gcovi`):
-
-    # reset coverage counters from previous runs
-    find . -name '*.gcda' -delete
-    # < run tests here >
-    # generage coverage for every object file found (change "." to build root)
-    find . -name '*.o' -exec gcov -p {} +
-    # generage and combine coverage reports (--capture-worktree automatically
-    # makes stray commit if worktree is dirty)
-    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
-    # remove coverage reports
-    find . -name '*.gcov' -delete
-
-Earlier versions of GCC:
+Using subcommand (should be faster and less problematic):
 
     # drop coverage counters from previous run
     find . -name '*.gcda' -delete
-    # < run tests at this point >
+    # << run tests here >>
+    # collect coverage (--capture-worktree automatically makes stray commit if
+    # worktree is dirty)
     uncov new-gcovi --exclude tests/ --exclude web/ --capture-worktree
+
+Using a Python script:
+
+    # reset coverage counters from previous runs
+    find . -name '*.gcda' -delete
+    # << run tests here >>
+    # generage coverage for every object file found (change "." to build root)
+    find . -name '*.o' -exec gcov -p {} +
+    # collect coverage (--capture-worktree automatically makes stray commit if
+    # worktree is dirty)
+    uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
+    # remove coverage reports
+    find . -name '*.gcov' -delete
 
 ### Example ###
 
