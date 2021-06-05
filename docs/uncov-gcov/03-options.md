@@ -53,12 +53,19 @@ Directory to look gcov files in.
 **-e**, **--exclude** [=""]
 ---------------------------
 
-Set exclude file or directory.
+List of paths to exclude.  Can be specifieid multiple times.
+
+Examples:
+
+    uncov-gcov --exclude build-release --exclude build-debug ...
+    uncov-gcov --exclude build-release build-debug ...
+    uncov-gcov --exclude build* ...
 
 **-i**, **--include** [=""]
 ---------------------------
 
-Set include file or directory.
+List of paths to include.  Can be specifieid multiple times.  See **--exclude**
+for examples.
 
 **-E**, **--exclude-pattern** [=""]
 -----------------------------------

@@ -76,10 +76,12 @@ def create_args(params):
     parser.add_argument('--collect-root', metavar='DIR', default='',
                         help='directory to look gcov files in '
                              '(--root by default)')
-    parser.add_argument('-e', '--exclude', metavar='DIR|FILE', action='append',
-                        help='set exclude file or directory', default=[])
-    parser.add_argument('-i', '--include', metavar='DIR|FILE', action='append',
-                        help='set include file or directory', default=[])
+    parser.add_argument('-e', '--exclude', metavar='DIR|FILE',
+                        nargs='+', action='append', default=[[]],
+                        help='set exclude file or directory')
+    parser.add_argument('-i', '--include', metavar='DIR|FILE',
+                        nargs='+', action='append', default=[[]],
+                        help='set include file or directory')
     parser.add_argument('-E', '--exclude-pattern', dest='regexp',
                         action='append', metavar='REGEXP', default=[],
                         help='set exclude file/directory pattern')
@@ -537,6 +539,10 @@ def run():
     if args.version:
         print('uncov-gcov v0.3')
         exit(0)
+
+    # flatten lists
+    args.exclude = [e for items in args.exclude for e in items]
+    args.include = [i for items in args.include for i in items]
 
     if args.verbose:
         print('encodings: {}'.format(args.encodings))
