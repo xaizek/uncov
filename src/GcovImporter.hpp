@@ -28,6 +28,28 @@
 class File;
 
 /**
+ * @brief Determines information about `gcov` command.
+ */
+class GcovInfo
+{
+public:
+    GcovInfo();
+
+public:
+    /**
+     * @brief Checks whether binning is needed.
+     *
+     * @returns `true` if so.
+     */
+    bool needsBinning() const
+    { return employBinning; }
+
+private:
+    //! Whether `gcov` command doesn't handle identically-named files properly.
+    bool employBinning;
+};
+
+/**
  * @brief Generates information by calling `gcov` and collects it.
  */
 class GcovImporter
@@ -100,6 +122,8 @@ private:
     static std::function<runner_f> & getRunner();
 
 private:
+    //! Information about `gcov` command.
+    GcovInfo gcovInfo;
     //! Absolute and normalized path of the source repository.
     boost::filesystem::path rootDir;
     //! List of absolute and normalized path to be excluded.

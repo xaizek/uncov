@@ -19,7 +19,10 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
 
+#include <cassert>
+
 #include <fstream>
+#include <regex>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -32,8 +35,81 @@
 #include "utils/md5.hpp"
 #include "utils/strings.hpp"
 #include "BuildHistory.hpp"
+#include "integration.hpp"
 
 namespace fs = boost::filesystem;
+
+// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89961 for information about
+// what's wrong with some versions of `gcov` and why binning is needed.
+
+//! First version of `gcov` which has broken `--preserve-paths` option.
+static int FirstBrokenGcovVersion = 8;
+
+namespace {
+    /**
+     * @brief A set of files that should be passed to `gcov` at the same time.
+     */
+    class Bin {
+    public:
+        /**
+         * @brief Constructs an empty set.
+         *
+         * @param deduplicateNames Whether to avoid adding name-duplicates.
+         */
+        Bin(bool deduplicateNames = true) : deduplicateNames(deduplicateNames)
+        { }
+
+    public:
+        /**
+         * @brief Tries to add a file to this bin.
+         *
+         * @param path Absolute path to the file.
+         *
+         * @returns `true` if the path was added.
+         */
+        bool add(const fs::path &path)
+        {
+            assert(path.is_absolute() && "Paths should be absolute.");
+
+            if (deduplicateNames &&
+                !names.emplace(path.filename().string()).second) {
+                return false;
+            }
+
+            paths.emplace_back(path.string());
+            return true;
+        }
+
+        /**
+         * @brief Retrieves list of paths of this bin.
+         *
+         * @returns The list.
+         */
+        const std::vector<std::string> & getPaths() const
+        { return paths; }
+
+    private:
+        //! Whether no two files should have the same name.
+        bool deduplicateNames;
+        //! Names of files in this bin if `deduplicateNames` is set.
+        std::unordered_set<std::string> names;
+        //! Files of this bin.
+        std::vector<std::string> paths;
+    };
+}
+
+GcovInfo::GcovInfo() : employBinning(true)
+{
+    const std::regex versionRegex("gcov \\(GCC\\) (.*)");
+
+    std::smatch match;
+
+    const std::string version = readProc({ "gcov", "--version" });
+    if (std::regex_search(version, match, versionRegex)) {
+        const int majorVersion = std::stoi(match[1]);
+        employBinning = (majorVersion >= FirstBrokenGcovVersion);
+    }
+}
 
 void
 GcovImporter::setRunner(std::function<runner_f> runner)
@@ -137,22 +213,54 @@ GcovImporter::getFiles() &&
 void
 GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
 {
-    std::vector<std::string> cmd = {
-        "gcov", "--preserve-paths", "--intermediate-format", "--"
-    };
-    for (const fs::path &gcnoFile : gcnoFiles) {
-        cmd.emplace_back(gcnoFile.string());
+    std::vector<Bin> bins;
+
+    if (gcovInfo.needsBinning()) {
+        // We want to execute the runner for tests even if there are no input
+        // files.
+        bins.emplace_back();
+
+        for (const fs::path &gcnoFile : gcnoFiles) {
+            bool added = false;
+
+            for (Bin &bin : bins) {
+                if (bin.add(gcnoFile)) {
+                    added = true;
+                    break;
+                }
+            }
+
+            if (!added) {
+                bins.emplace_back();
+                bins.back().add(gcnoFile);
+            }
+        }
+    } else {
+        bins.emplace_back(/*deduplicateNames=*/false);
+        Bin &bin = bins.back();
+        for (const fs::path &gcnoFile : gcnoFiles) {
+            bin.add(gcnoFile);
+        }
     }
 
-    TempDir tempDir("gcovi");
-    std::string tempDirPath = tempDir;
-    getRunner()(std::move(cmd), tempDirPath);
+    for (const Bin &bin : bins) {
+        const std::vector<std::string> &paths = bin.getPaths();
 
-    for (fs::recursive_directory_iterator it(tempDirPath), end;
-         it != end; ++it) {
-        fs::path path = it->path();
-        if (fs::is_regular(path) && path.extension() == ".gcov") {
-            parseGcov(path.string());
+        std::vector<std::string> cmd = {
+            "gcov", "--preserve-paths", "--intermediate-format", "--"
+        };
+        cmd.insert(cmd.cend(), paths.cbegin(), paths.cend());
+
+        TempDir tempDir("gcovi");
+        std::string tempDirPath = tempDir;
+        getRunner()(std::move(cmd), tempDirPath);
+
+        for (fs::recursive_directory_iterator it(tempDirPath), end;
+            it != end; ++it) {
+            fs::path path = it->path();
+            if (fs::is_regular(path) && path.extension() == ".gcov") {
+                parseGcov(path.string());
+            }
         }
     }
 }
