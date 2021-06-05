@@ -71,6 +71,12 @@ public:
 
 private:
     /**
+     * @brief Calls `gcov` to process files and processes the result.
+     *
+     * @param gcnoFiles Absolute paths to `*.gcno` files.
+     */
+    void importFiles(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
      * @brief Parses single `*.gcov` file.
      *
      * @param path Path of the file.

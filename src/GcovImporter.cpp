@@ -62,10 +62,7 @@ GcovImporter::GcovImporter(const std::string &root,
         ".deps"                // Dependency tracking of automake.
     };
 
-    std::vector<std::string> cmd = {
-        "gcov", "--preserve-paths", "--intermediate-format", "--"
-    };
-
+    std::vector<fs::path> gcnoFiles;
     for (fs::recursive_directory_iterator it(fs::absolute(covoutRoot)), end;
          it != end; ++it) {
         fs::path path = it->path();
@@ -79,22 +76,12 @@ GcovImporter::GcovImporter(const std::string &root,
             // generated even for files that weren't executed (e.g.,
             // `main.cpp`).
             if (path.extension() == ".gcno") {
-                cmd.emplace_back(path.string());
+                gcnoFiles.push_back(path);
             }
         }
     }
 
-    TempDir tempDir("gcovi");
-    std::string tempDirPath = tempDir;
-    getRunner()(std::move(cmd), tempDirPath);
-
-    for (fs::recursive_directory_iterator it(tempDirPath), end;
-         it != end; ++it) {
-        fs::path path = it->path();
-        if (fs::is_regular(path) && path.extension() == ".gcov") {
-            parseGcov(path.string());
-        }
-    }
+    importFiles(std::move(gcnoFiles));
 
     for (fs::recursive_directory_iterator it(rootDir), end; it != end; ++it) {
         fs::path path = it->path();
@@ -145,6 +132,29 @@ std::vector<File> &&
 GcovImporter::getFiles() &&
 {
     return std::move(files);
+}
+
+void
+GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
+{
+    std::vector<std::string> cmd = {
+        "gcov", "--preserve-paths", "--intermediate-format", "--"
+    };
+    for (const fs::path &gcnoFile : gcnoFiles) {
+        cmd.emplace_back(gcnoFile.string());
+    }
+
+    TempDir tempDir("gcovi");
+    std::string tempDirPath = tempDir;
+    getRunner()(std::move(cmd), tempDirPath);
+
+    for (fs::recursive_directory_iterator it(tempDirPath), end;
+         it != end; ++it) {
+        fs::path path = it->path();
+        if (fs::is_regular(path) && path.extension() == ".gcov") {
+            parseGcov(path.string());
+        }
+    }
 }
 
 void
