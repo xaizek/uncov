@@ -274,22 +274,8 @@ GcovImporter::parseGcov(const std::string &path)
         std::string type, value;
         std::tie(type, value) = splitAt(line, ':');
         if (type == "file") {
-            coverage = nullptr;
-
-            fs::path filePath = value;
-            if (!filePath.is_absolute()) {
-                filePath = prefix / filePath;
-            }
-
-            fs::path sourcePath = normalizePath(fs::absolute(filePath,
-                                                             rootDir));
-            if (!pathIsInSubtree(rootDir, sourcePath) ||
-                isExcluded(sourcePath)) {
-                continue;
-            }
-
-            sourcePath = makeRelativePath(rootDir, sourcePath);
-            coverage = &mapping[sourcePath.string()];
+            const std::string sourcePath = resolveSourcePath(value);
+            coverage = (sourcePath.empty() ? nullptr : &mapping[sourcePath]);
         } else if (coverage != nullptr && type == "lcount") {
             std::vector<std::string> fields = split(value, ',');
             if (fields.size() < 2U) {
@@ -299,15 +285,37 @@ GcovImporter::parseGcov(const std::string &path)
 
             unsigned int lineNo = std::stoi(fields[0]);
             int count = std::stoi(fields[1]);
-
-            if (coverage->size() < lineNo) {
-                coverage->resize(lineNo, -1);
-            }
-
-            int &entry = (*coverage)[lineNo - 1U];
-            entry = (entry == -1 ? count : entry + count);
+            updateCoverage(*coverage, lineNo, count);
         }
     }
+}
+
+std::string
+GcovImporter::resolveSourcePath(fs::path unresolved)
+{
+    if (!unresolved.is_absolute()) {
+        unresolved = prefix / unresolved;
+    }
+
+    fs::path sourcePath = normalizePath(fs::absolute(unresolved,
+                                                     rootDir));
+    if (!pathIsInSubtree(rootDir, sourcePath) || isExcluded(sourcePath)) {
+        return std::string();
+    }
+
+    return makeRelativePath(rootDir, sourcePath).string();
+}
+
+void
+GcovImporter::updateCoverage(std::vector<int> &coverage, unsigned int lineNo,
+                             int count)
+{
+    if (coverage.size() < lineNo) {
+        coverage.resize(lineNo, -1);
+    }
+
+    int &entry = coverage[lineNo - 1U];
+    entry = (entry == -1 ? count : entry + count);
 }
 
 bool

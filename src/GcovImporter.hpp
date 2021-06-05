@@ -105,6 +105,24 @@ private:
      */
     void parseGcov(const std::string &path);
     /**
+     * @brief Converts path from coverage data into relative form.
+     *
+     * @param unresolved Possibly absolute path.
+     *
+     * @returns Relative path or empty string if it's not in the tree or
+     *          excluded.
+     */
+    std::string resolveSourcePath(boost::filesystem::path unresolved);
+    /**
+     * @brief Updates coverage information of single line.
+     *
+     * @param coverage Coverage data.
+     * @param lineNo   Line number.
+     * @param count    Number of times the line was executed.
+     */
+    void updateCoverage(std::vector<int> &coverage, unsigned int lineNo,
+                        int count);
+    /**
      * @brief Checks whether specified path is excluded.
      *
      * @param path Path to check.
