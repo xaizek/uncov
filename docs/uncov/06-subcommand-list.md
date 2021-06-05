@@ -197,8 +197,7 @@ Integers have the following meaning:
 new-gcovi
 ---------
 
-Generates coverage via `gcov` and imports it.  Doesn't understand JSON version
-of intermediate format and is thus unusable for GCC newer than GCC 8.
+Generates coverage via `gcov` and imports it.
 
 **Usage: new-gcovi [options...] [covoutroot]**
 

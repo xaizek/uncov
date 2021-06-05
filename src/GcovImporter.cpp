@@ -16,12 +16,18 @@
 
 #include "GcovImporter.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <cassert>
 
 #include <fstream>
+#include <istream>
 #include <regex>
 #include <set>
 #include <stdexcept>
@@ -41,6 +47,11 @@ namespace fs = boost::filesystem;
 
 // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89961 for information about
 // what's wrong with some versions of `gcov` and why binning is needed.
+
+//! `gcov` option to generate coverage in JSON format.
+static const char GcovJsonFormat[] = "--json-format";
+//! `gcov` option to generate coverage in plain text format.
+static const char GcovIntermediateFormat[] = "--intermediate-format";
 
 //! First version of `gcov` which has broken `--preserve-paths` option.
 static int FirstBrokenGcovVersion = 8;
@@ -98,11 +109,27 @@ namespace {
     };
 }
 
-GcovInfo::GcovInfo() : employBinning(true)
+GcovInfo::GcovInfo()
+    : employBinning(true), jsonFormat(false), intermediateFormat(false)
 {
+    const std::regex optionRegex("--[-a-z]+");
     const std::regex versionRegex("gcov \\(GCC\\) (.*)");
 
     std::smatch match;
+
+    const std::string help = readProc({ "gcov", "--help" });
+    auto from = help.cbegin();
+    auto to = help.cend();
+    while (std::regex_search(from, to, match, optionRegex)) {
+        const std::string str = match.str();
+        if (str == GcovJsonFormat) {
+            jsonFormat = true;
+        } else if (str == GcovIntermediateFormat) {
+            intermediateFormat = true;
+        }
+
+        from += match.position() + match.length();
+    }
 
     const std::string version = readProc({ "gcov", "--version" });
     if (std::regex_search(version, match, versionRegex)) {
@@ -137,6 +164,10 @@ GcovImporter::GcovImporter(const std::string &root,
         ".git", ".hg", ".svn", // Various version control systems.
         ".deps"                // Dependency tracking of automake.
     };
+
+    if (!gcovInfo.hasJsonFormat() && !gcovInfo.hasIntermediateFormat()) {
+        throw std::runtime_error("Failed to detect machine format of gcov");
+    }
 
     std::vector<fs::path> gcnoFiles;
     for (fs::recursive_directory_iterator it(fs::absolute(covoutRoot)), end;
@@ -243,11 +274,21 @@ GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
         }
     }
 
+    std::string gcovOption;
+    std::string gcovFileExt;
+    if (gcovInfo.hasJsonFormat()) {
+        gcovOption = GcovJsonFormat;
+        gcovFileExt = ".gcov.json.gz";
+    } else {
+        gcovOption = GcovIntermediateFormat;
+        gcovFileExt = ".gcov";
+    }
+
     for (const Bin &bin : bins) {
         const std::vector<std::string> &paths = bin.getPaths();
 
         std::vector<std::string> cmd = {
-            "gcov", "--preserve-paths", "--intermediate-format", "--"
+            "gcov", "--preserve-paths", gcovOption, "--"
         };
         cmd.insert(cmd.cend(), paths.cbegin(), paths.cend());
 
@@ -256,11 +297,49 @@ GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
         getRunner()(std::move(cmd), tempDirPath);
 
         for (fs::recursive_directory_iterator it(tempDirPath), end;
-            it != end; ++it) {
+             it != end; ++it) {
             fs::path path = it->path();
-            if (fs::is_regular(path) && path.extension() == ".gcov") {
-                parseGcov(path.string());
+            if (fs::is_regular(path) &&
+                boost::ends_with(path.filename().string(), gcovFileExt)) {
+                if (gcovInfo.hasJsonFormat()) {
+                    parseGcovJsonGz(path.string());
+                } else {
+                    parseGcov(path.string());
+                }
             }
+        }
+    }
+}
+
+void
+GcovImporter::parseGcovJsonGz(const std::string &path)
+{
+    namespace io = boost::iostreams;
+    namespace pt = boost::property_tree;
+
+    std::ifstream file(path, std::ios_base::in | std::ios_base::binary);
+
+    io::filtering_istreambuf in;
+    in.push(io::gzip_decompressor());
+    in.push(file);
+
+    std::basic_istream<char> is(&in);
+
+    pt::ptree props;
+    pt::read_json(is, props);
+
+    for (auto &file : props.get_child("files")) {
+        const std::string sourcePath =
+            resolveSourcePath(file.second.get<std::string>("file"));
+        if (sourcePath.empty()) {
+            continue;
+        }
+
+        std::vector<int> &coverage = mapping[sourcePath];
+        for (auto &line : file.second.get_child("lines")) {
+            updateCoverage(coverage,
+                           line.second.get<unsigned int>("line_number"),
+                           line.second.get<int>("count"));
         }
     }
 }

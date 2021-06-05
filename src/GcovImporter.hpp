@@ -43,10 +43,28 @@ public:
      */
     bool needsBinning() const
     { return employBinning; }
+    /**
+     * @brief Checks whether JSON format is available.
+     *
+     * @returns `true` if so.
+     */
+    bool hasJsonFormat() const
+    { return jsonFormat; }
+    /**
+     * @brief Checks whether plain text format is available.
+     *
+     * @returns `true` if so.
+     */
+    bool hasIntermediateFormat() const
+    { return intermediateFormat; }
 
 private:
     //! Whether `gcov` command doesn't handle identically-named files properly.
     bool employBinning;
+    //! Whether JSON intermediate format is supported.
+    bool jsonFormat;
+    //! Whether plain text intermediate format is supported.
+    bool intermediateFormat;
 };
 
 /**
@@ -98,6 +116,12 @@ private:
      * @param gcnoFiles Absolute paths to `*.gcno` files.
      */
     void importFiles(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
+     * @brief Parses single `*.gcov.json.gz` file.
+     *
+     * @param path Path of the file.
+     */
+    void parseGcovJsonGz(const std::string &path);
     /**
      * @brief Parses single `*.gcov` file.
      *
