@@ -138,6 +138,12 @@ GcovInfo::GcovInfo()
     }
 }
 
+GcovInfo::GcovInfo(bool employBinning, bool jsonFormat,
+                   bool intermediateFormat)
+    : employBinning(employBinning), jsonFormat(jsonFormat),
+      intermediateFormat(intermediateFormat)
+{ }
+
 std::function<GcovImporter::runner_f>
 GcovImporter::setRunner(std::function<runner_f> runner)
 {
@@ -149,8 +155,9 @@ GcovImporter::setRunner(std::function<runner_f> runner)
 GcovImporter::GcovImporter(const std::string &root,
                            const std::string &covoutRoot,
                            const std::vector<std::string> &exclude,
-                           const std::string &prefix)
-    : rootDir(normalizePath(fs::absolute(root))),
+                           const std::string &prefix,
+                           GcovInfo gcovInfo)
+    : gcovInfo(gcovInfo), rootDir(normalizePath(fs::absolute(root))),
       prefix(prefix)
 {
     for (const std::string &p : exclude) {

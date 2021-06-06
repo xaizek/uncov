@@ -33,7 +33,18 @@
 class GcovInfo
 {
 public:
+    /**
+     * @brief Determines information about `gcov`.
+     */
     GcovInfo();
+    /**
+     * @brief Initializes data with predefined values.
+     *
+     * @param employBinning      No calling `gcov` with identically named files.
+     * @param jsonFormat         If JSON format is available.
+     * @param intermediateFormat If plain text format is available.
+     */
+    GcovInfo(bool employBinning, bool jsonFormat, bool intermediateFormat);
 
 public:
     /**
@@ -98,10 +109,11 @@ public:
      * @param covoutRoot Root of subtree containing coverage data.
      * @param exclude List of paths to exclude.
      * @param prefix Prefix to be added to relative path of sources.
+     * @param gcovInfo Information about `gcov` command.
      */
     GcovImporter(const std::string &root, const std::string &covoutRoot,
                  const std::vector<std::string> &exclude,
-                 const std::string &prefix);
+                 const std::string &prefix, GcovInfo gcovInfo = {});
 
 public:
     /**
