@@ -25,7 +25,7 @@
 #include <unordered_map>
 #include <vector>
 
-class File;
+#include "BuildHistory.hpp"
 
 /**
  * @brief Determines information about `gcov` command.
