@@ -142,4 +142,12 @@ vi(std::vector<int> v)
  */
 Settings & getSettings();
 
+/**
+ * @brief Creates a compressed file in gzip format.
+ *
+ * @param path     Path of the file.
+ * @param contents Contents of the file.
+ */
+void makeGz(const std::string &path, const std::string &contents);
+
 #endif // UNCOV__TESTS__TESTUTILS_HPP__

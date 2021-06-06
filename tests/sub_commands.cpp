@@ -18,8 +18,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/optional.hpp>
 #include <boost/scope_exit.hpp>
 
@@ -27,7 +25,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 
@@ -104,8 +101,6 @@ private:
 };
 
 static SubCommand * getCmd(const std::string &name);
-static void makeGcovJsonGz(const std::string &path,
-                           const std::string &contents);
 
 const std::string build3info =
 R"(Id:                  #3                                      
@@ -1225,7 +1220,7 @@ TEST_CASE("Gcov file is found and parsed",
                      const std::string &dir) {
         GcovInfo gcovInfo;
         if (gcovInfo.hasJsonFormat()) {
-            makeGcovJsonGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
+            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
                 "files": [{
                     "file": "test-file1.cpp",
                     "lines": [
@@ -1267,7 +1262,7 @@ TEST_CASE("Gcov file with broken format causes an exception",
                      const std::string &dir) {
         GcovInfo gcovInfo;
         if (gcovInfo.hasJsonFormat()) {
-            makeGcovJsonGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
+            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
                 "files": [{
                     "file": "test-file1.cpp",
                     "lines": [ { "line_number": 2, "count": 0 }, ]
@@ -1598,16 +1593,4 @@ getCmd(const std::string &name)
         }
     }
     throw std::invalid_argument("No such command: " + name);
-}
-
-static void
-makeGcovJsonGz(const std::string &path, const std::string &contents)
-{
-    std::ofstream file(path, std::ios_base::out | std::ios_base::binary);
-
-    boost::iostreams::filtering_ostreambuf out;
-    out.push(boost::iostreams::gzip_compressor());
-    out.push(file);
-
-    std::basic_ostream<char>(&out) << contents;
 }
