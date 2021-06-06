@@ -85,8 +85,10 @@ public:
      * There is no runner by default.
      *
      * @param runner New runner.
+     *
+     * @returns Previous runner.
      */
-    static void setRunner(std::function<runner_f> runner);
+    static std::function<runner_f> setRunner(std::function<runner_f> runner);
 
 public:
     /**

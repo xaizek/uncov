@@ -138,10 +138,12 @@ GcovInfo::GcovInfo()
     }
 }
 
-void
+std::function<GcovImporter::runner_f>
 GcovImporter::setRunner(std::function<runner_f> runner)
 {
+    std::function<runner_f> previous = std::move(getRunner());
     getRunner() = std::move(runner);
+    return previous;
 }
 
 GcovImporter::GcovImporter(const std::string &root,
