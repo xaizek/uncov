@@ -17,7 +17,12 @@
 #include "TestUtils.hpp"
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/range.hpp>
+
+#include <fstream>
+#include <ostream>
 
 #include "Settings.hpp"
 
@@ -77,4 +82,16 @@ getSettings()
 {
     static TestSettings settings;
     return settings;
+}
+
+void
+makeGz(const std::string &path, const std::string &contents)
+{
+    std::ofstream file(path, std::ios_base::out | std::ios_base::binary);
+
+    boost::iostreams::filtering_ostreambuf out;
+    out.push(boost::iostreams::gzip_compressor());
+    out.push(file);
+
+    std::basic_ostream<char>(&out) << contents;
 }

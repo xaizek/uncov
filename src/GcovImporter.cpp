@@ -16,10 +16,19 @@
 
 #include "GcovImporter.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+#include <cassert>
 
 #include <fstream>
+#include <istream>
+#include <regex>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -32,20 +41,123 @@
 #include "utils/md5.hpp"
 #include "utils/strings.hpp"
 #include "BuildHistory.hpp"
+#include "integration.hpp"
 
 namespace fs = boost::filesystem;
 
-void
+// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89961 for information about
+// what's wrong with some versions of `gcov` and why binning is needed.
+
+//! `gcov` option to generate coverage in JSON format.
+static const char GcovJsonFormat[] = "--json-format";
+//! `gcov` option to generate coverage in plain text format.
+static const char GcovIntermediateFormat[] = "--intermediate-format";
+
+//! First version of `gcov` which has broken `--preserve-paths` option.
+static int FirstBrokenGcovVersion = 8;
+
+namespace {
+    /**
+     * @brief A set of files that should be passed to `gcov` at the same time.
+     */
+    class Bin {
+    public:
+        /**
+         * @brief Constructs an empty set.
+         *
+         * @param deduplicateNames Whether to avoid adding name-duplicates.
+         */
+        Bin(bool deduplicateNames = true) : deduplicateNames(deduplicateNames)
+        { }
+
+    public:
+        /**
+         * @brief Tries to add a file to this bin.
+         *
+         * @param path Absolute path to the file.
+         *
+         * @returns `true` if the path was added.
+         */
+        bool add(const fs::path &path)
+        {
+            assert(path.is_absolute() && "Paths should be absolute.");
+
+            if (deduplicateNames &&
+                !names.emplace(path.filename().string()).second) {
+                return false;
+            }
+
+            paths.emplace_back(path.string());
+            return true;
+        }
+
+        /**
+         * @brief Retrieves list of paths of this bin.
+         *
+         * @returns The list.
+         */
+        const std::vector<std::string> & getPaths() const
+        { return paths; }
+
+    private:
+        //! Whether no two files should have the same name.
+        bool deduplicateNames;
+        //! Names of files in this bin if `deduplicateNames` is set.
+        std::unordered_set<std::string> names;
+        //! Files of this bin.
+        std::vector<std::string> paths;
+    };
+}
+
+GcovInfo::GcovInfo()
+    : employBinning(true), jsonFormat(false), intermediateFormat(false)
+{
+    const std::regex optionRegex("--[-a-z]+");
+    const std::regex versionRegex("gcov \\(GCC\\) (.*)");
+
+    std::smatch match;
+
+    const std::string help = readProc({ "gcov", "--help" });
+    auto from = help.cbegin();
+    auto to = help.cend();
+    while (std::regex_search(from, to, match, optionRegex)) {
+        const std::string str = match.str();
+        if (str == GcovJsonFormat) {
+            jsonFormat = true;
+        } else if (str == GcovIntermediateFormat) {
+            intermediateFormat = true;
+        }
+
+        from += match.position() + match.length();
+    }
+
+    const std::string version = readProc({ "gcov", "--version" });
+    if (std::regex_search(version, match, versionRegex)) {
+        const int majorVersion = std::stoi(match[1]);
+        employBinning = (majorVersion >= FirstBrokenGcovVersion);
+    }
+}
+
+GcovInfo::GcovInfo(bool employBinning, bool jsonFormat,
+                   bool intermediateFormat)
+    : employBinning(employBinning), jsonFormat(jsonFormat),
+      intermediateFormat(intermediateFormat)
+{ }
+
+std::function<GcovImporter::runner_f>
 GcovImporter::setRunner(std::function<runner_f> runner)
 {
+    std::function<runner_f> previous = std::move(getRunner());
     getRunner() = std::move(runner);
+    return previous;
 }
 
 GcovImporter::GcovImporter(const std::string &root,
                            const std::string &covoutRoot,
                            const std::vector<std::string> &exclude,
-                           const std::string &prefix)
-    : rootDir(normalizePath(fs::absolute(root))),
+                           const std::string &prefix,
+                           GcovInfo gcovInfo)
+    : gcovInfo(gcovInfo), rootDir(normalizePath(fs::absolute(root))),
       prefix(prefix)
 {
     for (const std::string &p : exclude) {
@@ -62,10 +174,11 @@ GcovImporter::GcovImporter(const std::string &root,
         ".deps"                // Dependency tracking of automake.
     };
 
-    std::vector<std::string> cmd = {
-        "gcov", "--preserve-paths", "--intermediate-format", "--"
-    };
+    if (!gcovInfo.hasJsonFormat() && !gcovInfo.hasIntermediateFormat()) {
+        throw std::runtime_error("Failed to detect machine format of gcov");
+    }
 
+    std::vector<fs::path> gcnoFiles;
     for (fs::recursive_directory_iterator it(fs::absolute(covoutRoot)), end;
          it != end; ++it) {
         fs::path path = it->path();
@@ -79,22 +192,12 @@ GcovImporter::GcovImporter(const std::string &root,
             // generated even for files that weren't executed (e.g.,
             // `main.cpp`).
             if (path.extension() == ".gcno") {
-                cmd.emplace_back(path.string());
+                gcnoFiles.push_back(path);
             }
         }
     }
 
-    TempDir tempDir("gcovi");
-    std::string tempDirPath = tempDir;
-    getRunner()(std::move(cmd), tempDirPath);
-
-    for (fs::recursive_directory_iterator it(tempDirPath), end;
-         it != end; ++it) {
-        fs::path path = it->path();
-        if (fs::is_regular(path) && path.extension() == ".gcov") {
-            parseGcov(path.string());
-        }
-    }
+    importFiles(std::move(gcnoFiles));
 
     for (fs::recursive_directory_iterator it(rootDir), end; it != end; ++it) {
         fs::path path = it->path();
@@ -148,6 +251,109 @@ GcovImporter::getFiles() &&
 }
 
 void
+GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
+{
+    std::vector<Bin> bins;
+
+    if (gcovInfo.needsBinning()) {
+        // We want to execute the runner for tests even if there are no input
+        // files.
+        bins.emplace_back();
+
+        for (const fs::path &gcnoFile : gcnoFiles) {
+            bool added = false;
+
+            for (Bin &bin : bins) {
+                if (bin.add(gcnoFile)) {
+                    added = true;
+                    break;
+                }
+            }
+
+            if (!added) {
+                bins.emplace_back();
+                bins.back().add(gcnoFile);
+            }
+        }
+    } else {
+        bins.emplace_back(/*deduplicateNames=*/false);
+        Bin &bin = bins.back();
+        for (const fs::path &gcnoFile : gcnoFiles) {
+            bin.add(gcnoFile);
+        }
+    }
+
+    std::string gcovOption;
+    std::string gcovFileExt;
+    if (gcovInfo.hasJsonFormat()) {
+        gcovOption = GcovJsonFormat;
+        gcovFileExt = ".gcov.json.gz";
+    } else {
+        gcovOption = GcovIntermediateFormat;
+        gcovFileExt = ".gcov";
+    }
+
+    for (const Bin &bin : bins) {
+        const std::vector<std::string> &paths = bin.getPaths();
+
+        std::vector<std::string> cmd = {
+            "gcov", "--preserve-paths", gcovOption, "--"
+        };
+        cmd.insert(cmd.cend(), paths.cbegin(), paths.cend());
+
+        TempDir tempDir("gcovi");
+        std::string tempDirPath = tempDir;
+        getRunner()(std::move(cmd), tempDirPath);
+
+        for (fs::recursive_directory_iterator it(tempDirPath), end;
+             it != end; ++it) {
+            fs::path path = it->path();
+            if (fs::is_regular(path) &&
+                boost::ends_with(path.filename().string(), gcovFileExt)) {
+                if (gcovInfo.hasJsonFormat()) {
+                    parseGcovJsonGz(path.string());
+                } else {
+                    parseGcov(path.string());
+                }
+            }
+        }
+    }
+}
+
+void
+GcovImporter::parseGcovJsonGz(const std::string &path)
+{
+    namespace io = boost::iostreams;
+    namespace pt = boost::property_tree;
+
+    std::ifstream file(path, std::ios_base::in | std::ios_base::binary);
+
+    io::filtering_istreambuf in;
+    in.push(io::gzip_decompressor());
+    in.push(file);
+
+    std::basic_istream<char> is(&in);
+
+    pt::ptree props;
+    pt::read_json(is, props);
+
+    for (auto &file : props.get_child("files")) {
+        const std::string sourcePath =
+            resolveSourcePath(file.second.get<std::string>("file"));
+        if (sourcePath.empty()) {
+            continue;
+        }
+
+        std::vector<int> &coverage = mapping[sourcePath];
+        for (auto &line : file.second.get_child("lines")) {
+            updateCoverage(coverage,
+                           line.second.get<unsigned int>("line_number"),
+                           line.second.get<int>("count"));
+        }
+    }
+}
+
+void
 GcovImporter::parseGcov(const std::string &path)
 {
     std::vector<int> *coverage = nullptr;
@@ -156,22 +362,8 @@ GcovImporter::parseGcov(const std::string &path)
         std::string type, value;
         std::tie(type, value) = splitAt(line, ':');
         if (type == "file") {
-            coverage = nullptr;
-
-            fs::path filePath = value;
-            if (!filePath.is_absolute()) {
-                filePath = prefix / filePath;
-            }
-
-            fs::path sourcePath = normalizePath(fs::absolute(filePath,
-                                                             rootDir));
-            if (!pathIsInSubtree(rootDir, sourcePath) ||
-                isExcluded(sourcePath)) {
-                continue;
-            }
-
-            sourcePath = makeRelativePath(rootDir, sourcePath);
-            coverage = &mapping[sourcePath.string()];
+            const std::string sourcePath = resolveSourcePath(value);
+            coverage = (sourcePath.empty() ? nullptr : &mapping[sourcePath]);
         } else if (coverage != nullptr && type == "lcount") {
             std::vector<std::string> fields = split(value, ',');
             if (fields.size() < 2U) {
@@ -181,15 +373,37 @@ GcovImporter::parseGcov(const std::string &path)
 
             unsigned int lineNo = std::stoi(fields[0]);
             int count = std::stoi(fields[1]);
-
-            if (coverage->size() < lineNo) {
-                coverage->resize(lineNo, -1);
-            }
-
-            int &entry = (*coverage)[lineNo - 1U];
-            entry = (entry == -1 ? count : entry + count);
+            updateCoverage(*coverage, lineNo, count);
         }
     }
+}
+
+std::string
+GcovImporter::resolveSourcePath(fs::path unresolved)
+{
+    if (!unresolved.is_absolute()) {
+        unresolved = prefix / unresolved;
+    }
+
+    fs::path sourcePath = normalizePath(fs::absolute(unresolved,
+                                                     rootDir));
+    if (!pathIsInSubtree(rootDir, sourcePath) || isExcluded(sourcePath)) {
+        return std::string();
+    }
+
+    return makeRelativePath(rootDir, sourcePath).string();
+}
+
+void
+GcovImporter::updateCoverage(std::vector<int> &coverage, unsigned int lineNo,
+                             int count)
+{
+    if (coverage.size() < lineNo) {
+        coverage.resize(lineNo, -1);
+    }
+
+    int &entry = coverage[lineNo - 1U];
+    entry = (entry == -1 ? count : entry + count);
 }
 
 bool

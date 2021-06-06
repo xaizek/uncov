@@ -1017,9 +1017,6 @@ TEST_CASE("Nothing is printed for a completely covered file",
 
 TEST_CASE("new-gcovi invokes gcov", "[subcommands][new-gcovi-subcommand]")
 {
-    const std::string newBuildInfo =
-        "Build: #1, 100.00%(2/2), 0.0000%(+2/   0/  +2), master\n";
-
     // Remove destination directory if it exists to account for crashes.
     TempDirCopy tempDirCopy("tests/test-repo-gcno/_git",
                             "tests/test-repo-gcno/.git",
@@ -1042,12 +1039,14 @@ TEST_CASE("new-gcovi invokes gcov", "[subcommands][new-gcovi-subcommand]")
                                       "tests/test-repo-gcno" }) ==
           EXIT_SUCCESS);
     CHECK(split(coutCapture.get(), '\n').size() > 2U);
-    CHECK(boost::ends_with(coutCapture.get(), newBuildInfo));
+    CHECK(coutCapture.get() != std::string());
     CHECK(cerrCapture.get() == std::string());
 
     boost::optional<Build> build = bh.getBuild(1);
     REQUIRE(build);
     CHECK(build->getPaths().size() == 1U);
+    CHECK(build->getCoveredCount() > 0);
+    CHECK(build->getMissedCount() == 0);
 }
 
 TEST_CASE("Empty coverage data is imported",
@@ -1219,10 +1218,23 @@ TEST_CASE("Gcov file is found and parsed",
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
                      const std::string &dir) {
-        std::ofstream{dir + "/test-file1.gcov"}
-            << "file:test-file1.cpp\n"
-            << "lcount:2,1\n"
-            << "lcount:4,1\n";
+        GcovInfo gcovInfo;
+        if (gcovInfo.hasJsonFormat()) {
+            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
+                "files": [{
+                    "file": "test-file1.cpp",
+                    "lines": [
+                        { "line_number": 2, "count": 1 },
+                        { "line_number": 4, "count": 1 }
+                    ]
+                }]
+            })");
+        } else {
+            std::ofstream{dir + "/test-file1.gcov"}
+                << "file:test-file1.cpp\n"
+                << "lcount:2,1\n"
+                << "lcount:4,1\n";
+        }
     };
     GcovImporter::setRunner(runner);
 
@@ -1248,9 +1260,19 @@ TEST_CASE("Gcov file with broken format causes an exception",
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
                      const std::string &dir) {
-        std::ofstream{dir + "/test-file1.gcov"}
-            << "file:test-file1.cpp\n"
-            << "lcount:2\n";
+        GcovInfo gcovInfo;
+        if (gcovInfo.hasJsonFormat()) {
+            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
+                "files": [{
+                    "file": "test-file1.cpp",
+                    "lines": [ { "line_number": 2, "count": 0 }, ]
+                }]
+            })");
+        } else {
+            std::ofstream{dir + "/test-file1.gcov"}
+                << "file:test-file1.cpp\n"
+                << "lcount:2\n";
+        }
     };
     GcovImporter::setRunner(runner);
 
