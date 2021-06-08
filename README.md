@@ -1,6 +1,6 @@
-**uncov**, _v0.3_, _2016 – 2021_
+**uncov**, _v0.4_, _2016 – 2021_
 
-_This file last updated on 6 June, 2021_
+_This file last updated on 8 June, 2021_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)

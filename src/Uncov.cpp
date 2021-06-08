@@ -60,7 +60,7 @@ Uncov::run(Settings &settings)
     }
 
     if (invocation.shouldPrintVersion()) {
-        std::cout << "uncov v0.3\n";
+        std::cout << "uncov v0.4\n";
         return EXIT_SUCCESS;
     }
 

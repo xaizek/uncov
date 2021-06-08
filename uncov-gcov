@@ -537,7 +537,7 @@ def run():
     args = create_args(sys.argv[1:])
 
     if args.version:
-        print('uncov-gcov v0.3')
+        print('uncov-gcov v0.4')
         exit(0)
 
     # flatten lists
