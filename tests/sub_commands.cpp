@@ -1221,6 +1221,7 @@ TEST_CASE("Gcov file is found and parsed",
         GcovInfo gcovInfo;
         if (gcovInfo.hasJsonFormat()) {
             makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
+                "current_working_directory": "./",
                 "files": [{
                     "file": "test-file1.cpp",
                     "lines": [
