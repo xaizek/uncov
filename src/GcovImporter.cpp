@@ -337,15 +337,9 @@ GcovImporter::parseGcovJsonGz(const std::string &path)
     pt::ptree props;
     pt::read_json(is, props);
 
-    const std::string cwd = props.get<std::string>("current_working_directory");
-
     for (auto &file : props.get_child("files")) {
-        fs::path path = file.second.get<std::string>("file");
-        if (!path.is_absolute()) {
-            path = cwd / path;
-        }
-
-        const std::string sourcePath = resolveSourcePath(path);
+        const std::string sourcePath =
+            resolveSourcePath(file.second.get<std::string>("file"));
         if (sourcePath.empty()) {
             continue;
         }

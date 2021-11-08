@@ -90,10 +90,9 @@ TEST_CASE("JSON format is parsed", "[GcovImporter]")
 
     std::ofstream{tempDirPath + "/file.gcno"} << "\n";
 
-    auto runner = [&tempDirPath](std::vector<std::string> &&/*cmd*/,
-                                 const std::string &dir) {
+    auto runner = [](std::vector<std::string> &&/*cmd*/,
+                     const std::string &dir) {
         makeGz(dir + "/out.gcov.json.gz", R"({
-            "current_working_directory": ")" + tempDirPath + R"(",
             "files": [
                 {
                     "file": "file.gcno",
