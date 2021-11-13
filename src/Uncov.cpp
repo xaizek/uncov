@@ -32,6 +32,7 @@
 #include "Settings.hpp"
 #include "SubCommand.hpp"
 #include "TablePrinter.hpp"
+#include "app.hpp"
 #include "integration.hpp"
 
 static void describeCommands(const std::map<std::string, SubCommand *> &cmds);
@@ -60,7 +61,7 @@ Uncov::run(Settings &settings)
     }
 
     if (invocation.shouldPrintVersion()) {
-        std::cout << "uncov v0.4\n";
+        std::cout << "uncov " << getAppVersion() << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -80,9 +81,9 @@ Uncov::run(Settings &settings)
     Repository repo(invocation.getRepositoryPath());
     std::string gitPath = repo.getGitPath();
 
-    settings.loadFromFile(gitPath + "/uncov.ini");
+    settings.loadFromFile(gitPath + '/' + getConfigFile());
 
-    DB db(gitPath + "/uncov.sqlite");
+    DB db(gitPath + '/' + getDatabaseFile());
     BuildHistory bh(db);
 
     return cmd->second->exec(settings, bh, repo,

@@ -11,6 +11,7 @@
 #include "DB.hpp"
 #include "Repository.hpp"
 #include "WebSettings.hpp"
+#include "app.hpp"
 #include "decoration.hpp"
 #include "printing.hpp"
 
@@ -76,7 +77,7 @@ main(int argc, char *argv[]) try
     }
 
     if (varMap.count("version")) {
-        std::cout << "uncov-web v0.4\n";
+        std::cout << "uncov-web " << getAppVersion() << '\n';
         return EXIT_SUCCESS;
     }
 
@@ -88,9 +89,9 @@ main(int argc, char *argv[]) try
     Repository repo(varMap["repo"].as<std::string>());
     std::string gitPath = repo.getGitPath();
 
-    settings->loadFromFile(gitPath + "/uncov.ini");
+    settings->loadFromFile(gitPath + '/' + getConfigFile());
 
-    DB db(gitPath + "/uncov.sqlite");
+    DB db(gitPath + '/' + getDatabaseFile());
     BuildHistory bh(db);
 
     std::string vhost = varMap["vhost"].as<std::string>();
