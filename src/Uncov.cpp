@@ -79,11 +79,11 @@ Uncov::run(Settings &settings)
     }
 
     Repository repo(invocation.getRepositoryPath());
-    std::string gitPath = repo.getGitPath();
+    std::string dataPath = pickDataPath(repo);
 
-    settings.loadFromFile(gitPath + '/' + getConfigFile());
+    settings.loadFromFile(dataPath + '/' + getConfigFile());
 
-    DB db(gitPath + '/' + getDatabaseFile());
+    DB db(dataPath + '/' + getDatabaseFile());
     BuildHistory bh(db);
 
     return cmd->second->exec(settings, bh, repo,

@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "Repository.hpp"
+
 std::string getAppVersion()
 {
     return "v0.4";
@@ -31,4 +33,10 @@ std::string getConfigFile()
 std::string getDatabaseFile()
 {
     return "uncov.sqlite";
+}
+
+std::string
+pickDataPath(const Repository &repo)
+{
+    return repo.getGitPath();
 }

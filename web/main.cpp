@@ -87,11 +87,11 @@ main(int argc, char *argv[]) try
     PrintingSettings::set(settings);
 
     Repository repo(varMap["repo"].as<std::string>());
-    std::string gitPath = repo.getGitPath();
+    std::string dataPath = pickDataPath(repo);
 
-    settings->loadFromFile(gitPath + '/' + getConfigFile());
+    settings->loadFromFile(dataPath + '/' + getConfigFile());
 
-    DB db(gitPath + '/' + getDatabaseFile());
+    DB db(dataPath + '/' + getDatabaseFile());
     BuildHistory bh(db);
 
     std::string vhost = varMap["vhost"].as<std::string>();

@@ -25,6 +25,8 @@
  * @brief This unit provides values of user-visible constants.
  */
 
+class Repository;
+
 /**
  * @brief Retrieves version string in the form "v0.
  *
@@ -45,5 +47,14 @@ std::string getConfigFile();
  * @returns The name.
  */
 std::string getDatabaseFile();
+
+/**
+ * @brief Selects base path for local data during this run of the application.
+ *
+ * @param repo Repository to work with.
+ *
+ * @returns The path.
+ */
+std::string pickDataPath(const Repository &repo);
 
 #endif // UNCOV__APP_H__
