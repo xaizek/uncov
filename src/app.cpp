@@ -16,9 +16,17 @@
 
 #include "app.hpp"
 
+#include <boost/filesystem/operations.hpp>
+
+#include <cassert>
+
 #include <string>
+#include <vector>
 
 #include "Repository.hpp"
+
+static const std::string configFileName = "uncov.ini";
+static const std::string databaseFileName = "uncov.sqlite";
 
 std::string getAppVersion()
 {
@@ -27,16 +35,30 @@ std::string getAppVersion()
 
 std::string getConfigFile()
 {
-    return "uncov.ini";
+    return configFileName;
 }
 
 std::string getDatabaseFile()
 {
-    return "uncov.sqlite";
+    return databaseFileName;
 }
 
 std::string
 pickDataPath(const Repository &repo)
 {
-    return repo.getGitPath();
+    namespace fs = boost::filesystem;
+
+    std::vector<std::string> paths = repo.getGitPaths();
+    assert(!paths.empty() && "Must be at least one path.");
+
+    // Find the closest directory where uncov is configured.
+    for (const auto &path : paths) {
+        if (fs::exists(path + '/' + configFileName) ||
+            fs::exists(path + '/' + databaseFileName)) {
+            return path;
+        }
+    }
+
+    // Or return the most generic one.
+    return paths.back();
 }

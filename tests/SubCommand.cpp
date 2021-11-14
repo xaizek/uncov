@@ -79,7 +79,7 @@ TEST_CASE("Repo command must be called using repo method", "[SubCommand]")
 TEST_CASE("Generic command must be called using generic method", "[SubCommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     TestSubCommand cmd({ "generic" });

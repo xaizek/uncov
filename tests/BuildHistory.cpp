@@ -27,7 +27,7 @@
 TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
 {
     Repository repo("tests/test-repo/subdir");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     db.execute("pragma user_version = 99999");
@@ -38,7 +38,7 @@ TEST_CASE("BuildHistory throws on too new database schema", "[BuildHistory]")
 TEST_CASE("List of builds on unknown branch is empty", "[BuildHistory]")
 {
     Repository repo("tests/test-repo/subdir");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
 
@@ -48,7 +48,7 @@ TEST_CASE("List of builds on unknown branch is empty", "[BuildHistory]")
 TEST_CASE("File is loaded from database", "[Build][File]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     boost::optional<Build> build = bh.getBuild(1);

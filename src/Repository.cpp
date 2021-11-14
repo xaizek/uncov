@@ -162,10 +162,15 @@ Repository::~Repository()
     git_repository_free(repo);
 }
 
-std::string
-Repository::getGitPath() const
+std::vector<std::string>
+Repository::getGitPaths() const
 {
-    return git_repository_path(repo);
+    std::vector<std::string> paths;
+    paths.push_back(git_repository_path(repo));
+    if (git_repository_is_worktree(repo)) {
+        paths.push_back(git_repository_commondir(repo));
+    }
+    return paths;
 }
 
 std::string
