@@ -1,4 +1,4 @@
 SEE ALSO
 ========
 
-**uncov(1)**, **uncov-gcov**(1)
+**uncov**(1), **uncov-gcov**(1)

@@ -1,8 +1,8 @@
 SYNOPSIS
 ========
 
-**uncov** **-h|--help**
+**uncov** **-h|\-\-help**
 
-**uncov** **-v|--version**
+**uncov** **-v|\-\-version**
 
 **uncov** **[\<repo-path\>]** **\<subcommand\>** **[\<subcommand args\>...]**

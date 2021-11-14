@@ -1,12 +1,12 @@
 OPTIONS
 =======
 
-**--help, -h**
+**\-\-help, -h**
 --------------
 
 Displays short usage help.
 
-**--version, -v**
+**\-\-version, -v**
 -----------------
 
 Displays version information.
