@@ -123,7 +123,7 @@ R"(BUILD  COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES     REF
 TEST_CASE("Error on too few args", "[subcommands]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -138,7 +138,7 @@ TEST_CASE("Error on too few args", "[subcommands]")
 TEST_CASE("Error on too many args", "[subcommands]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -153,7 +153,7 @@ TEST_CASE("Error on too many args", "[subcommands]")
 TEST_CASE("Error on wrong alias", "[subcommands]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -167,7 +167,7 @@ TEST_CASE("Error on wrong alias", "[subcommands]")
 TEST_CASE("Description can be queried", "[subcommands]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     SubCommand *cmd = getCmd("show");
@@ -180,7 +180,7 @@ TEST_CASE("Description can be queried", "[subcommands]")
 TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -192,7 +192,7 @@ TEST_CASE("Error on wrong branch", "[subcommands][build-subcommand]")
 TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -208,7 +208,7 @@ TEST_CASE("Invalid arguments for build", "[subcommands][build-subcommand]")
 TEST_CASE("Build information on last build", "[subcommands][build-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -222,7 +222,7 @@ TEST_CASE("Build information on last build", "[subcommands][build-subcommand]")
 TEST_CASE("Build information on a branch", "[subcommands][build-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -236,7 +236,7 @@ TEST_CASE("Build information on a branch", "[subcommands][build-subcommand]")
 TEST_CASE("Invalid arguments for builds", "[subcommands][builds-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -254,7 +254,7 @@ TEST_CASE("Invalid arguments for builds", "[subcommands][builds-subcommand]")
 TEST_CASE("Builds generates table", "[subcommands][builds-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -268,7 +268,7 @@ TEST_CASE("Builds generates table", "[subcommands][builds-subcommand]")
 TEST_CASE("Builds generates full table", "[subcommands][builds-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -282,7 +282,7 @@ TEST_CASE("Builds generates full table", "[subcommands][builds-subcommand]")
 TEST_CASE("Builds generates limited table", "[subcommands][builds-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -301,7 +301,7 @@ R"(BUILD  COVERAGE  C/R LINES  COV CHANGE  C/M/R LINE CHANGES     REF
 TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -314,7 +314,7 @@ TEST_CASE("Diff fails on wrong file path", "[subcommands][diff-subcommand]")
 TEST_CASE("Diff fails on wrong negative id", "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     CHECK_THROWS_AS(getCmd("diff")->exec(getSettings(), bh, repo, "diff",
@@ -325,7 +325,7 @@ TEST_CASE("Diff fails on wrong negative id", "[subcommands][diff-subcommand]")
 TEST_CASE("Diff and negative ids work", "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -368,7 +368,7 @@ File: test-file2.cpp, 100.00% (2/2), +100.0000% (+2/-2/0)
 TEST_CASE("Regress detects regression", "[subcommands][regress-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -400,7 +400,7 @@ File: test-file1.cpp, 0.00% (0/2), -100.0000% (-2/+2/0)
 TEST_CASE("Invalid arguments for get", "[subcommands][get-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -417,7 +417,7 @@ TEST_CASE("Paths to files can be relative inside repository",
           "[subcommands][get-subcommand]")
 {
     Repository repo("tests/test-repo");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     Chdir chdirInsideRepoSubdir("tests/test-repo/subdir");
@@ -444,7 +444,7 @@ TEST_CASE("Paths to files can be relative inside repository",
 TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 {
     Repository repo("tests/test-repo/");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
 
@@ -508,7 +508,7 @@ TEST_CASE("New handles input gracefully", "[subcommands][new-subcommand]")
 TEST_CASE("New creates new builds", "[subcommands][new-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -589,7 +589,7 @@ TEST_CASE("New-json handles input gracefully",
           "[subcommands][new-json-subcommand]")
 {
     Repository repo("tests/test-repo/");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
 
@@ -645,7 +645,7 @@ TEST_CASE("New-json handles input gracefully",
 TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -754,7 +754,7 @@ TEST_CASE("New-json creates new builds", "[subcommands][new-json-subcommand]")
 TEST_CASE("Dirs fails on unknown dir path", "[subcommands][dirs-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -767,7 +767,7 @@ TEST_CASE("Dirs fails on unknown dir path", "[subcommands][dirs-subcommand]")
 TEST_CASE("Files fails on unknown dir path", "[subcommands][files-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -781,7 +781,7 @@ TEST_CASE("Files lists files and resolves negative build ids",
           "[subcommands][files-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -801,7 +801,7 @@ TEST_CASE("Dirs without arguments uses latest build",
           "[subcommands][dirs-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -820,7 +820,7 @@ TEST_CASE("Changed lists files in specified build",
           "[subcommands][changed-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -839,7 +839,7 @@ TEST_CASE("Diff fails when given one buildid and path",
           "[subcommands][diff-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -852,7 +852,7 @@ TEST_CASE("Diff fails when given one buildid and path",
 TEST_CASE("Invalid arguments for show", "[subcommands][show-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -890,7 +890,7 @@ File: test-file2.cpp, 100.00%(2/2), 0.0000%(0/0/0)
 )";
 
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -923,7 +923,7 @@ File: test-file2.cpp, 100.00%(2/2), 0.0000%(0/0/0)
 )";
 
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -936,7 +936,7 @@ File: test-file2.cpp, 100.00%(2/2), 0.0000%(0/0/0)
 TEST_CASE("Invalid file path is handled", "[subcommands][show-subcommand]")
 {
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -962,7 +962,7 @@ File: test-file1.cpp, 100.00%(0/0), +100.0000%(0/-2/-2)
 )";
 
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -988,7 +988,7 @@ File: test-file1.cpp, 0.00%(0/2), -100.0000%(-2/+2/0)
 )";
 
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -1005,7 +1005,7 @@ TEST_CASE("Nothing is printed for a completely covered file",
         "Build: #3, 100.00%(2/2), +50.0000%(0/  -2/  -2), master\n";
 
     Repository repo("tests/test-repo/subdir");
-    DB db(repo.getGitPath() + "/uncov.sqlite");
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -1026,7 +1026,7 @@ TEST_CASE("new-gcovi invokes gcov", "[subcommands][new-gcovi-subcommand]")
                     CatchStderr{}) == EXIT_SUCCESS);
 
     Repository repo("tests/test-repo-gcno");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     BOOST_SCOPE_EXIT_ALL(dbPath) {
         std::remove(dbPath.c_str());
     };
@@ -1056,7 +1056,7 @@ TEST_CASE("Empty coverage data is imported",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1085,7 +1085,7 @@ TEST_CASE("Coverage file is discovered",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1121,7 +1121,7 @@ TEST_CASE("Unexecuted files can be excluded",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1149,7 +1149,7 @@ TEST_CASE("new-gcovi --prefix", "[subcommands][new-gcovi-subcommand]")
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1180,7 +1180,7 @@ TEST_CASE("Executed files can be excluded",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1211,7 +1211,7 @@ TEST_CASE("Gcov file is found and parsed",
         "Build: #4, 100.00%(2/2), 0.0000%(0/   0/   0), master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1253,7 +1253,7 @@ TEST_CASE("Gcov file with broken format causes an exception",
           "[subcommands][new-gcovi-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1294,7 +1294,7 @@ TEST_CASE("Modified source file is captured",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1327,7 +1327,7 @@ TEST_CASE("Untracked source file is captured",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1364,7 +1364,7 @@ TEST_CASE("Untracked source file is rejected without capture",
         "Skipping file missing in master: test-file3.cpp\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1398,7 +1398,7 @@ TEST_CASE("Unmatched source fails build addition",
         "subdir/file.cpp file at master doesn't match computed MD5 hash\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1424,7 +1424,7 @@ TEST_CASE("Unmatched source fails build addition",
 TEST_CASE("new-gcovi --help", "[subcommands][new-gcovi-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1450,7 +1450,7 @@ TEST_CASE("new-gcovi --ref-name", "[subcommands][new-gcovi-subcommand]")
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), test-ref-name\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1479,7 +1479,7 @@ TEST_CASE("new-gcovi --capture-worktree can be noop",
         "Build: #4, 100.00%(0/0), 0.0000%(-2/   0/  -2), WIP on master\n";
 
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1504,7 +1504,7 @@ TEST_CASE("new-gcovi --capture-worktree can be noop",
 TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
+    const std::string dbPath = getDbPath(repo);
     FileRestorer databaseRestorer(dbPath, dbPath + "_original");
     DB db(dbPath);
     BuildHistory bh(db);
@@ -1535,8 +1535,7 @@ TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
 TEST_CASE("Generic help", "[subcommands][help-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
-    DB db(dbPath);
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     StreamCapture coutCapture(std::cout), cerrCapture(std::cerr);
@@ -1553,8 +1552,7 @@ TEST_CASE("Generic help", "[subcommands][help-subcommand]")
 TEST_CASE("Specific help", "[subcommands][help-subcommand]")
 {
     Repository repo("tests/test-repo");
-    const std::string dbPath = repo.getGitPath() + "/uncov.sqlite";
-    DB db(dbPath);
+    DB db(getDbPath(repo));
     BuildHistory bh(db);
 
     SECTION("Correct command")

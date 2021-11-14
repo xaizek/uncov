@@ -19,6 +19,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 /**
  * @file Repository.hpp
@@ -85,7 +86,13 @@ public:
      *
      * @returns The path.
      */
-    std::string getGitPath() const;
+    std::vector<std::string> getGitPaths() const;
+    /**
+     * @brief Retrieves absolute path to the working directory.
+     *
+     * @returns The path.
+     */
+    std::string getWorktreePath() const;
     /**
      * @brief Retrieves name `HEAD` is currently at.
      *

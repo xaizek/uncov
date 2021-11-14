@@ -102,8 +102,8 @@ Notations
 
 For the sake of brevity interface uses several intuitive abbreviations:
 
- * Cov - coverage;
- * Ref - reference (of VCS);
- * C - covered;
- * M - missed;
- * R - relevant.
+ * Cov -- coverage;
+ * Ref -- reference (of VCS);
+ * C -- covered;
+ * M -- missed;
+ * R -- relevant.

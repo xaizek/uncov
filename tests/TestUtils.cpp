@@ -25,6 +25,7 @@
 #include <ostream>
 
 #include "Settings.hpp"
+#include "app.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -82,6 +83,12 @@ getSettings()
 {
     static TestSettings settings;
     return settings;
+}
+
+std::string
+getDbPath(const Repository &repo)
+{
+    return pickDataPath(repo) + '/' + getDatabaseFile();
 }
 
 void

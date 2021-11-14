@@ -24,6 +24,8 @@
 
 #include "Settings.hpp"
 
+class Repository;
+
 class TestSettings : public Settings
 {
 public: // FilePrinterSettings only
@@ -141,6 +143,15 @@ vi(std::vector<int> v)
  * @returns The settings.
  */
 Settings & getSettings();
+
+/**
+ * @brief Retrieves path to a database file.
+ *
+ * @param repo Repository to operate on.
+ *
+ * @returns The path.
+ */
+std::string getDbPath(const Repository &repo);
 
 /**
  * @brief Creates a compressed file in gzip format.

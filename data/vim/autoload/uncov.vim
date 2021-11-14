@@ -1,7 +1,7 @@
 " Vim plugin for querying coverage information from uncov command-line tool.
 
 " Maintainer: xaizek <xaizek@posteo.net>
-" Last Change: 2020 April 24
+" Last Change: 2021 November 12
 " License: Same terms as Vim itself (see `help license`)
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -58,7 +58,7 @@ function! s:MakeBuffer(repo, relFilePath, buildid, reload) abort
     let l:commit = l:coverageInfo[0]
 
     let l:gitArgs = ['show', l:commit.':'.a:relFilePath]
-    let l:cmd = call(a:repo.git_command, l:gitArgs, a:repo)
+    let l:cmd = FugitiveShellCommand(l:gitArgs, a:repo)
     let l:fileLines = systemlist(l:cmd)
     if v:shell_error != 0
         let l:errorMsg = 'git error: '.join(l:fileLines, '\n')
