@@ -169,6 +169,15 @@ Repository::getGitPath() const
 }
 
 std::string
+Repository::getWorktreePath() const
+{
+    if (const char *workdir = git_repository_workdir(repo)) {
+        return workdir;
+    }
+    return std::string();
+}
+
+std::string
 Repository::getCurrentRef() const
 {
     GitObjPtr<git_reference> ref;

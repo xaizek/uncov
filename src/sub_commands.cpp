@@ -108,7 +108,7 @@ public:
     {
         namespace fs = boost::filesystem;
         fs::path absRepoRoot =
-            fs::absolute(normalizePath(repo->getGitPath())).parent_path();
+            fs::absolute(normalizePath(repo->getWorktreePath()));
 
         if (path.substr(0, 1) == "/") {
             path.erase(path.begin());
@@ -920,9 +920,8 @@ private:
         auto prefix = varMap["prefix"].as<std::string>();
         verbose = varMap.count("verbose");
 
-        // XXX: this doesn't account for worktrees.
-        absRepoRoot = fs::absolute(normalizePath(repo->getGitPath()))
-                      .parent_path().string();
+        absRepoRoot = fs::absolute(normalizePath(repo->getWorktreePath()))
+                      .string();
 
         std::vector<File> importedFiles = GcovImporter(absRepoRoot,
                                                        covoutRoot,
