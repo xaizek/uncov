@@ -17,6 +17,10 @@ By default debug version is build right in the source tree.
 
 Disables building Web-UI.
 
+**`config.mk` file**
+
+Put your custom configuration there.
+
 #### Targets ####
 
 **`debug`**
