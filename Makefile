@@ -71,6 +71,9 @@ else
     target := debug
 endif
 
+# run all tests by default
+TESTS :=
+
 -include config.mk
 
 # traverse directories ($1) recursively looking for a pattern ($2) to make list
@@ -182,7 +185,7 @@ endif
 
 check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
        reset-coverage
-	@$(out_dir)/tests/tests
+	@$(out_dir)/tests/tests $(TESTS)
 
 tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
 	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp
