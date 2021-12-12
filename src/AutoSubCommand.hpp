@@ -133,7 +133,7 @@ printParams(std::ostream &os, Lst<T> /*params*/)
  * @param params List of parameters.
  */
 template <typename T, typename... Types>
-void
+typename std::enable_if<sizeof...(Types) != 0>::type
 printParams(std::ostream &os, Lst<T, Types...> /*params*/)
 {
     printParam(os, Lst<T>{});

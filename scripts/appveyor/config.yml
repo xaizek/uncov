@@ -1,0 +1,34 @@
+version: "{build}"
+clone_depth: 1
+
+# "Ubuntu" (18.04) image fails with:
+#
+# new-gcovi invokes gcov
+# ------------------------------------------------------------------------------
+# tests/sub_commands.cpp:1018
+# ..............................................................................
+#
+# tests/sub_commands.cpp:1048: FAILED:
+#   CHECK( build->getCoveredCount() > 0 )
+# with expansion:
+#   0 > 0
+#
+# Why?
+
+environment:
+  matrix:
+    - BUILDENV: ubuntu
+      CC: ccache clang
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
+    - BUILDENV: ubuntu
+      CC: ccache gcc
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
+    - BUILDENV: macos
+      CC: ccache clang
+      APPVEYOR_BUILD_WORKER_IMAGE: macOS
+
+cache:
+  - $HOME/.ccache
+
+build_script:
+  - scripts/appveyor/$BUILDENV.sh

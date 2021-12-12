@@ -1,4 +1,4 @@
-CXXFLAGS += -std=gnu++11 -Wall -Wextra -Werror -MMD -MP -I$(abspath src)
+CXXFLAGS += -std=gnu++11 -Wall -Wextra -MMD -MP -I$(abspath src)
 CXXFLAGS += -Wno-non-template-friend -include config.h
 LDFLAGS  += $(ld_extra) -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_program_options
@@ -70,6 +70,11 @@ else
     endif
     target := debug
 endif
+
+# run all tests by default
+TESTS :=
+
+-include config.mk
 
 # traverse directories ($1) recursively looking for a pattern ($2) to make list
 # of matching files
@@ -180,7 +185,7 @@ endif
 
 check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
        reset-coverage
-	@$(out_dir)/tests/tests
+	@$(out_dir)/tests/tests $(TESTS)
 
 tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
 	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp

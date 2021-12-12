@@ -412,8 +412,8 @@ public:
     void commit();
 
 private:
-    sqlite3 *const conn; //!< Connection on which transaction is performed.
-    bool committed;      //!< Whether transaction has been committed.
+    sqlite3 *conn;  //!< Connection on which transaction is performed.
+    bool committed; //!< Whether transaction has been committed.
 };
 
 /**

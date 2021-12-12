@@ -201,11 +201,11 @@ public:
     int getMissedCount() const;
 
 private:
-    const std::string path;          //!< Path to the file in repository.
-    const std::string hash;          //!< MD5 hash of the file.
-    const std::vector<int> coverage; //!< Per-line number of hits.
-    int coveredCount;                //!< Number of covered lines.
-    int missedCount;                 //!< Number of missed lines.
+    std::string path;          //!< Path to the file in repository.
+    std::string hash;          //!< MD5 hash of the file.
+    std::vector<int> coverage; //!< Per-line number of hits.
+    int coveredCount;          //!< Number of covered lines.
+    int missedCount;           //!< Number of missed lines.
 };
 
 /**
