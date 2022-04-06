@@ -40,7 +40,7 @@ if [ -n "$DIRTY" ]; then
     trap pop_stashed EXIT
 fi
 
-nice ionice make --jobs 6 coverage
+nice ionice make --jobs $(( `nproc` * 3 / 4 )) coverage
 RESULT="$?"
 
 # stashed changes (if any) are automatically restored by EXIT trap handler

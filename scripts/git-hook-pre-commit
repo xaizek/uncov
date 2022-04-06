@@ -97,7 +97,7 @@ if ! git diff --quiet HEAD; then
     # run build using staged changes only
     # use release build as with its optimization level compiler is able to issue
     # more warnings
-    nice ionice make --jobs 6 check release
+    nice ionice make --jobs $(( `nproc` * 3 / 4 )) check release
     RESULT="$?"
 else
     RESULT="0"
