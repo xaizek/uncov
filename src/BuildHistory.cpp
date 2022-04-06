@@ -34,7 +34,7 @@ static std::string hashCoverage(const std::vector<int> &vec);
 static void updateDBSchema(DB &db, int fromVersion);
 
 //! Current database scheme version.
-const int AppDBVersion = 1;
+const int AppDBVersion = 2;
 
 File::File(std::string path, std::string hash, std::vector<int> coverage)
     : path(std::move(path)), hash(std::move(hash)),
@@ -321,6 +321,11 @@ updateDBSchema(DB &db, int fromVersion)
                     FOREIGN KEY (buildid) REFERENCES builds(buildid),
                     FOREIGN KEY (fileid) REFERENCES files(fileid)
                 )
+            )");
+            // Fall through.
+        case 1:
+            db.execute(R"(
+                CREATE INDEX files_idx ON files(path, hash, covhash)
             )");
             // Fall through.
         case AppDBVersion:
