@@ -44,8 +44,10 @@ public:
      * @param employBinning      No calling `gcov` with identically named files.
      * @param jsonFormat         If JSON format is available.
      * @param intermediateFormat If plain text format is available.
+     * @param stdOut             If dumping to stdout is available.
      */
-    GcovInfo(bool employBinning, bool jsonFormat, bool intermediateFormat);
+    GcovInfo(bool employBinning,
+             bool jsonFormat, bool intermediateFormat, bool stdOut);
 
 public:
     /**
@@ -69,6 +71,13 @@ public:
      */
     bool hasIntermediateFormat() const
     { return intermediateFormat; }
+    /**
+     * @brief Checks whether result can be dumped to standard output.
+     *
+     * @returns `true` if so.
+     */
+    bool canPrintToStdOut() const
+    { return jsonFormat && stdOut; }
 
 private:
     //! Whether `gcov` command doesn't handle identically-named files properly.
@@ -77,6 +86,8 @@ private:
     bool jsonFormat;
     //! Whether plain text intermediate format is supported.
     bool intermediateFormat;
+    //! Whether result can be dumpted to stdout.
+    bool stdOut;
 };
 
 /**
@@ -133,6 +144,12 @@ private:
      * @param gcnoFiles Absolute paths to `*.gcno` files.
      */
     void importFiles(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
+     * @brief Calls `gcov` to print output to stdout and processes it.
+     *
+     * @param gcnoFiles Absolute paths to `*.gcno` files.
+     */
+    void importAsOutput(std::vector<boost::filesystem::path> gcnoFiles);
     /**
      * @brief Calls `gcov` to generate output files and processes them.
      *

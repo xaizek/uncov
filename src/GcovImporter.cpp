@@ -54,6 +54,8 @@ namespace pt = boost::property_tree;
 static const char GcovJsonFormat[] = "--json-format";
 //! `gcov` option to generate coverage in plain text format.
 static const char GcovIntermediateFormat[] = "--intermediate-format";
+//! `gcov` option to dump coverage onto standard output.
+static const char GcovStdOut[] = "--stdout";
 
 //! First version of `gcov` which has broken `--preserve-paths` option.
 static int FirstBrokenGcovVersion = 8;
@@ -112,7 +114,8 @@ namespace {
 }
 
 GcovInfo::GcovInfo()
-    : employBinning(true), jsonFormat(false), intermediateFormat(false)
+    : employBinning(true),
+      jsonFormat(false), intermediateFormat(false), stdOut(false)
 {
     const std::regex optionRegex("--[-a-z]+");
     const std::regex versionRegex("gcov \\(GCC\\) (.*)");
@@ -128,6 +131,8 @@ GcovInfo::GcovInfo()
             jsonFormat = true;
         } else if (str == GcovIntermediateFormat) {
             intermediateFormat = true;
+        } else if (str == GcovStdOut) {
+            stdOut = true;
         }
 
         from += match.position() + match.length();
@@ -140,10 +145,14 @@ GcovInfo::GcovInfo()
     }
 }
 
-GcovInfo::GcovInfo(bool employBinning, bool jsonFormat,
-                   bool intermediateFormat)
-    : employBinning(employBinning), jsonFormat(jsonFormat),
-      intermediateFormat(intermediateFormat)
+GcovInfo::GcovInfo(bool employBinning,
+                   bool jsonFormat,
+                   bool intermediateFormat,
+                   bool stdOut)
+    : employBinning(employBinning),
+      jsonFormat(jsonFormat),
+      intermediateFormat(intermediateFormat),
+      stdOut(stdOut)
 { }
 
 std::function<GcovImporter::runner_f>
@@ -255,7 +264,33 @@ GcovImporter::getFiles() &&
 void
 GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
 {
-    importAsFiles(std::move(gcnoFiles));
+    if (gcovInfo.hasJsonFormat() && gcovInfo.canPrintToStdOut()) {
+        importAsOutput(std::move(gcnoFiles));
+    } else {
+        importAsFiles(std::move(gcnoFiles));
+    }
+}
+
+void
+GcovImporter::importAsOutput(std::vector<fs::path> gcnoFiles)
+{
+    std::vector<std::string> cmd = {
+        "gcov", GcovJsonFormat, GcovStdOut, "--"
+    };
+
+    cmd.reserve(cmd.size() + gcnoFiles.size());
+    for (const fs::path &gcnoFile : gcnoFiles) {
+        cmd.push_back(gcnoFile.string());
+    }
+
+    const std::string output = getRunner()(std::move(cmd), "-");
+
+    for (std::string &json : split(output, '\n')) {
+        if (!json.empty()) {
+            std::istringstream iss(std::move(json));
+            parseGcovJson(iss);
+        }
+    }
 }
 
 void
