@@ -425,7 +425,7 @@ GcovImporter::updateCoverage(std::vector<int> &coverage, unsigned int lineNo,
 }
 
 bool
-GcovImporter::isExcluded(boost::filesystem::path path) const
+GcovImporter::isExcluded(fs::path path) const
 {
     for (const fs::path &skipPath : skipPaths) {
         if (pathIsInSubtree(skipPath, path)) {
