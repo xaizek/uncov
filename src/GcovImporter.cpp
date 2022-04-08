@@ -311,7 +311,7 @@ GcovImporter::importAsFiles(std::vector<fs::path> gcnoFiles)
 
         TempDir tempDir("gcovi");
         std::string tempDirPath = tempDir;
-        getRunner()(std::move(cmd), tempDirPath);
+        (void)getRunner()(std::move(cmd), tempDirPath);
 
         for (fs::recursive_directory_iterator it(tempDirPath), end;
              it != end; ++it) {

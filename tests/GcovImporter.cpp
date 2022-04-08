@@ -64,6 +64,8 @@ TEST_CASE("Plain text format parsed and binning is performed", "[GcovImporter]")
             << "file:" << relPath.string() << '\n'
             << "lcount:1,1\n"
             << "lcount:2,0\n";
+
+        return std::string();
     };
     auto prevRunner = GcovImporter::setRunner(runner);
     BOOST_SCOPE_EXIT_ALL(prevRunner) {
@@ -108,6 +110,8 @@ TEST_CASE("JSON format is parsed", "[GcovImporter]")
                 }
             ]
         })");
+
+        return std::string();
     };
     auto prevRunner = GcovImporter::setRunner(runner);
     BOOST_SCOPE_EXIT_ALL(prevRunner) {

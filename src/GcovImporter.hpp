@@ -86,9 +86,11 @@ class GcovImporter
 {
     /**
      * @brief Accepts comand to be run at specified directory.
+     *
+     * When @p from is `-`, should return the output.
      */
-    using runner_f = void(std::vector<std::string> &&cmd,
-                          const std::string &dir);
+    using runner_f = std::string(std::vector<std::string> &&cmd,
+                                 const std::string &from);
 
 public:
     /**
