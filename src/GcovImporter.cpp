@@ -30,6 +30,7 @@
 #include <istream>
 #include <regex>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -44,6 +45,7 @@
 #include "integration.hpp"
 
 namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
 
 // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89961 for information about
 // what's wrong with some versions of `gcov` and why binning is needed.
@@ -52,6 +54,8 @@ namespace fs = boost::filesystem;
 static const char GcovJsonFormat[] = "--json-format";
 //! `gcov` option to generate coverage in plain text format.
 static const char GcovIntermediateFormat[] = "--intermediate-format";
+//! `gcov` option to dump coverage onto standard output.
+static const char GcovStdOut[] = "--stdout";
 
 //! First version of `gcov` which has broken `--preserve-paths` option.
 static int FirstBrokenGcovVersion = 8;
@@ -110,7 +114,8 @@ namespace {
 }
 
 GcovInfo::GcovInfo()
-    : employBinning(true), jsonFormat(false), intermediateFormat(false)
+    : employBinning(true),
+      jsonFormat(false), intermediateFormat(false), stdOut(false)
 {
     const std::regex optionRegex("--[-a-z]+");
     const std::regex versionRegex("gcov \\(GCC\\) (.*)");
@@ -126,6 +131,8 @@ GcovInfo::GcovInfo()
             jsonFormat = true;
         } else if (str == GcovIntermediateFormat) {
             intermediateFormat = true;
+        } else if (str == GcovStdOut) {
+            stdOut = true;
         }
 
         from += match.position() + match.length();
@@ -138,10 +145,14 @@ GcovInfo::GcovInfo()
     }
 }
 
-GcovInfo::GcovInfo(bool employBinning, bool jsonFormat,
-                   bool intermediateFormat)
-    : employBinning(employBinning), jsonFormat(jsonFormat),
-      intermediateFormat(intermediateFormat)
+GcovInfo::GcovInfo(bool employBinning,
+                   bool jsonFormat,
+                   bool intermediateFormat,
+                   bool stdOut)
+    : employBinning(employBinning),
+      jsonFormat(jsonFormat),
+      intermediateFormat(intermediateFormat),
+      stdOut(stdOut)
 { }
 
 std::function<GcovImporter::runner_f>
@@ -253,6 +264,38 @@ GcovImporter::getFiles() &&
 void
 GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
 {
+    if (gcovInfo.hasJsonFormat() && gcovInfo.canPrintToStdOut()) {
+        importAsOutput(std::move(gcnoFiles));
+    } else {
+        importAsFiles(std::move(gcnoFiles));
+    }
+}
+
+void
+GcovImporter::importAsOutput(std::vector<fs::path> gcnoFiles)
+{
+    std::vector<std::string> cmd = {
+        "gcov", GcovJsonFormat, GcovStdOut, "--"
+    };
+
+    cmd.reserve(cmd.size() + gcnoFiles.size());
+    for (const fs::path &gcnoFile : gcnoFiles) {
+        cmd.push_back(gcnoFile.string());
+    }
+
+    const std::string output = getRunner()(std::move(cmd), "-");
+
+    for (std::string &json : split(output, '\n')) {
+        if (!json.empty()) {
+            std::istringstream iss(std::move(json));
+            parseGcovJson(iss);
+        }
+    }
+}
+
+void
+GcovImporter::importAsFiles(std::vector<fs::path> gcnoFiles)
+{
     std::vector<Bin> bins;
 
     if (gcovInfo.needsBinning()) {
@@ -303,7 +346,7 @@ GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
 
         TempDir tempDir("gcovi");
         std::string tempDirPath = tempDir;
-        getRunner()(std::move(cmd), tempDirPath);
+        (void)getRunner()(std::move(cmd), tempDirPath);
 
         for (fs::recursive_directory_iterator it(tempDirPath), end;
              it != end; ++it) {
@@ -324,7 +367,6 @@ void
 GcovImporter::parseGcovJsonGz(const std::string &path)
 {
     namespace io = boost::iostreams;
-    namespace pt = boost::property_tree;
 
     std::ifstream file(path, std::ios_base::in | std::ios_base::binary);
 
@@ -332,10 +374,15 @@ GcovImporter::parseGcovJsonGz(const std::string &path)
     in.push(io::gzip_decompressor());
     in.push(file);
 
-    std::basic_istream<char> is(&in);
+    std::istream is(&in);
+    parseGcovJson(is);
+}
 
+void
+GcovImporter::parseGcovJson(std::istream &stream)
+{
     pt::ptree props;
-    pt::read_json(is, props);
+    pt::read_json(stream, props);
 
     const std::string cwd = props.get<std::string>("current_working_directory");
 
@@ -413,7 +460,7 @@ GcovImporter::updateCoverage(std::vector<int> &coverage, unsigned int lineNo,
 }
 
 bool
-GcovImporter::isExcluded(boost::filesystem::path path) const
+GcovImporter::isExcluded(fs::path path) const
 {
     for (const fs::path &skipPath : skipPaths) {
         if (pathIsInSubtree(skipPath, path)) {

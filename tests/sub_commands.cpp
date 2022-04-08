@@ -1062,8 +1062,9 @@ TEST_CASE("Empty coverage data is imported",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&cmd,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
         REQUIRE(cmd.size() == 4U);
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1097,9 +1098,10 @@ TEST_CASE("Coverage file is discovered",
     std::ofstream{gcnoFile};
 
     auto runner = [&gcnoFile](std::vector<std::string> &&cmd,
-                              const std::string &/*dir*/) {
+                              const std::string &/*from*/) {
         REQUIRE(cmd.size() == 5U);
         CHECK(boost::ends_with(cmd[4], gcnoFile));
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1127,7 +1129,8 @@ TEST_CASE("Unexecuted files can be excluded",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1155,9 +1158,10 @@ TEST_CASE("new-gcovi --prefix", "[subcommands][new-gcovi-subcommand]")
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &dir) {
-        std::ofstream{dir + "/subdir#file.gcov"}
+                     const std::string &from) {
+        std::ofstream{from + "/subdir#file.gcov"}
             << "file:file.cpp\n";
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1186,9 +1190,10 @@ TEST_CASE("Executed files can be excluded",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &dir) {
-        std::ofstream{dir + "/subdir#file.gcov"}
+                     const std::string &from) {
+        std::ofstream{from + "/subdir#file.gcov"}
             << "file:subdir/file.cpp\n";
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1217,25 +1222,32 @@ TEST_CASE("Gcov file is found and parsed",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &dir) {
+                     const std::string &from) {
+        std::string json = R"({
+            "current_working_directory": "./",
+            "files": [{
+                "file": "test-file1.cpp",
+                "lines": [
+                    { "line_number": 2, "count": 1 },
+                    { "line_number": 4, "count": 1 }
+                ]
+            }]
+        })";
+
         GcovInfo gcovInfo;
-        if (gcovInfo.hasJsonFormat()) {
-            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
-                "current_working_directory": "./",
-                "files": [{
-                    "file": "test-file1.cpp",
-                    "lines": [
-                        { "line_number": 2, "count": 1 },
-                        { "line_number": 4, "count": 1 }
-                    ]
-                }]
-            })");
+        if (from == "-") {
+            removeChars(json, '\n');
+            return json;
+        } else if (gcovInfo.hasJsonFormat()) {
+            makeGz(from + "/test-file1.gcno.gcov.json.gz", json);
         } else {
-            std::ofstream{dir + "/test-file1.gcov"}
+            std::ofstream{from + "/test-file1.gcov"}
                 << "file:test-file1.cpp\n"
                 << "lcount:2,1\n"
                 << "lcount:4,1\n";
         }
+
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1260,20 +1272,27 @@ TEST_CASE("Gcov file with broken format causes an exception",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &dir) {
+                     const std::string &from) {
+        std::string json = R"({
+            "files": [{
+                "file": "test-file1.cpp",
+                "lines": [ { "line_number": 2, "count": 0 }, ]
+            }]
+        })";
+
         GcovInfo gcovInfo;
-        if (gcovInfo.hasJsonFormat()) {
-            makeGz(dir + "/test-file1.gcno.gcov.json.gz", R"({
-                "files": [{
-                    "file": "test-file1.cpp",
-                    "lines": [ { "line_number": 2, "count": 0 }, ]
-                }]
-            })");
+        if (from == "-") {
+            removeChars(json, '\n');
+            return json;
+        } else if (gcovInfo.hasJsonFormat()) {
+            makeGz(from + "/test-file1.gcno.gcov.json.gz", json);
         } else {
-            std::ofstream{dir + "/test-file1.gcov"}
+            std::ofstream{from + "/test-file1.gcov"}
                 << "file:test-file1.cpp\n"
                 << "lcount:2\n";
         }
+
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1305,7 +1324,8 @@ TEST_CASE("Modified source file is captured",
     std::ofstream{sourceFile} << "int f() { return 666; }";
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1340,7 +1360,8 @@ TEST_CASE("Untracked source file is captured",
     std::ofstream{untrackedFile};
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1377,7 +1398,8 @@ TEST_CASE("Untracked source file is rejected without capture",
     std::ofstream{untrackedFile};
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1409,7 +1431,8 @@ TEST_CASE("Unmatched source fails build addition",
     std::ofstream{sourceFile} << "int f() { return 666; }";
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1431,7 +1454,8 @@ TEST_CASE("new-gcovi --help", "[subcommands][new-gcovi-subcommand]")
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1457,7 +1481,8 @@ TEST_CASE("new-gcovi --ref-name", "[subcommands][new-gcovi-subcommand]")
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1486,7 +1511,8 @@ TEST_CASE("new-gcovi --capture-worktree can be noop",
     BuildHistory bh(db);
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 
@@ -1517,7 +1543,8 @@ TEST_CASE("new-gcovi --verbose", "[subcommands][new-gcovi-subcommand]")
     std::ofstream{untrackedFile};
 
     auto runner = [](std::vector<std::string> &&/*cmd*/,
-                     const std::string &/*dir*/) {
+                     const std::string &/*from*/) {
+        return std::string();
     };
     GcovImporter::setRunner(runner);
 

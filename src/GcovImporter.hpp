@@ -20,6 +20,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <functional>
+#include <iosfwd>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -43,8 +44,10 @@ public:
      * @param employBinning      No calling `gcov` with identically named files.
      * @param jsonFormat         If JSON format is available.
      * @param intermediateFormat If plain text format is available.
+     * @param stdOut             If dumping to stdout is available.
      */
-    GcovInfo(bool employBinning, bool jsonFormat, bool intermediateFormat);
+    GcovInfo(bool employBinning,
+             bool jsonFormat, bool intermediateFormat, bool stdOut);
 
 public:
     /**
@@ -68,6 +71,13 @@ public:
      */
     bool hasIntermediateFormat() const
     { return intermediateFormat; }
+    /**
+     * @brief Checks whether result can be dumped to standard output.
+     *
+     * @returns `true` if so.
+     */
+    bool canPrintToStdOut() const
+    { return jsonFormat && stdOut; }
 
 private:
     //! Whether `gcov` command doesn't handle identically-named files properly.
@@ -76,6 +86,8 @@ private:
     bool jsonFormat;
     //! Whether plain text intermediate format is supported.
     bool intermediateFormat;
+    //! Whether result can be dumpted to stdout.
+    bool stdOut;
 };
 
 /**
@@ -85,9 +97,11 @@ class GcovImporter
 {
     /**
      * @brief Accepts comand to be run at specified directory.
+     *
+     * When @p from is `-`, should return the output.
      */
-    using runner_f = void(std::vector<std::string> &&cmd,
-                          const std::string &dir);
+    using runner_f = std::string(std::vector<std::string> &&cmd,
+                                 const std::string &from);
 
 public:
     /**
@@ -131,11 +145,29 @@ private:
      */
     void importFiles(std::vector<boost::filesystem::path> gcnoFiles);
     /**
+     * @brief Calls `gcov` to print output to stdout and processes it.
+     *
+     * @param gcnoFiles Absolute paths to `*.gcno` files.
+     */
+    void importAsOutput(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
+     * @brief Calls `gcov` to generate output files and processes them.
+     *
+     * @param gcnoFiles Absolute paths to `*.gcno` files.
+     */
+    void importAsFiles(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
      * @brief Parses single `*.gcov.json.gz` file.
      *
      * @param path Path of the file.
      */
     void parseGcovJsonGz(const std::string &path);
+    /**
+     * @brief Parses single JSON dictionary produced by `gcov`.
+     *
+     * @param stream Stream with JSON data.
+     */
+    void parseGcovJson(std::istream &stream);
     /**
      * @brief Parses single `*.gcov` file.
      *

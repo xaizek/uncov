@@ -21,8 +21,10 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/range.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <ostream>
+#include <string>
 
 #include "Settings.hpp"
 #include "app.hpp"
@@ -101,4 +103,11 @@ makeGz(const std::string &path, const std::string &contents)
     out.push(file);
 
     std::basic_ostream<char>(&out) << contents;
+}
+
+void
+removeChars(std::string &str, char c)
+{
+    auto newEnd = std::remove(str.begin(), str.end(), c);
+    str.erase(newEnd, str.end());
 }

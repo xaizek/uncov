@@ -161,4 +161,12 @@ std::string getDbPath(const Repository &repo);
  */
 void makeGz(const std::string &path, const std::string &contents);
 
+/**
+ * @brief Removes all occurances of a character @p c in a string @p str.
+ *
+ * @param str String for the operation.
+ * @param c   Character to remove.
+ */
+void removeChars(std::string &str, char c);
+
 #endif // UNCOV__TESTS__TESTUTILS_HPP__

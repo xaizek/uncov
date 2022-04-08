@@ -882,11 +882,16 @@ public:
              "make a dangling commit if working directory is dirty");
 
         auto runner = [this](std::vector<std::string> &&cmd,
-                             const std::string &dir) {
-            std::string output = readProc(std::move(cmd), dir, CatchStderr{});
+                             const std::string &from) {
+            const bool stdOut = (from == "-");
+            const std::string dir = (stdOut ? "." : from);
+            std::string output = readProc(std::move(cmd), dir,
+                                          CatchStderr{!stdOut});
+
             if (verbose) {
                 std::cout << output;
             }
+            return (stdOut ? output : std::string());
         };
         GcovImporter::setRunner(runner);
     }

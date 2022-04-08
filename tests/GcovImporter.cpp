@@ -34,7 +34,7 @@ namespace fs = boost::filesystem;
 TEST_CASE("Need support for at least one intermediate format", "[GcovImporter]")
 {
     GcovInfo gcovInfo(/*employBinning=*/false, /*jsonFormat=*/false,
-                      /*intermediateFormat=*/false);
+                      /*intermediateFormat=*/false, /*stdOut=*/false);
     REQUIRE_THROWS_AS(GcovImporter("", "", {}, "", gcovInfo),
                       const std::runtime_error &);
 }
@@ -64,6 +64,8 @@ TEST_CASE("Plain text format parsed and binning is performed", "[GcovImporter]")
             << "file:" << relPath.string() << '\n'
             << "lcount:1,1\n"
             << "lcount:2,0\n";
+
+        return std::string();
     };
     auto prevRunner = GcovImporter::setRunner(runner);
     BOOST_SCOPE_EXIT_ALL(prevRunner) {
@@ -71,7 +73,7 @@ TEST_CASE("Plain text format parsed and binning is performed", "[GcovImporter]")
     };
 
     GcovInfo gcovInfo(/*employBinning=*/true, /*jsonFormat=*/false,
-                      /*intermediateFormat=*/true);
+                      /*intermediateFormat=*/true, /*stdOut=*/false);
     std::vector<File> files =
         GcovImporter(tempDirPath, tempDirPath, {}, tempDirPath,
                      gcovInfo).getFiles();
@@ -108,6 +110,8 @@ TEST_CASE("JSON format is parsed", "[GcovImporter]")
                 }
             ]
         })");
+
+        return std::string();
     };
     auto prevRunner = GcovImporter::setRunner(runner);
     BOOST_SCOPE_EXIT_ALL(prevRunner) {
@@ -115,7 +119,54 @@ TEST_CASE("JSON format is parsed", "[GcovImporter]")
     };
 
     GcovInfo gcovInfo(/*employBinning=*/false, /*jsonFormat=*/true,
-                      /*intermediateFormat=*/true);
+                      /*intermediateFormat=*/true, /*stdOut=*/false);
+    std::vector<File> files =
+        GcovImporter(tempDirPath, tempDirPath, {}, tempDirPath,
+                     gcovInfo).getFiles();
+
+    REQUIRE(files.size() == 1);
+    CHECK(files[0].getCoveredCount() == 1);
+    CHECK(files[0].getMissedCount() == 1);
+}
+
+TEST_CASE("JSON on stdout is parsed", "[GcovImporter]")
+{
+    TempDir tempDir("gcovimporter");
+    std::string tempDirPath = tempDir;
+
+    std::ofstream{tempDirPath + "/file.gcno"} << "\n";
+
+    auto runner = [&tempDirPath](std::vector<std::string> &&/*cmd*/,
+                                 const std::string &from) {
+        CHECK(from == "-");
+
+        std::string json = R"({
+            "current_working_directory": ")" + tempDirPath + R"(",
+            "files": [
+                {
+                    "file": "file.gcno",
+                    "lines": [
+                        { "line_number": 1, "count": 1 },
+                        { "line_number": 2, "count": 0 }
+                    ]
+                },
+                {
+                    "file": "/usr/include/whatever.h",
+                    "lines": [ { "line_number": 1, "count": 1 } ]
+                }
+            ]
+        })";
+        removeChars(json, '\n');
+
+        return json;
+    };
+    auto prevRunner = GcovImporter::setRunner(runner);
+    BOOST_SCOPE_EXIT_ALL(prevRunner) {
+        GcovImporter::setRunner(prevRunner);
+    };
+
+    GcovInfo gcovInfo(/*employBinning=*/false, /*jsonFormat=*/true,
+                      /*intermediateFormat=*/true, /*stdOut=*/true);
     std::vector<File> files =
         GcovImporter(tempDirPath, tempDirPath, {}, tempDirPath,
                      gcovInfo).getFiles();
