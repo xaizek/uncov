@@ -255,6 +255,12 @@ GcovImporter::getFiles() &&
 void
 GcovImporter::importFiles(std::vector<fs::path> gcnoFiles)
 {
+    importAsFiles(std::move(gcnoFiles));
+}
+
+void
+GcovImporter::importAsFiles(std::vector<fs::path> gcnoFiles)
+{
     std::vector<Bin> bins;
 
     if (gcovInfo.needsBinning()) {

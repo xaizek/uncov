@@ -132,6 +132,12 @@ private:
      */
     void importFiles(std::vector<boost::filesystem::path> gcnoFiles);
     /**
+     * @brief Calls `gcov` to generate output files and processes them.
+     *
+     * @param gcnoFiles Absolute paths to `*.gcno` files.
+     */
+    void importAsFiles(std::vector<boost::filesystem::path> gcnoFiles);
+    /**
      * @brief Parses single `*.gcov.json.gz` file.
      *
      * @param path Path of the file.
