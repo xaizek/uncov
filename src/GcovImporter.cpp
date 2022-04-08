@@ -30,6 +30,7 @@
 #include <istream>
 #include <regex>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -44,6 +45,7 @@
 #include "integration.hpp"
 
 namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
 
 // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89961 for information about
 // what's wrong with some versions of `gcov` and why binning is needed.
@@ -324,7 +326,6 @@ void
 GcovImporter::parseGcovJsonGz(const std::string &path)
 {
     namespace io = boost::iostreams;
-    namespace pt = boost::property_tree;
 
     std::ifstream file(path, std::ios_base::in | std::ios_base::binary);
 
@@ -332,10 +333,15 @@ GcovImporter::parseGcovJsonGz(const std::string &path)
     in.push(io::gzip_decompressor());
     in.push(file);
 
-    std::basic_istream<char> is(&in);
+    std::istream is(&in);
+    parseGcovJson(is);
+}
 
+void
+GcovImporter::parseGcovJson(std::istream &stream)
+{
     pt::ptree props;
-    pt::read_json(is, props);
+    pt::read_json(stream, props);
 
     const std::string cwd = props.get<std::string>("current_working_directory");
 

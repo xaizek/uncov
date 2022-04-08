@@ -20,6 +20,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <functional>
+#include <iosfwd>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -136,6 +137,12 @@ private:
      * @param path Path of the file.
      */
     void parseGcovJsonGz(const std::string &path);
+    /**
+     * @brief Parses single JSON dictionary produced by `gcov`.
+     *
+     * @param stream Stream with JSON data.
+     */
+    void parseGcovJson(std::istream &stream);
     /**
      * @brief Parses single `*.gcov` file.
      *
