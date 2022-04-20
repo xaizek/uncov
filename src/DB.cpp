@@ -64,7 +64,7 @@ public:
     {
         errorValue = sqlite3_bind_text(ps, idx,
                                        str.c_str(), str.length(),
-                                       SQLITE_STATIC);
+                                       SQLITE_TRANSIENT);
     }
 
     /**
