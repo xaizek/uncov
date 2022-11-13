@@ -188,7 +188,9 @@ check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
 	@$(out_dir)/tests/tests $(TESTS)
 
 tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
-	cd tests/test-repo-gcno/ && $(CXX) --coverage -o test-repo-gcno main.cpp
+	# this must always be compiled with GCC for gcov to be able to process
+	# output files (need a separate variable for it?)
+	cd tests/test-repo-gcno/ && g++ --coverage -o test-repo-gcno main.cpp
 
 install: release
 	$(INSTALL) -t $(DESTDIR)$(PREFIX)/bin/ $(bin) $(webbin) uncov-gcov
