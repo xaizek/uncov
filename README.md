@@ -1,4 +1,4 @@
-**uncov**, _v0.4_, _2016 – 2021_
+**uncov**, _v0.4_, _2016 – 2022_
 
 _This file last updated on 8 June, 2021_
 
