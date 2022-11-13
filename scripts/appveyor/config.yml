@@ -26,6 +26,9 @@ environment:
     - BUILDENV: macos
       CC: ccache clang
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
+    - BUILDENV: valgrind
+      CC: ccache gcc
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
 
 cache:
   - $HOME/.ccache
