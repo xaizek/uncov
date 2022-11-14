@@ -19,13 +19,20 @@ environment:
   matrix:
     - BUILDENV: ubuntu
       CC: ccache clang
+      CXX: ccache clang++
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
     - BUILDENV: ubuntu
       CC: ccache gcc
+      CXX: ccache g++
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
     - BUILDENV: macos
       CC: ccache clang
+      CXX: ccache clang++
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
+    - BUILDENV: valgrind
+      CC: ccache gcc
+      CXX: ccache g++
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
 
 cache:
   - $HOME/.ccache

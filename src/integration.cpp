@@ -303,13 +303,17 @@ readProc(std::vector<std::string> &&cmd, const std::string &dir,
  *
  * @returns Exit code and output of the command.
  *
- * @throws std::runtime_error On failure to run the command or when it didn't
- *                            finish properly.
+ * @throws std::runtime_error On empty command, failure to run it or when it
+ *                            didn't finish properly.
  */
 static ProcResult
 runProc(std::vector<std::string> &&cmd, const std::string &dir,
         CatchStderr catchStdErr)
 {
+    if (cmd.empty()) {
+        throw std::runtime_error("Attempt to run an empty command");
+    }
+
     int pipePair[2];
     if (pipe(pipePair) != 0) {
         throw std::runtime_error("Failed to create a pipe");
