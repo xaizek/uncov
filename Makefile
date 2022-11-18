@@ -135,7 +135,7 @@ docs/uncov.1: force
 	pandoc -V title=uncov \
 	       -V section=1 \
 	       -V app=uncov \
-	       -V footer="uncov v0.4" \
+	       -V footer="uncov v0.5" \
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov/*.md))
@@ -143,7 +143,7 @@ docs/uncov-gcov.1: force
 	pandoc -V title=uncov-gcov \
 	       -V section=1 \
 	       -V app=uncov-gcov \
-	       -V footer="uncov v0.4" \
+	       -V footer="uncov v0.5" \
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov-gcov/*.md))
@@ -151,7 +151,7 @@ docs/uncov-web.1: force
 	pandoc -V title=uncov-web \
 	       -V section=1 \
 	       -V app=uncov-web \
-	       -V footer="uncov v0.4" \
+	       -V footer="uncov v0.5" \
 	       -V date="$$(date +'%B %d, %Y')" \
 	       -V author='xaizek <xaizek@posteo.net>' \
 	       -s -o $@ $(sort $(wildcard docs/uncov-web/*.md))

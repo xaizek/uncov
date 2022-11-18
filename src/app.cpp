@@ -30,7 +30,7 @@ static const std::string databaseFileName = "uncov.sqlite";
 
 std::string getAppVersion()
 {
-    return "v0.4";
+    return "v0.5";
 }
 
 std::string getConfigFile()
