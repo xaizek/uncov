@@ -1,43 +1,43 @@
 OPTIONS
 =======
 
-**--help, -h**
---------------
+**-\-help, -h**
+---------------
 
 Displays short usage help.
 
-**--version, -v**
------------------
+**-\-version, -v**
+------------------
 
 Displays version information.
 
-**--verbose**
--------------
+**-\-verbose**
+--------------
 
 Print verbose messages.
 
-**--dryrun**
-------------
+**-\-dryrun**
+-------------
 
 Run the script without printing report.
 
-**--gcov** [=gcov]
-------------------
+**-\-gcov** [=gcov]
+-------------------
 
 Set the location of gcov.
 
-**--gcov-options** [=""]
-------------------------
+**-\-gcov-options** [=""]
+-------------------------
 
 Set the options given to gcov.
 
-**-r**, **--root** [=.]
------------------------
+**-r**, **-\-root** [=.]
+------------------------
 
 Set the root directory.
 
-**-b**, **--build-root** [={discovered}]
-----------------------------------------
+**-b**, **-\-build-root** [={discovered}]
+-----------------------------------------
 
 Set the directory from which gcov will be called; by default gcov is run in the
 directory of the .o files; however the paths of the sources are often relative
@@ -45,70 +45,70 @@ to the directory from which the compiler was run and these relative paths are
 saved in the .o file; when this happens, gcov needs to run in the same directory
 as the compiler in order to find the source files.
 
-**--collect-root** [={value of --root}]
----------------------------------------
+**-\-collect-root** [={value of -\-root}]
+----------------------------------------
 
 Directory to look gcov files in.
 
-**-e**, **--exclude** [=""]
----------------------------
+**-e**, **-\-exclude** [=""]
+----------------------------
 
 List of paths to exclude.  Can be specifieid multiple times.
 
 Examples:
 
-    uncov-gcov --exclude build-release --exclude build-debug ...
-    uncov-gcov --exclude build-release build-debug ...
-    uncov-gcov --exclude build* ...
+    uncov-gcov -\-exclude build-release -\-exclude build-debug ...
+    uncov-gcov -\-exclude build-release build-debug ...
+    uncov-gcov -\-exclude build* ...
 
-**-i**, **--include** [=""]
----------------------------
+**-i**, **-\-include** [=""]
+----------------------------
 
-List of paths to include.  Can be specifieid multiple times.  See **--exclude**
+List of paths to include.  Can be specifieid multiple times.  See **-\-exclude**
 for examples.
 
-**-E**, **--exclude-pattern** [=""]
------------------------------------
+**-E**, **-\-exclude-pattern** [=""]
+------------------------------------
 
 Set exclude file/directory pattern.
 
-**-x**, **--extension** [=.h,.hh,.hpp,.hxx,.c,.cc,.cpp,.cxx,.m,.mm]
--------------------------------------------------------------------
+**-x**, **-\-extension** [=.h,.hh,.hpp,.hxx,.c,.cc,.cpp,.cxx,.m,.mm]
+--------------------------------------------------------------------
 
 Set extension of files to process.
 
-**-n**, **--no-gcov**
----------------------
+**-n**, **-\-no-gcov**
+----------------------
 
 Do not run gcov.
 
-**--encodings** [=utf-8,latin-1]
---------------------------------
+**-\-encodings** [=utf-8,latin-1]
+---------------------------------
 
 Source encodings to try in order of preference.
 
-**--dump** \<file\>
--------------------
+**-\-dump** \<file\>
+--------------------
 
 Dump JSON payload to a file.
 
-**--follow-symlinks**
----------------------
+**-\-follow-symlinks**
+----------------------
 
 Follow symlinks.
 
-**-c**, **--capture-worktree**
-------------------------------
+**-c**, **-\-capture-worktree**
+-------------------------------
 
 Make a dangling commit if working directory is dirty.
 
-**--ref-name** [={discovered}]
-------------------------------
+**-\-ref-name** [={discovered}]
+-------------------------------
 
 Force custom ref name.
 
-**--cpp-dtor-invocations**
---------------------------
+**-\-cpp-dtor-invocations**
+---------------------------
 
 Count coverage for C++ destructor invocations, which tends to show up at lines
 that have the closing brace (`{`).

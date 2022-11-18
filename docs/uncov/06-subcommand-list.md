@@ -207,16 +207,16 @@ Generates coverage via `gcov` and imports it.
 
 **Options:**
 
- * **-h [ --help ]**             -- display help message;
- * **-v [ --verbose ]**          -- print output of external commands;
- * **-e [ --exclude ] arg**      -- specifies a path to exclude (can be
-                                    repeated), paths are taken to be relative to
-                                    the root of the repository;
- * **--prefix arg**              -- prefix to be added to relative path of
-                                    sources;
- * **--ref-name arg**            -- forces custom ref name;
- * **-c [ --capture-worktree ]** -- make a dangling commit if working directory
-                                    is dirty.
+ * **-h [ -\-help ]**             -- display help message;
+ * **-v [ -\-verbose ]**          -- print output of external commands;
+ * **-e [ -\-exclude ] arg**      -- specifies a path to exclude (can be
+                                     repeated), paths are taken to be relative
+                                     to the root of the repository;
+ * **-\-prefix arg**              -- prefix to be added to relative path of
+                                     sources;
+ * **-\-ref-name arg**            -- forces custom ref name;
+ * **-c [ -\-capture-worktree ]** -- make a dangling commit if working directory
+                                     is dirty.
 
 To do its work this subcommand invokes `gcov` and then parses its output in
 intermediate format, which is only mostly stable so usage with some versions of

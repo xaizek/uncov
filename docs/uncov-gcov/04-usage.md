@@ -14,9 +14,9 @@ find . -name '*.gcda' -delete
 # generage coverage for every object file found (change "." to build root)
 find . -name '*.o' -exec gcov -p {} +
 
-# generage and combine coverage reports (--capture-worktree automatically
+# generage and combine coverage reports (-\-capture-worktree automatically
 # makes stray commit if repository is dirty)
-uncov-gcov --root . --no-gcov --capture-worktree --exclude tests | uncov new
+uncov-gcov -\-root . -\-no-gcov -\-capture-worktree -\-exclude tests | uncov new
 
 # remove coverage reports
 find . -name '*.gcov' -delete
