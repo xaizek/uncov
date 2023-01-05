@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__ITEMTABLE_HPP__
-#define UNCOV__ITEMTABLE_HPP__
+#ifndef UNCOV_TABLEPRINTER_HPP_
+#define UNCOV_TABLEPRINTER_HPP_
 
 #include <iosfwd>
 #include <string>
@@ -113,4 +113,4 @@ private:
     std::vector<std::vector<std::string>> items;
 };
 
-#endif // UNCOV__ITEMTABLE_HPP__
+#endif // UNCOV_TABLEPRINTER_HPP_

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__FILEPRINTER_HPP__
-#define UNCOV__FILEPRINTER_HPP__
+#ifndef UNCOV_FILEPRINTER_HPP_
+#define UNCOV_FILEPRINTER_HPP_
 
 #include <srchilite/sourcehighlight.h>
 #include <srchilite/langmap.h>
@@ -201,4 +201,4 @@ private:
     srchilite::LangMap langMap;
 };
 
-#endif // UNCOV__FILEPRINTER_HPP__
+#endif // UNCOV_FILEPRINTER_HPP_

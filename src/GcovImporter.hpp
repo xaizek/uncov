@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__GCOVIMPORTER_HPP__
-#define UNCOV__GCOVIMPORTER_HPP__
+#ifndef UNCOV_GCOVIMPORTER_HPP_
+#define UNCOV_GCOVIMPORTER_HPP_
 
 #include <boost/filesystem/path.hpp>
 
@@ -224,4 +224,4 @@ private:
     std::string prefix;
 };
 
-#endif // UNCOV__GCOVIMPORTER_HPP__
+#endif // UNCOV_GCOVIMPORTER_HPP_

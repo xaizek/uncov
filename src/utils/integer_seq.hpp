@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__UTILS__INTEGER_SEQ_HPP__
-#define UNCOV__UTILS__INTEGER_SEQ_HPP__
+#ifndef UNCOV_UTILS_INTEGER_SEQ_HPP_
+#define UNCOV_UTILS_INTEGER_SEQ_HPP_
 
 #include <cstddef>
 
@@ -94,4 +94,4 @@ struct Idx<T, Ts...>
 template <typename... Ts>
 using index_sequence_for = typename Idx<Ts...>::type;
 
-#endif // UNCOV__UTILS__INTEGER_SEQ_HPP__
+#endif // UNCOV_UTILS_INTEGER_SEQ_HPP_

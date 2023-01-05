@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__INVOCATION_HPP__
-#define UNCOV__INVOCATION_HPP__
+#ifndef UNCOV_INVOCATION_HPP_
+#define UNCOV_INVOCATION_HPP_
 
 #include <string>
 #include <vector>
@@ -108,4 +108,4 @@ private:
     bool printVersion = false;
 };
 
-#endif // UNCOV__INVOCATION_HPP__
+#endif // UNCOV_INVOCATION_HPP_

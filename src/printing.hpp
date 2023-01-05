@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__PRINTING_HPP__
-#define UNCOV__PRINTING_HPP__
+#ifndef UNCOV_PRINTING_HPP_
+#define UNCOV_PRINTING_HPP_
 
 #include <cstddef>
 #include <ctime>
@@ -233,4 +233,4 @@ std::ostream & operator<<(std::ostream &os, const ColorCane &cc);
  */
 std::ostream & operator<<(std::ostream &os, const ColorCanePiece &piece);
 
-#endif // UNCOV__PRINTING_HPP__
+#endif // UNCOV_PRINTING_HPP_

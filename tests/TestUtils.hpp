@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__TESTS__TESTUTILS_HPP__
-#define UNCOV__TESTS__TESTUTILS_HPP__
+#ifndef UNCOV_TESTS_TESTUTILS_HPP_
+#define UNCOV_TESTS_TESTUTILS_HPP_
 
 #include <iosfwd>
 #include <sstream>
@@ -169,4 +169,4 @@ void makeGz(const std::string &path, const std::string &contents);
  */
 void removeChars(std::string &str, char c);
 
-#endif // UNCOV__TESTS__TESTUTILS_HPP__
+#endif // UNCOV_TESTS_TESTUTILS_HPP_

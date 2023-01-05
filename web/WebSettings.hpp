@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__WEB__WEBSETTINGS_HPP__
-#define UNCOV__WEB__WEBSETTINGS_HPP__
+#ifndef UNCOV_WEB_WEBSETTINGS_HPP_
+#define UNCOV_WEB_WEBSETTINGS_HPP_
 
 #include "Settings.hpp"
 
@@ -41,4 +41,4 @@ public: // PrintingSettings and FilePrinterSettings
     }
 };
 
-#endif // UNCOV__WEB__WEBSETTINGS_HPP__
+#endif // UNCOV_WEB_WEBSETTINGS_HPP_

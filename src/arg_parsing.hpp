@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__ARG_PARSING_HPP__
-#define UNCOV__ARG_PARSING_HPP__
+#ifndef UNCOV_ARG_PARSING_HPP_
+#define UNCOV_ARG_PARSING_HPP_
 
 #include <boost/optional.hpp>
 #include <boost/variant/variant_fwd.hpp>
@@ -317,4 +317,4 @@ tryParse(const std::vector<std::string> &args, Lst<Types...> /*form*/)
     return detail::tryParse<Types...>(args, 0U);
 }
 
-#endif // UNCOV__ARG_PARSING_HPP__
+#endif // UNCOV_ARG_PARSING_HPP_

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__COLORCANE_HPP__
-#define UNCOV__COLORCANE_HPP__
+#ifndef UNCOV_COLORCANE_HPP_
+#define UNCOV_COLORCANE_HPP_
 
 #include <boost/utility/string_ref.hpp>
 
@@ -88,4 +88,4 @@ private:
     Pieces pieces; //!< Collection of pieces.
 };
 
-#endif // UNCOV__COLORCANE_HPP__
+#endif // UNCOV_COLORCANE_HPP_

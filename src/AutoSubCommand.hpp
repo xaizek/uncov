@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__AUTOSUBCOMMAND_HPP__
-#define UNCOV__AUTOSUBCOMMAND_HPP__
+#ifndef UNCOV_AUTOSUBCOMMAND_HPP_
+#define UNCOV_AUTOSUBCOMMAND_HPP_
 
 #include <functional>
 #include <iostream>
@@ -241,4 +241,4 @@ AutoSubCommand<C>::printHelp(std::ostream &os, const std::string &alias) const
     detail::printHelpMsg(os, alias, typename C::callForms{});
 }
 
-#endif // UNCOV__AUTOSUBCOMMAND_HPP__
+#endif // UNCOV_AUTOSUBCOMMAND_HPP_

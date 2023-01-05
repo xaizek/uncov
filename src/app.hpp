@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__APP_H__
-#define UNCOV__APP_H__
+#ifndef UNCOV_APP_HPP_
+#define UNCOV_APP_HPP_
 
 #include <string>
 
@@ -57,4 +57,4 @@ std::string getDatabaseFile();
  */
 std::string pickDataPath(const Repository &repo);
 
-#endif // UNCOV__APP_H__
+#endif // UNCOV_APP_HPP_

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__SETTINGS_HPP__
-#define UNCOV__SETTINGS_HPP__
+#ifndef UNCOV_SETTINGS_HPP_
+#define UNCOV_SETTINGS_HPP_
 
 #include <string>
 
@@ -119,4 +119,4 @@ private:
     int foldContext = 1;
 };
 
-#endif // UNCOV__SETTINGS_HPP__
+#endif // UNCOV_SETTINGS_HPP_

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__FILECOMPARATOR_HPP__
-#define UNCOV__FILECOMPARATOR_HPP__
+#ifndef UNCOV_FILECOMPARATOR_HPP_
+#define UNCOV_FILECOMPARATOR_HPP_
 
 #include <deque>
 #include <string>
@@ -172,4 +172,4 @@ private:
     std::deque<DiffLine> diffSeq; //!< Generated diff output.
 };
 
-#endif // UNCOV__FILECOMPARATOR_HPP__
+#endif // UNCOV_FILECOMPARATOR_HPP_

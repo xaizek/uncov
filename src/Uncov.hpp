@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__UNCOV_HPP__
-#define UNCOV__UNCOV_HPP__
+#ifndef UNCOV_UNCOV_HPP_
+#define UNCOV_UNCOV_HPP_
 
 #include <map>
 #include <string>
@@ -72,4 +72,4 @@ private:
     std::map<std::string, SubCommand *> cmds;
 };
 
-#endif // UNCOV__UNCOV_HPP__
+#endif // UNCOV_UNCOV_HPP_

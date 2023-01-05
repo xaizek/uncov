@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__BUILDHISTORY_HPP__
-#define UNCOV__BUILDHISTORY_HPP__
+#ifndef UNCOV_BUILDHISTORY_HPP_
+#define UNCOV_BUILDHISTORY_HPP_
 
 #include <boost/optional/optional_fwd.hpp>
 
@@ -332,4 +332,4 @@ private:
     mutable std::unordered_map<std::string, File> files; //!< Cached files.
 };
 
-#endif // UNCOV__BUILDHISTORY_HPP__
+#endif // UNCOV_BUILDHISTORY_HPP_

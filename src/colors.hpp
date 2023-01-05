@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__COLORS_HPP__
-#define UNCOV__COLORS_HPP__
+#ifndef UNCOV_COLORS_HPP_
+#define UNCOV_COLORS_HPP_
 
 //! Possible highlighting groups.
 enum class ColorGroup
@@ -39,4 +39,4 @@ enum class ColorGroup
     ErrorMsg,      //!< Error message in output.
 };
 
-#endif // UNCOV__COLORS_HPP__
+#endif // UNCOV_COLORS_HPP_

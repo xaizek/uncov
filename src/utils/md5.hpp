@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__UTILS__MD5_HPP__
-#define UNCOV__UTILS__MD5_HPP__
+#ifndef UNCOV_UTILS_MD5_HPP_
+#define UNCOV_UTILS_MD5_HPP_
 
 #include <string>
 
@@ -34,4 +34,4 @@
  */
 std::string md5(const std::string &str);
 
-#endif // UNCOV__UTILS__MD5_HPP__
+#endif // UNCOV_UTILS_MD5_HPP_

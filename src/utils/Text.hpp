@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__UTILS__TEXT_HPP__
-#define UNCOV__UTILS__TEXT_HPP__
+#ifndef UNCOV_UTILS_TEXT_HPP_
+#define UNCOV_UTILS_TEXT_HPP_
 
 #include <cstddef>
 
@@ -91,4 +91,4 @@ private:
     std::vector<std::string> lines;
 };
 
-#endif // UNCOV__UTILS__TEXT_HPP__
+#endif // UNCOV_UTILS_TEXT_HPP_

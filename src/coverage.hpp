@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__COVERAGE_HPP__
-#define UNCOV__COVERAGE_HPP__
+#ifndef UNCOV_COVERAGE_HPP_
+#define UNCOV_COVERAGE_HPP_
 
 #include <string>
 
@@ -144,4 +144,4 @@ private:
     int relevantChange;   //!< Change of relevant lines in lines.
 };
 
-#endif // UNCOV__COVERAGE_HPP__
+#endif // UNCOV_COVERAGE_HPP_

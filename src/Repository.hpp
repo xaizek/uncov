@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__REPOSITORY_HPP__
-#define UNCOV__REPOSITORY_HPP__
+#ifndef UNCOV_REPOSITORY_HPP_
+#define UNCOV_REPOSITORY_HPP_
 
 #include <string>
 #include <unordered_map>
@@ -172,4 +172,4 @@ public:
     git_repository *repo;
 };
 
-#endif // UNCOV__REPOSITORY_HPP__
+#endif // UNCOV_REPOSITORY_HPP_

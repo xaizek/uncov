@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__DECORATION_HPP__
-#define UNCOV__DECORATION_HPP__
+#ifndef UNCOV_DECORATION_HPP_
+#define UNCOV_DECORATION_HPP_
 
 #include <memory>
 #include <iosfwd>
@@ -185,4 +185,4 @@ void disableDecorations();
 
 }
 
-#endif // UNCOV__DECORATION_HPP__
+#endif // UNCOV_DECORATION_HPP_

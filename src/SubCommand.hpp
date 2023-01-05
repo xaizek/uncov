@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UNCOV__SUBCOMMAND_HPP__
-#define UNCOV__SUBCOMMAND_HPP__
+#ifndef UNCOV_SUBCOMMAND_HPP_
+#define UNCOV_SUBCOMMAND_HPP_
 
 #include <cstddef>
 
@@ -260,4 +260,4 @@ private:
     Uncov *uncovValue = nullptr;       //!< Application.
 };
 
-#endif // UNCOV__SUBCOMMAND_HPP__
+#endif // UNCOV_SUBCOMMAND_HPP_
