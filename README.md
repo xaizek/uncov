@@ -78,6 +78,8 @@ Expected to work in Unix-like environments.
 * (optional) [python][python] for collecting coverage for C and C++ using
   `uncov-gcov` instead of a subcommand.
 
+Install prerequisites on Ubuntu: `apt install -y make clang pandoc zlib1g-dev libsqlite3-dev libboost1.74-all-dev libsource-highlight-dev libgit2-dev libcxxtools-dev libtntnet-dev`
+
 ## Usage ##
 
 Using subcommand (should be faster and less problematic):
