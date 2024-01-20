@@ -76,7 +76,7 @@ Expected to work in Unix-like environments.
 * (optional) [tntnet][tntnet] for Web-UI.
 * (optional) [pandoc][pandoc] for regenerating man page.
 * (optional) [python][python] for collecting coverage for C and C++ using
-  `uncov-gcov` instead of a subcommand.
+  deprecated `uncov-gcov` instead of a subcommand.
 
 ### Ubuntu packages ###
 
@@ -99,7 +99,7 @@ Using subcommand (should be faster and less problematic):
     # worktree is dirty)
     uncov new-gcovi --exclude tests/ --exclude web/ --capture-worktree
 
-Using a Python script:
+Using deprecated Python script:
 
     # reset coverage counters from previous runs
     find . -name '*.gcda' -delete
