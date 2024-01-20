@@ -28,6 +28,8 @@
 #include <boost/range.hpp>
 #include <boost/variant.hpp>
 
+#include <cstdint>
+
 #include <functional>
 #include <iterator>
 #include <memory>
