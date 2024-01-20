@@ -1,6 +1,6 @@
-**uncov**, _v0.5_, _2016 – 2022_
+**uncov**, _v0.5_, _2016 – 2024_
 
-_This file last updated on 18 November, 2022_
+_This file last updated on 20 January, 2024_
 
 1. [Description](#description)
 2. [Supported Environment](#supported-environment)
@@ -78,7 +78,15 @@ Expected to work in Unix-like environments.
 * (optional) [python][python] for collecting coverage for C and C++ using
   `uncov-gcov` instead of a subcommand.
 
-Install prerequisites on Ubuntu: `apt install -y make clang pandoc zlib1g-dev libsqlite3-dev libboost1.74-all-dev libsource-highlight-dev libgit2-dev libcxxtools-dev libtntnet-dev`
+### Ubuntu packages ###
+
+```
+apt install -y make clang zlib1g-dev libsqlite3-dev libboost1.74-all-dev libsource-highlight-dev libgit2-dev
+# optionally, if you want to build Web-UI
+apt install -y libcxxtools-dev libtntnet-dev`
+# optionally, if you intent to edit docs/*/*.md
+apt install -y pandoc
+```
 
 ## Usage ##
 
