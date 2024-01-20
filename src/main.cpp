@@ -35,5 +35,9 @@ main(int argc, char *argv[])
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;
+    } catch (...) {
+        std::cerr << "Unexpected exception\n";
+        // Rethrow it to see its message.
+        throw;
     }
 }
