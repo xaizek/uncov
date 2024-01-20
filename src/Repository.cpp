@@ -153,7 +153,10 @@ Repository::Repository(const std::string &path)
     BOOST_SCOPE_EXIT_ALL(&repoPath) { git_buf_free(&repoPath); };
 
     if (git_repository_open(&repo, repoPath.ptr) != 0) {
-        throw std::invalid_argument("Could not open repository");
+        const git_error *error = git_error_last();
+        throw std::invalid_argument("Could not open repository at '" +
+                                    std::string(repoPath.ptr) +
+                                    "': " + error->message);
     }
 }
 
