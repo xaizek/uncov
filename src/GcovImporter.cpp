@@ -198,7 +198,7 @@ GcovImporter::GcovImporter(const std::string &root,
                 it.no_push();
                 continue;
             }
-        } else if (fs::is_regular(path)) {
+        } else if (fs::is_regular_file(path)) {
             // We are looking for *.gcno and not *.gcda, because they are
             // generated even for files that weren't executed (e.g.,
             // `main.cpp`).
@@ -351,7 +351,7 @@ GcovImporter::importAsFiles(std::vector<fs::path> gcnoFiles)
         for (fs::recursive_directory_iterator it(tempDirPath), end;
              it != end; ++it) {
             fs::path path = it->path();
-            if (fs::is_regular(path) &&
+            if (fs::is_regular_file(path) &&
                 boost::ends_with(path.filename().string(), gcovFileExt)) {
                 if (gcovInfo.hasJsonFormat()) {
                     parseGcovJsonGz(path.string());
