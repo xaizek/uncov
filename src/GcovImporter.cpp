@@ -23,6 +23,10 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 107200
+#  include <boost/filesystem/directory.hpp>
+#endif
 
 #include <cassert>
 

@@ -20,6 +20,9 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/range.hpp>
+#if BOOST_VERSION >= 107200
+#  include <boost/filesystem/directory.hpp>
+#endif
 
 #include <algorithm>
 #include <fstream>
