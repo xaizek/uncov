@@ -34,6 +34,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -111,6 +112,33 @@ namespace {
         //! Files of this bin.
         std::vector<std::string> paths;
     };
+
+    //
+    // Work around Boost renaming no_push() to disable_recursion_pending() and
+    // eventually dropping the former by providing a wrapper that prefers the
+    // latter.
+    //
+
+    template <typename T>
+    constexpr decltype(std::declval<T>().disable_recursion_pending(), bool())
+    useNoPush(int)
+    { return false; }
+
+    template <typename T>
+    constexpr bool useNoPush(long)
+    { return true; }
+
+    template <typename DT = fs::recursive_directory_iterator>
+    typename std::enable_if<useNoPush<DT>(0)>::type stop_recursion(DT &it)
+    {
+        it.no_push();
+    }
+
+    template <typename DT = fs::recursive_directory_iterator>
+    typename std::enable_if<!useNoPush<DT>(0)>::type stop_recursion(DT &it)
+    {
+        it.disable_recursion_pending();
+    }
 }
 
 GcovInfo::GcovInfo()
@@ -195,7 +223,7 @@ GcovImporter::GcovImporter(const std::string &root,
         fs::path path = it->path();
         if (fs::is_directory(path)) {
             if (skipDirs.count(path.filename().string())) {
-                it.no_push();
+                stop_recursion(it);
                 continue;
             }
         } else if (fs::is_regular_file(path)) {
@@ -214,9 +242,9 @@ GcovImporter::GcovImporter(const std::string &root,
         fs::path path = it->path();
         if (fs::is_directory(path)) {
             if (skipDirs.count(path.filename().string())) {
-                it.no_push();
+                stop_recursion(it);
             } else if (skipPaths.count(normalizePath(fs::absolute(path)))) {
-                it.no_push();
+                stop_recursion(it);
             }
         } else if (extensions.count(path.extension().string())) {
             std::string filePath = makeRelativePath(rootDir, path).string();
