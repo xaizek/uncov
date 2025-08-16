@@ -50,7 +50,7 @@ typename std::enable_if<vectorArgs<T>::value, void>::type
 setArgs(T &mt, const std::map<std::string, std::string> &args)
 {
     std::vector<std::string> argsVector;
-    for (const auto entry : args) {
+    for (const auto &entry : args) {
         argsVector.push_back(entry.first + '=' + entry.second);
     }
     mt.setArgs(argsVector);
