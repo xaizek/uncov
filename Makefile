@@ -2,7 +2,6 @@ CXXFLAGS += -std=gnu++11 -Wall -Wextra -MMD -MP -I$(abspath src)
 CXXFLAGS += -Wno-non-template-friend -include config.h
 LDFLAGS  += $(ld_extra) -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_program_options
-LDFLAGS  += -lboost_system
 
 INSTALL := install -D
 
