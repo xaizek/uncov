@@ -247,7 +247,7 @@ clean:
 	       $(web_temps) \
 	       $(bin) $(webbin) $(out_dir)/tests/tests \
 	       tests/test-repo-gcno/test-repo-gcno \
-	       tests/test-repo-gcno/test-repo-gcno.gcda \
-	       tests/test-repo-gcno/test-repo-gcno.gcno
+	       tests/test-repo-gcno/*.gcda \
+	       tests/test-repo-gcno/*.gcno
 
 include $(wildcard $(bin_depends) $(tests_depends) $(web_depends))
