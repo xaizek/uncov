@@ -47,7 +47,7 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 
 <%cpp>
     const std::string buildIdStr = request.getArg("buildId");
-    const int buildId = [&request, &buildIdStr]() {
+    const int buildId = [&buildIdStr]() {
         try {
             return std::stoi(buildIdStr);
         } catch (const std::exception &) {
