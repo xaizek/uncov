@@ -127,9 +127,9 @@ main(int argc, char *argv[]) try
     setArgs(app.vMapUrl(vhost, "^/badges/svg/(.*)$",
                         Maptarget("badge")),
             {{ "branch", "$1" }});
-    app.vMapUrl(vhost, "^/style.css", Maptarget("style"));
-    app.vMapUrl(vhost, "^/favicon.ico", Maptarget("favicon"));
-    app.vMapUrl(vhost, "^/robots.txt", Maptarget("robots"));
+    app.vMapUrl(vhost, "^/style.css", Maptarget("style.css"));
+    app.vMapUrl(vhost, "^/favicon.ico", Maptarget("favicon.ico"));
+    app.vMapUrl(vhost, "^/robots.txt", Maptarget("robots.txt"));
     app.run();
 } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
