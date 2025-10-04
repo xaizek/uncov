@@ -83,7 +83,7 @@ Expected to work in Unix-like environments.
 ```
 apt install -y make clang zlib1g-dev libsqlite3-dev libboost1.74-all-dev libsource-highlight-dev libgit2-dev
 # optionally, if you want to build Web-UI
-apt install -y libcxxtools-dev libtntnet-dev`
+apt install -y libcxxtools-dev libtntnet-dev
 # optionally, if you intent to edit docs/*/*.md
 apt install -y pandoc
 ```
