@@ -20,7 +20,7 @@ environment:
     - BUILDENV: ubuntu
       CC: ccache clang
       CXX: ccache clang++
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2204
     - BUILDENV: ubuntu
       CC: ccache gcc
       CXX: ccache g++
