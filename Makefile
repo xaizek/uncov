@@ -3,6 +3,11 @@ CXXFLAGS += -Wno-non-template-friend -include config.h
 LDFLAGS  += $(ld_extra) -g -lsqlite3 -lgit2 -lsource-highlight -lz
 LDFLAGS  += -lboost_filesystem -lboost_iostreams -lboost_program_options
 
+# this allows customizing which g++ gets called to work around mismatch between
+# gcc and gcov versions that cause a failure in tests due to incompatible
+# formats
+GXX ?= g++
+
 INSTALL := install -D
 
 PREFIX := /usr
@@ -189,7 +194,7 @@ check: $(target) $(out_dir)/tests/tests tests/test-repo-gcno/test-repo-gcno \
 tests/test-repo-gcno/test-repo-gcno: tests/test-repo-gcno/main.cpp
 	# this must always be compiled with GCC for gcov to be able to process
 	# output files (need a separate variable for it?)
-	cd tests/test-repo-gcno/ && g++ --coverage -o test-repo-gcno main.cpp
+	cd tests/test-repo-gcno/ && $(GXX) --coverage -o test-repo-gcno main.cpp
 
 install: release
 	$(INSTALL) -t $(DESTDIR)$(PREFIX)/bin/ $(bin) $(webbin) uncov-gcov

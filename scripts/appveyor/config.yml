@@ -21,6 +21,7 @@ environment:
       CC: ccache clang
       CXX: ccache clang++
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2204
+      GXX: g++-11
     - BUILDENV: ubuntu
       CC: ccache gcc
       CXX: ccache g++
