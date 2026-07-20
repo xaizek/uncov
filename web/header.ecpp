@@ -2,4 +2,6 @@
     static_cast<void>(request);
 </%cpp>
 
+<meta name="robots" content="noindex, nofollow"/>
+
 <link rel="stylesheet" type="text/css" href="/style.css">
