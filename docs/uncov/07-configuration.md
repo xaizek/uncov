@@ -48,3 +48,7 @@ Number of visible lines above and below changes.
 **diff-show-lineno** (boolean, **uncov**: false, **uncov-web**: true)
 
 Whether line numbers are displayed in diffs.
+
+**build-count** (integer, **uncov**: 10, **uncov-web**: 0)
+
+Number of builds to show by default.  The value of zero means "unlimited".

@@ -24,9 +24,11 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
     #include <boost/range/adaptor/reversed.hpp>
 
     #include "BuildHistory.hpp"
+    #include "Settings.hpp"
     #include "listings.hpp"
 
     extern BuildHistory *globalBH;
+    extern Settings *globalSettings;
 </%pre>
 
 <%cpp>
@@ -81,6 +83,8 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
 %                             ? globalBH->getBuilds()
 %                             : globalBH->getBuildsOn(branch);
 %   namespace adaptors = boost::adaptors;
+%   const unsigned int maxBuildCount = globalSettings->getBuildCount();
+%   unsigned int i = 0;
 %   for (const Build &build : adaptors::reverse(builds)) {
         <tr>
 %       const std::vector<std::string> descr = describeBuild(globalBH, build,
@@ -105,6 +109,12 @@ along with uncov.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </td>
         </tr>
+%       if (++i == maxBuildCount && builds.size() - i > 1) {
+            <tr>
+                <td class="note" colspan="6"><$ builds.size() - i $> more builds were omitted</td>
+            </tr>
+%           break;
+%       }
 %   }
 
     </table>

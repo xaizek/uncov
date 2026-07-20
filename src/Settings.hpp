@@ -40,6 +40,16 @@ public:
     // Loads some of the settings from file.  Does nothing if it doesn't exist.
     void loadFromFile(const std::string &path);
 
+    /**
+     * @brief Retrieves number of builds to show by default.
+     *
+     * @returns The number, which is 0 when there is no limit.
+     */
+    virtual int getBuildCount() const
+    {
+        return buildCount;
+    }
+
 public: // PrintingSettings only
     virtual std::string getTimeFormat() const override
     {
@@ -104,6 +114,13 @@ protected:
      */
     void setPrintLineNoInDiff(bool value);
 
+    /**
+     * @brief Sets number of builds to show by default.
+     *
+     * @param value New value of the limit, use 0 for "unlimited".
+     */
+    void setBuildCount(int value);
+
 private:
     //! Percentage boundary between low and medium coverage.
     float medLimit = 70.0f;
@@ -117,6 +134,8 @@ private:
     bool diffShowLineNo = false;
     //! Number of visible lines above and below interesting lines.
     int foldContext = 1;
+    //! Number of builds to show by default, 0 means "unlimited".
+    int buildCount = 10;
 };
 
 #endif // UNCOV_SETTINGS_HPP_

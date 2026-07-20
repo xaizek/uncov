@@ -82,6 +82,10 @@ td:nth-child(1), th:nth-child(1) {
     text-align: left;
 }
 
+td.note, td:nth-child(1).note {
+    text-align: center;
+}
+
 pre {
     line-height: 125%;
 }

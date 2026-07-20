@@ -29,7 +29,8 @@ operator==(const Settings &lhs, const Settings &rhs)
         && lhs.printLineNoInDiff() == rhs.printLineNoInDiff()
         && lhs.getMinFoldSize() == rhs.getMinFoldSize()
         && lhs.getFoldContext() == rhs.getFoldContext()
-        && lhs.isHtmlOutput() == rhs.isHtmlOutput();
+        && lhs.isHtmlOutput() == rhs.isHtmlOutput()
+        && lhs.getBuildCount() == rhs.getBuildCount();
 }
 
 TEST_CASE("Loading from nonexistent file doesn't change anything", "[Settings]")
@@ -61,6 +62,7 @@ TEST_CASE("Settings from correct config are applied", "[Settings]")
     CHECK(settings.getTabSize() == 4);
     CHECK(settings.getMinFoldSize() == 3);
     CHECK(settings.getFoldContext() == 1);
+    CHECK(settings.getBuildCount() == 10);
     CHECK(!settings.printLineNoInDiff());
 
     settings.loadFromFile("tests/test-configs/correct.ini");
@@ -69,6 +71,7 @@ TEST_CASE("Settings from correct config are applied", "[Settings]")
     CHECK(settings.getTabSize() == 2);
     CHECK(settings.getMinFoldSize() == 4);
     CHECK(settings.getFoldContext() == 3);
+    CHECK(settings.getBuildCount() == 13);
     CHECK(settings.printLineNoInDiff());
 }
 
@@ -104,5 +107,6 @@ TEST_CASE("Invalid values are handled sensibly", "[Settings]")
         CHECK(settings.getTabSize() == 1);
         CHECK(settings.getMinFoldSize() == 1);
         CHECK(settings.getFoldContext() == 0);
+        CHECK(settings.getBuildCount() == 0);
     }
 }

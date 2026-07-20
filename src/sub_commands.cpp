@@ -334,9 +334,9 @@ private:
     execImpl(const std::string &alias,
              const std::vector<std::string> &args) override
     {
-        // By default limit number of builds to display to 10.
+        // By default limit number of builds to a configurable number.
         bool limitBuilds = true;
-        unsigned int maxBuildCount = 10;
+        unsigned int maxBuildCount = settings->getBuildCount();
         if (tryParse(args, noArgsForm{})) {
             // Nothing needs to be done, variable defaults are getting used.
         } else if (auto parsed = tryParse(args, limitForm{})) {

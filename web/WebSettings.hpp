@@ -26,6 +26,7 @@ public:
     {
         setMinFoldSize(4);
         setPrintLineNoInDiff(true);
+        setBuildCount(0);
     }
 
 public: // FilePrinterSettings only

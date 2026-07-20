@@ -44,6 +44,7 @@ Settings::loadFromFile(const std::string &path)
     setMinFoldSize(props.get<int>("min-fold-size", minFoldSize));
     foldContext = props.get<int>("fold-context", foldContext);
     setPrintLineNoInDiff(props.get<bool>("diff-show-lineno", diffShowLineNo));
+    setBuildCount(props.get<int>("build-count", buildCount));
 
     medLimit = std::max(0.0f, std::min(100.0f, medLimit));
     hiLimit = std::max(0.0f, std::min(100.0f, hiLimit));
@@ -65,4 +66,10 @@ void
 Settings::setPrintLineNoInDiff(bool value)
 {
     diffShowLineNo = value;
+}
+
+void
+Settings::setBuildCount(int value)
+{
+    buildCount = std::max(0, value);
 }
